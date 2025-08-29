@@ -1,0 +1,4 @@
+## auth0
+auth0_domain         = "TENANT.REGION.auth0.com"
+auth0_tf_client_id   = "xxx"
+
