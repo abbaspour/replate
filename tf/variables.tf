@@ -19,3 +19,9 @@ variable "auth0_tf_client_assertion_signing_alg" {
   description = "Algorithm used for signing client assertion"
   default = "PS256"
 }
+
+# HubSpot
+variable "hubspot_private_app_token" {
+  type      = string
+  sensitive = true
+}
