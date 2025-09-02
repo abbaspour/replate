@@ -9,34 +9,30 @@ terraform {
       source  = "Mastercard/restapi"
       version = ">= 2.0.1"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.5"
+    }
   }
 }
 
 provider "auth0" {
-  domain                      = var.auth0_domain
-  client_id                   = var.auth0_tf_client_id
+  domain                       = var.auth0_domain
+  client_id                    = var.auth0_tf_client_id
   client_assertion_signing_alg = var.auth0_tf_client_assertion_signing_alg
   client_assertion_private_key = file(var.auth0_tf_client_assertion_private_key_file)
 }
 
 provider "restapi" {
-  uri                    = "https://api.hubapi.com"
+  uri = "https://api.airtable.com"
 
   headers = {
-    Authorization = "Bearer ${var.hubspot_private_app_token}"
+    Authorization = "Bearer ${var.airtable_personal_access_token}"
     Content-Type  = "application/json"
   }
 
-  # HubSpot props: POST/GET/PATCH/DELETE
-  create_method          = "POST"
-  read_method            = "GET"
-  update_method          = "PATCH"
-  destroy_method         = "DELETE"
+  id_attribute = "id"
 
-  # Use property `name` as the resource ID (e.g., /contacts/{name})
-  id_attribute           = "name"
-
-  # HubSpot returns full objects on writes; let the provider read IDs from responses
-  write_returns_object   = true
+  write_returns_object = true
 }
 
