@@ -1,3 +1,4 @@
+# Auth0
 variable "auth0_domain" {
   description = "The Auth0 tenant domain (e.g., your-tenant.us.auth0.com)"
   type        = string
@@ -18,4 +19,16 @@ variable "auth0_tf_client_assertion_signing_alg" {
   type = string
   description = "Algorithm used for signing client assertion"
   default = "PS256"
+}
+
+# Airtable
+variable "airtable_personal_access_token" {
+  type        = string
+  description = "Your Airtable Personal Access Token with schema editing permissions."
+  sensitive   = true
+}
+
+variable "airtable_base_id" {
+  type        = string
+  description = "The ID of the Airtable Base you want to provision the tables in (e.g., 'appXXXXXXXXXXXXXX')."
 }

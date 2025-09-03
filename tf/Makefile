@@ -4,6 +4,8 @@ SHELL := /bin/bash
 
 all: plan
 
+LOG_LEVEL='DEBUG'
+
 generate-keys: terraform-jwt-ca-public.pem
 
 terraform-jwt-ca-private.pem:
@@ -21,4 +23,4 @@ plan:
 	terraform plan
 
 apply:
-	terraform init -input=false && terraform apply -auto-approve
+	@TF_LOG=$(LOG_LEVEL) terraform init -input=false && terraform apply -auto-approve
