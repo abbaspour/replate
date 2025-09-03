@@ -27,7 +27,7 @@ We have a high-level working prototype that's built on top of the following inte
 
 -   Websites, including static `www.` websites and two SPA websites `donor.` (for consumers) and `app.` (for businesses), are all hosted on Cloudflare workers.
 -   Auth0 for CIAM
--   Airtable for our core operational database and CRM
+-   Cloudflare D1 for our core operational database and CRM
 -   Terraform for platform provisioning
 -   [ReactAdmin](https://marmelab.com/react-admin/) is a front-end SPA technology for business website `app.`
 -   Client side React is a front-end SPA technology for consumer website `donor.`
@@ -42,13 +42,16 @@ We have a high-level working prototype that's built on top of the following inte
 -   **tf/** Terraform scripts to provision project in Cloudflare, Auth0 and other platforms
 -   **websites/** static website contents
     -   **websites/replate.dev** static website for www.replate.dev
-    -   **websites/reuse.dev** static website for reuse.dev
+    -   **websites/reuse.dev** static website for www.reuse.dev
 -   **consumer/** Consumer user App and API
     -   **consumer/donor** single page application (SPA) with React and Auth0 SDK for consumer users
     -   **consumer/api** APIs that power donor app built with Hono SDK running on top of Cloudflare ESM worker
 -   **business/** Business user App and API
     -   **app/** single page application (SPA) with ReactAdmin and Auth0 SDK for business users
     -   **business/api** server-side API protected by access_token issued by Auth0 and built with Hono SDK running on top of Cloudflare ESM worker
+-   **auth0/** Auth0 configuration and supporting assets
+    -   **auth0/actions** Actions source code 
+    -   **auth0/api** contains API exposed to Auth0 for Event streaming and Actions
 -   **native/** native apps
     -   **/native/ios** native app for iOS in Swift/Auth0
     -   **/native/android** native app for Android in Kotlin/Auth0
@@ -68,6 +71,7 @@ The following are business subdomains under top-level domain name `replate.dev`:
 -   **app.** SPA app (using Auth0 SDK) that is for business user personas (see Actors section for details)
     -   **api.app.** are business APIs used by **app** subdomain; protected by CORS and Auth0 issued bearer access_token
 -   **id.** Auth0 self-managed custom domain. This is a proxy Cloudflare worker against Replate's production Auth0 tenant.
+-   **api.id.** Webhook that receives events from Auth0. Authenticate with a static bearer token and deployed as a Cloudflare worker.
 
 All subdomains are powered by Cloudflare ESM workers and Cloudflare DNS. SPA sites use workers with assets and `not_found_handling = "single-page-application"` flag.
 
@@ -93,7 +97,7 @@ Replate Admin is a member of the Replate workforce who can run business operatio
 Use cases:
 
 1.  **Onboard** new supplier, community or logistics organization; Admin does this by calling Auth0 API for self-service SSO.
-2.  In the app, users can see a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and fetched by calling the Auth0 management API.
+2.  In the app, admin users can see a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and fetched by calling the Auth0 management API.
 
 ### Supplier Admin
 
@@ -144,40 +148,39 @@ Community Member is a member of a community organisation in Auth0
 The API layer doesn't have a DB layer on its own. Two sources of backend for the API are:
 
 1.  Auth0 CIAM data is accessed with the Auth0 management API. To access data, the API layer has a confidential M2M client with the Auth0 management API granted and occasionally performs a client credentials grant to obtain a valid access token to call the management API.
-2.  **An Airtable Base** - The API layer has a stored secret `AIRTABLE_PERSONAL_ACCESS_TOKEN` to perform CRUD operations against our tables.
+2.  Cloudflare D1 relational database. Contains a mirror of users and organizations from Auth0 as well as other operational tables like Pickups, Suggestions, Donation. 
 
-Our Airtable Base is comprised of the following key tables:
-
-### 1) Users Table
+### 1) `Contact` Table
 
 Every person who logs into Replate is a user. This table stores all users, regardless of whether they are a business user or a consumer.
 
-Data is federated between Auth0 and Airtable. The API layer is responsible for combining this data when needed. The Auth0 `user_id` is the primary key in Auth0, and in Airtable, the `Record ID` is the primary key.
+Data is federated between Auth0 and D1. The API layer is responsible for combining this data when needed. The Auth0 `user_id` is the primary key in Auth0, and in D1, the AUTOINCREMENT Contact `id` is the primary key.
 
-The link between an Auth0 user and an Airtable record is bidirectional. In the Auth0 user profile, `app_metadata.airtable_record_id` points to their Airtable Record ID. Auth0's `user_id` is stored in a custom `auth0_user_id` field in the Airtable record.
+The link between an Auth0 user and an D1 record is bidirectional. In the Auth0 user profile, `app_metadata.contact_id` points to their D1 Contact ID. Auth0's `user_id` is stored in a custom `auth0_user_id` field in the D1 record.
 
-An Auth0 Post-User-Registration Action ensures all users have a corresponding record in Airtable. If the `app_metadata.airtable_record_id` field is missing, the Action calls the Airtable API to create a record in the `Users` table and stores the resulting Record ID in the user's `app_metadata`.
+An Auth0 Post-User-Registration Action ensures all users have a corresponding record in D1. If the `app_metadata.contact_id` field is missing, the Action calls `api.id.` API to create a record in the `Contact` table and stores the resulting Record ID in the user's `app_metadata`.
 
--   **Primary Key**: Airtable Record ID
+-   **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 -   **Fields**:
     -   `auth0_user_id` (Text, Unique)
-    -   `email` (Email)
+    -   `email` (Text)
+    -   `email_verified` (boolean)
     -   `name`, `picture` (synced from Auth0)
-    -   `persona` (Single Select: as above)
+    -   `donor` (boolean)
     -   `org_role` (Single Select: `admin`, `member`, `driver`; nullable for donors)
     -   `org_status` (Single Select: `invited`, `active`, `suspended`)
     -   `sso_enrolled` (Checkbox), `sso_provider` (Text)
     -   `consumer_lifecycle_stage` (Single Select: `visitor`, `registered`, `donor_first_time`, `donor_repeat`, `advocate`)
 -   **Associations**:
-    -   Linked to one record in the `Companies` table (for business users).
+    -   Linked to one record in the `Company` table (for business users).
 
-### 2) Companies Table
+### 2) `Company` Table
 
 Represents a Supplier, Community, or Logistics organization.
 
 Businesses are stored as organizations in Auth0. We use Auth0 Event Streams to sync organizations from Auth0 into records in this table. The company domain stored here is the same domain used for email-based HRD federation.
 
--   **Primary Key**: Airtable Record ID
+-   **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 -   **Fields**:
     -   `auth0_org_id` (Text, Unique)
     -   `org_type` (Single Select: `supplier`, `community`, `logistics`)
@@ -190,52 +193,50 @@ Businesses are stored as organizations in Auth0. We use Auth0 Event Streams to s
     -   `coverage_regions` (Long Text, for Logistics)
     -   `vehicle_types` (Multiple Select, for Logistics)
 -   **Associations**:
-    -   Linked to many records in the Users table (the members of the company).
+    -   Linked to many records in the `Contact` table (the members of the company).
     
-### 3) Donations Table
+### 3) `Donation` Table
 
 Tracks all monetary donations from consumer users (Donors).
 
--   **Primary Key**: Airtable Record ID
+-   **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 -   **Fields**:
     -   `donation_id` (Autonumber or UUID)
     -   `amount` (Currency), `currency` (Single Select), `status` (Single Select)
     -   `created_at` (Created Time)
     -   `testimonial` (Long Text)
 -   **Associations**:
-    -   Linked to one record in the `Users` table (the Donor).
+    -   Linked to one record in the `Contact` table (the Donor).
 
-### 4) Pickup Requests Table
+### 4) `Pickup` Table
 
 Tracks the entire lifecycle of a food pickup request, from creation to delivery. The `status` field can be used to create a Kanban view for operational management.
 
--   **Primary Key**: Airtable Record ID
+-   **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 -   **Fields**:
-    -   `pickup_id` (Autonumber or UUID)
     -   `type` (Single Select: `scheduled`, `ad_hoc`)
     -   `status` (Single Select pipeline: `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`, `Canceled`)
     -   `ready_at` (DateTime), `pickup_window_start` (DateTime), `pickup_window_end` (DateTime)
     -   `food_category` (Multiple Select), `estimated_weight_kg` (Number), `packaging` (Long Text), `handling_notes` (Long Text)
 -   **Associations**:
-    -   Linked to one record in `Companies` (the Supplier).
-    -   Linked to one record in `Companies` (the destination Community).
-    -   Linked to one record in `Companies` (the assigned Logistics partner).
-    -   Linked to one record in `Users` (the assigned Driver).
+    -   Linked to one record in `Company` (the Supplier).
+    -   Linked to one record in `Company` (the destination Community).
+    -   Linked to one record in `Company` (the assigned Logistics partner).
+    -   Linked to one record in `Contact` (the assigned Driver).
 
-### 5) Suggestions Table
+### 5) `Suggestion` Table
 
 Captures new leads for potential partners, submitted by consumers.
 
--   **Primary Key**: Airtable Record ID
+-   **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 -   **Fields**:
-    -   `suggestion_id` (Autonumber or UUID)
     -   `type` (Single Select: `supplier`, `community`, `logistics`)
     -   `name` (Text), `address` (Text)
     -   `submitted_at` (Created Time)
     -   `qualification_status` (Single Select: `New`, `Contacted`, `Qualified`, `Rejected`)
 -   **Associations**:
-    -   Linked to one record in `Users` (the Submitter).
-    -   (Optionally) Linked to one record in `Companies` once the suggestion is converted into a partner.
+    -   Linked to one record in `Contact` (the Submitter).
+    -   (Optionally) Linked to one record in `Company` once the suggestion is converted into a partner.
 
 ## API Contract
 
@@ -247,14 +248,14 @@ The full contract is defined in `consumer/api/openapi.yml`. All development must
 
 -   **`GET /donations`**: Retrieves the donation history for the logged-in user.
     -   **Permissions**: Requires a token with `read:donations` permission.
-    -   *Implementation*: Reads records from the `Donations` table, filtering by the User record associated with the caller's `auth0_user_id`.
+    -   **Implementation**: Reads records from the `Donation` table, filtering by the User record associated with the caller's `auth0_user_id`.
 -   **`POST /donations/create-payment-intent`**: Creates a Payment Intent.
     -   **Request Body**: `{ "amount": 50.00 }` (in dollars)
     -   **Permissions**: Authenticated user.
 -   **`POST /suggestions`**: Submits a suggestion for a new supplier/community.
     -   **Request Body**: `{ "type": "supplier", "name": "Local Bakery", "address": "456 Oak Ave" }`
     -   **Permissions**: Authenticated user.
-    -   *Implementation*: Creates a new record in the `Suggestions` table and returns its ID.
+    -   **Implementation**: Creates a new record in the `Suggestion` table and returns its ID.
 
 ### Business API
 
@@ -283,6 +284,6 @@ Sample access_token. `org_id` is nullable for donors.
   "sub": "auth0|123",
   "scope": "read:donations create:payment_intent read:organization update:organization read:pickups create:pickups",
   "org_id": "org_abc123",
-  "https://replate.dev/org_role": "admin|member|driver",
-  "https://replate.dev/persona": "donor|supplier_member|supplier_admin|community_member|community_admin|driver|logistics_admin|replate_admin"
+  "https://replate.dev/org_role": "admin|member|driver|null",
+  "https://replate.dev/donor": true|false
 }
