@@ -53,8 +53,8 @@ We have a high-level working prototype that's built on top of the following inte
     -   **auth0/actions** Actions source code 
     -   **auth0/api** contains API exposed to Auth0 for Event streaming and Actions
 -   **native/** native apps
-    -   **/native/ios** native app for iOS in Swift/Auth0
-    -   **/native/android** native app for Android in Kotlin/Auth0
+    -   **native/ios** native app for iOS in Swift/Auth0
+    -   **native/android** native app for Android in Kotlin/Auth0
 
 The source code is managed as a monorepo. Each subproject (`app/`, `donor/`, `api/`) has its own `package.json`.
 
@@ -88,7 +88,7 @@ As a donor, a user can:
 3.  Once logged in, they can **donate money** via a form. Money raised is used to support the operations of Replate
 4.  See **history** of their donations; indicating date and amount. This is for tax purposes.
 5.  **Suggest** new supplier or communities.
-6.  Donors can sign up & log in with their social account (Google, Facebook, Apple) as well as credentials.
+6.  Donors can sign up & log in with their **social account** (Google, Facebook, Apple) as well as credentials.
 
 ### Replate Admin
 
@@ -97,51 +97,52 @@ Replate Admin is a member of the Replate workforce who can run business operatio
 Use cases:
 
 1.  **Onboard** new supplier, community or logistics organization; Admin does this by calling Auth0 API for self-service SSO.
-2.  In the app, admin users can see a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and fetched by calling the Auth0 management API.
+2.  See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and fetched by calling the Auth0 management API.
 
 ### Supplier Admin
 
 Supplier Admin is a member of the supplier organisation in Auth0.
 
-1.  Accepts self-service SSO invitation from Replate Admin and completes the self-service setup against their workforce IDP.
-2.  Update the address of the supplier's pick-up location
+1.  **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their workforce IDP.
+2.  **Update the address** of the supplier's pick-up location
 
 ### Supplier Member
 
 Supplier Member is a member of a supplier organisation in Auth0.
 
-1.  Can log in to the app website with the SSO that their admin has set up. SSO is powered with HRD (Home Realm Discovery), such as when email is matched for the company domain, like `member@supplier.com`, the user is redirected to the supplier's IdP at `idp.supplier.com`
-2.  Can view and update pick-up schedule.
-3.  Can request ad-hoc pick up.
+1.  Can **log in** to the app website with the SSO that their admin has set up. SSO is powered with HRD (Home Realm Discovery), such as when email is matched for the company domain, like `member@supplier.com`, the user is redirected to the supplier's IdP at `idp.supplier.com`
+2.  Can **view and update pick-up schedule**.
+3.  Can **request ad-hoc pick up**.
 
 ### Logistics Admin
 
 Logistics Admin is a member of the logistics organisation in Auth0
 
-1.  Accepts self-service SSO invitation from Replate Admin and completes the self-service setup against their workforce IDP.
+1.  **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their workforce IDP.
+2. **Update the details** of the logistics company. 
 
 ### Driver
 
 Driver is a member of the logistics organisation in Auth0
 
-1.  Can log in to app website with the SSO that their admin has set up. SSO is powered by HRD.
-2.  Can view the list of deliveries assigned to them and their pickup location and address.
-3.  Mark delivery in progress.
-4.  Mark delivery as completed.
+1.  Can **log in** to app website with the SSO that their admin has set up. SSO is powered by HRD.
+2.  Can **view the list of deliveries** assigned to them and their pickup location and address.
+3.  Mark delivery **in progress**.
+4.  Mark delivery as **completed**.
 
 ### Community Admin
 
 Community Admin is a member of a community organisation in Auth0
 
-1.  Accepts self-service SSO invitation from Replate Admin and completes the self-service setup against their workforce IDP.
-2.  Update the address of the community's delivery location
+1.  **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their workforce IDP.
+2.  **Update the address** of the community's delivery location
 
 ### Community Member
 
 Community Member is a member of a community organisation in Auth0
 
-1.  Can log in to the app website with the SSO that their admin has set up. SSO is powered with HRD.
-2.  Can view and update the delivery schedule.
+1.  Can **log in** to the app website with the SSO that their admin has set up. SSO is powered with HRD.
+2.  Can **view and update the delivery schedule**.
 
 ## Core Data Model in Airtable
 
@@ -208,23 +209,43 @@ Tracks all monetary donations from consumer users (Donors).
 -   **Associations**:
     -   Linked to one record in the `Contact` table (the Donor).
 
-### 4) `Pickup` Table
+### 4) `PickupSchedule` Table
+This table defines the recurring pickup arrangements (i.e., "standing orders"). It acts as a template for creating individual PickupJob records.
 
-Tracks the entire lifecycle of a food pickup request, from creation to delivery. The `status` field can be used to create a Kanban view for operational management.
+-   **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
+-   **Fields:**
+  - `supplier_id` (FK to `Company` table)
+  - `default_community_id` (FK to `Company` table)
+  - `is_active` (Boolean)
+  - `cron_expression` (Text, e.g., 0 19 * * 1-5 for 7 PM on weekdays)
+  - `pickup_time_of_day` (Time)
+  - `pickup_duration_minutes` (Integer)
+  - `default_food_category` (Multiple Select)
+  - `default_estimated_weight_kg` (Number)
+- **Associations**:
+  - Linked to one record in `Company` (the Supplier).
+  - Has a one-to-many relationship with the `PickupJob` table.
 
--   **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
--   **Fields**:
-    -   `type` (Single Select: `scheduled`, `ad_hoc`)
-    -   `status` (Single Select pipeline: `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`, `Canceled`)
-    -   `ready_at` (DateTime), `pickup_window_start` (DateTime), `pickup_window_end` (DateTime)
-    -   `food_category` (Multiple Select), `estimated_weight_kg` (Number), `packaging` (Long Text), `handling_notes` (Long Text)
--   **Associations**:
-    -   Linked to one record in `Company` (the Supplier).
-    -   Linked to one record in `Company` (the destination Community).
-    -   Linked to one record in `Company` (the assigned Logistics partner).
-    -   Linked to one record in `Contact` (the assigned Driver).
+### 5) `PickupJob` Table
+This table tracks the lifecycle of a single, concrete pickup event, whether it was generated from a schedule or created as an ad-hoc request.
 
-### 5) `Suggestion` Table
+-   **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
+-   **Fields:**
+  - `schedule_id` (FK to PickupSchedule table, nullable) - If NULL, this is an ad-hoc request.
+  - `status` (Single Select pipeline: `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`, `Canceled`)
+  - `pickup_window_start` (DateTime), `pickup_window_end` (DateTime)
+  - `food_category` (Multiple Select), 
+  - `estimated_weight_kg` (Number), 
+  - `packaging` (Long Text), 
+  - `handling_notes` (Long Text)
+- **Associations**:
+  - Linked to one record in Company (the Supplier).
+  - Linked to one record in Company (the destination Community).
+  - Linked to one record in Company (the assigned Logistics partner).
+  - Linked to one record in Contact (the assigned Driver).
+  - (Optionally) Linked to one record in PickupSchedule.
+
+### 6) `Suggestion` Table
 
 Captures new leads for potential partners, submitted by consumers.
 
@@ -264,14 +285,21 @@ The full contract is defined in `business/api/openapi.yml`. All development must
 -   **`GET /organizations/{orgId}`**: Retrieves details for a specific organization.
     -   **Permissions**: Requires a token with `read:organization` permission. User must be a member of `{orgId}`.
 -   **`PATCH /organizations/{orgId}`**: Updates organization details (e.g., address).
-    -   **Request Body**: `{ "metadata": { "delivery_address": "123 Main St" } }`
+    -   **Request Body**: `{ "metadata": { "delivery_address": "123 Main St" } }` 
     -   **Permissions**: Requires a token with `update:organization` permission. User must be an 'Admin' of `{orgId}`.
--   **`GET /pickups`**: Fetches a list of pickups for the user's organization.
-    -   **Permissions**: Requires a token with `read:pickups` permission.
-    -   *Implementation*: Lists records from the `Pickup Requests` table, filtering by the Company record associated with the caller’s `auth0_org_id` claim.
--   **`POST /pickups`**: Creates a new ad-hoc pickup request.
-    -   **Permissions**: Requires a token with `create:pickups` permission.
-    -   *Implementation*: Creates a new record in the `Pickup Requests` table; links the Supplier company from the caller’s org.
+- **`GET /jobs`**: Fetches a list of pickup jobs for the user's organization.
+  - **Permissions**: Requires a token with `read:pickups` permission.
+  - **Implementation**: Lists records from the PickupJob table, filtering by the Company record associated with the caller’s auth0_org_id claim.
+- **`POST /jobs`**: Creates a new ad-hoc pickup job.
+  - **Permissions**: Requires a token with create:pickups permission.
+  - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier company from the caller’s org.
+- **`GET /schedules`**: Fetches the pickup schedules for the user's organization.
+  - **Permissions**: Requires a token with read:schedules permission.
+  - **Implementation**: Lists records from the PickupSchedule table, filtering by the Company record associated with the caller's auth0_org_id.
+- **`POST /schedules`**: Creates a new recurring pickup schedule.
+  - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
+- **`PATCH /schedules/{scheduleId}`**: Updates an existing pickup schedule.
+  - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
 
 ## Authorization Model
 
