@@ -4,12 +4,12 @@ SHELL := /bin/bash
 
 all: plan
 
-LOG_LEVEL='DEBUG'
+LOG_LEVEL='' # DEBUG
 
 generate-keys: terraform-jwt-ca-public.pem
 
 terraform-jwt-ca-private.pem:
-	@echo "Generating PS256 key pair for Auth0 client assertion..."
+	@echo "Generating RS256 key pair for Auth0 client assertion..."
 	openssl genpkey -algorithm RSA -out terraform-jwt-ca-private.pem -pkeyopt rsa_keygen_bits:2048
 
 terraform-jwt-ca-public.pem: terraform-jwt-ca-private.pem
@@ -23,4 +23,4 @@ plan:
 	terraform plan
 
 apply:
-	@TF_LOG=$(LOG_LEVEL) terraform init -input=false && terraform apply -auto-approve
+	terraform apply -auto-approve

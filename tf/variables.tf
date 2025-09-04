@@ -18,17 +18,56 @@ variable "auth0_tf_client_assertion_private_key_file" {
 variable "auth0_tf_client_assertion_signing_alg" {
   type = string
   description = "Algorithm used for signing client assertion"
-  default = "PS256"
+  default = "RS256"
 }
 
-# Airtable
-variable "airtable_personal_access_token" {
+# Cloudflare
+/*
+variable "cloudflare_api_token" {
   type        = string
-  description = "Your Airtable Personal Access Token with schema editing permissions."
+  description = "Cloudflare API Token with permissions to manage D1 Databases (Account.D1:Edit) and read account details."
+  sensitive   = true
+}
+*/
+
+variable "cloudflare_api_key" {
+  type        = string
+  description = "Cloudflare API Key."
   sensitive   = true
 }
 
-variable "airtable_base_id" {
+variable "cloudflare_account_id" {
   type        = string
-  description = "The ID of the Airtable Base you want to provision the tables in (e.g., 'appXXXXXXXXXXXXXX')."
+  description = "Cloudflare Account ID where resources will be created."
+}
+
+variable "cloudflare_email" {
+  type        = string
+  description = "Cloudflare Account Email"
+}
+
+/*
+variable "cloudflare_zone_id" {
+  type        = string
+  description = "Cloudflare DNS zone_id"
+}
+*/
+
+variable "cloudflare_d1_db_name" {
+  type        = string
+  description = "Name for the CRM D1 database."
+  default     = "replate-crm"
+}
+
+# Domain configuration for Auth0 custom domain
+variable "top_level_domain" {
+  description = "Top level domain name (e.g., replate.dev)"
+  type        = string
+  default     = "replate.dev"
+}
+
+variable "auth0_subdomain" {
+  description = "Subdomain for Auth0 custom domain (e.g., 'id' for id.replate.dev)"
+  type        = string
+  default     = "id"
 }

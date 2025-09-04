@@ -1,41 +1,74 @@
-.PHONY: list
+# Replate CRM Database Makefile
 
-all: contact
+DB_FILE = crm.sqlite
+DDL_FILE = ddl.sql
+INIT_FILE = sample-init.sql
+D1_DB_NAME = replate-crm
 
-install:
-	npm install -g @hubspot/cli@latest
+.PHONY: help init load clean d1-init d1-load d1-users d1-companies d1-donations d1-schedules d1-jobs d1-suggestions
 
-auth:
-	hs account auth
+help:
+	@echo "Available targets:"
+	@echo "  init          - Initialize SQLite database with schema from ddl.sql"
+	@echo "  load          - Load sample data from init.sql"
+	@echo "  d1-init       - Initialize remote Cloudflare D1 database with schema"
+	@echo "  d1-load       - Load sample data to remote Cloudflare D1 database"
+	@echo "  d1-users      - List all users from D1 database"
+	@echo "  d1-companies  - List all companies from D1 database"
+	@echo "  d1-donations  - List all donations from D1 database"
+	@echo "  d1-schedules  - List all pickup schedules from D1 database"
+	@echo "  d1-jobs       - List all pickup jobs from D1 database"
+	@echo "  d1-suggestions - List all suggestions from D1 database"
+	@echo "  clean         - Remove the database file"
+	@echo "  help          - Show this help message"
 
-contact:
-	# Unique identifier from Auth0 for the user
-	hs property create contact auth0_user_id -l="Auth0 User ID" -t="string" --has-unique-value
+init: $(DB_FILE)
 
-	# Associated Auth0 Organization ID
-	hs property create contact auth0_org_id -l="Auth0 Organization ID" -t="string"
+$(DB_FILE): $(DDL_FILE)
+	@echo "Initializing SQLite database with schema..."
+	sqlite3 $(DB_FILE) < $(DDL_FILE)
+	@echo "Database initialized successfully: $(DB_FILE)"
 
-	# User's role within their organization
-	hs property create contact org_role -l="Organization Role" -t="enumeration" -e="admin;member;driver"
+load: $(DB_FILE) $(INIT_FILE)
+	@echo "Loading sample data..."
+	sqlite3 $(DB_FILE) < $(INIT_FILE)
+	@echo "Sample data loaded successfully"
 
-company:
-	# Unique identifier from Auth0 for the organization
-	hs property create company auth0_org_id -l="Auth0 Organization ID" -t="string" --has-unique-value
+d1-init:
+	@echo "Initializing remote Cloudflare D1 database with schema..."
+	wrangler d1 execute $(D1_DB_NAME) --file=$(DDL_FILE) --remote
+	@echo "Remote D1 database initialized successfully"
 
-	# Type of partner organization
-	hs property create company org_type -l="Organization Type" -t="enumeration" -e="supplier;community;logistics"
+d1-load:
+	@echo "Loading sample data to remote Cloudflare D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --file=$(INIT_FILE) --remote
+	@echo "Sample data loaded to remote D1 database successfully"
 
-	# SSO configuration status
-	hs property create company sso_status -l="SSO Status" -t="enumeration" -e="not_started;invited;configured;active"
+d1-users:
+	@echo "Listing all users from D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT id, name, email, donor, org_role, consumer_lifecycle_stage FROM Contact ORDER BY id;" --remote
 
-	# Supplier-specific properties
-	hs property create company pickup_address -l="Pickup Address" -t="string" -g="supplier_information"
-	hs property create company pickup_schedule -l="Pickup Schedule" -t="string" -f="textarea" -g="supplier_information"
+d1-companies:
+	@echo "Listing all companies from D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT id, name, org_type, sso_status FROM Company ORDER BY org_type, id;" --remote
 
-	# Community-specific properties
-	hs property create company delivery_address -l="Delivery Address" -t="string" -g="community_information"
-	hs property create company delivery_schedule -l="Delivery Schedule" -t="string" -f="textarea" -g="community_information"
+d1-donations:
+	@echo "Listing all donations from D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT d.id, c.name as donor_name, d.amount, d.currency, d.status, d.created_at FROM Donation d JOIN Contact c ON d.contact_id = c.id ORDER BY d.created_at DESC;" --remote
 
-	# Logistics-specific properties
-	hs property create company coverage_regions -l="Coverage Regions" -t="string" -f="textarea" -g="logistics_information"
-	hs property create company vehicle_types -l="Vehicle Types" -t="string" -f="textarea" -g="logistics_information"
+d1-schedules:
+	@echo "Listing all pickup schedules from D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT ps.id, s.name as supplier_name, c.name as community_name, ps.is_active, ps.cron_expression FROM PickupSchedule ps JOIN Company s ON ps.supplier_id = s.id LEFT JOIN Company c ON ps.default_community_id = c.id ORDER BY ps.id;" --remote
+
+d1-jobs:
+	@echo "Listing all pickup jobs from D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT pj.id, s.name as supplier_name, pj.status, pj.pickup_window_start, pj.estimated_weight_kg FROM PickupJob pj JOIN Company s ON pj.supplier_id = s.id ORDER BY pj.created_at DESC;" --remote
+
+d1-suggestions:
+	@echo "Listing all suggestions from D1 database..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT sg.id, c.name as submitter_name, sg.type, sg.name as suggested_name, sg.qualification_status FROM Suggestion sg JOIN Contact c ON sg.submitter_id = c.id ORDER BY sg.submitted_at DESC;" --remote
+
+clean:
+	@echo "Removing database file..."
+	rm -f $(DB_FILE)
+	@echo "Database file removed"

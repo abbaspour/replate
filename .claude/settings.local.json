@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(terraform providers:*)",
+      "WebFetch(domain:registry.terraform.io)",
+      "WebFetch(domain:docs.auth0.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:developers.cloudflare.com)",
+      "Bash(terraform:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "terraform": {
+      "command": "/Users/amin/go/bin/terraform-mcp-server",
+      "args": [
+        "stdio"
+      ]
+    }
+  }
+}
