@@ -21,18 +21,6 @@ variable "auth0_tf_client_assertion_signing_alg" {
   default = "PS256"
 }
 
-# Airtable
-variable "airtable_personal_access_token" {
-  type        = string
-  description = "Your Airtable Personal Access Token with schema editing permissions."
-  sensitive   = true
-}
-
-variable "airtable_base_id" {
-  type        = string
-  description = "The ID of the Airtable Base you want to provision the tables in (e.g., 'appXXXXXXXXXXXXXX')."
-}
-
 # Cloudflare
 variable "cloudflare_api_token" {
   type        = string
@@ -43,6 +31,11 @@ variable "cloudflare_api_token" {
 variable "cloudflare_account_id" {
   type        = string
   description = "Cloudflare Account ID where resources will be created."
+}
+
+variable "cloudflare_email" {
+  type        = string
+  description = "Cloudflare Account Email"
 }
 
 variable "cloudflare_d1_db_name" {

@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 all: plan
 
-LOG_LEVEL='DEBUG'
+LOG_LEVEL='' # DEBUG
 
 generate-keys: terraform-jwt-ca-public.pem
 
