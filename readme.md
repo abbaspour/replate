@@ -53,13 +53,16 @@ We have a high-level working prototype that's built on top of the following inte
 - **websites/** static website contents
     - **websites/replate.dev** static website for www.replate.dev
     - **websites/reuse.dev** static website for www.reuse.dev
-- **consumer/** Consumer user App and API
-    - **consumer/donor** single page application (SPA) with React and Auth0 SDK for consumer users
-    - **consumer/api** APIs that power donor app built with Hono SDK running on top of Cloudflare ESM worker
+- **admin/** Replate administration user App and API
+    - **admin/spa** single page application (SPA) with ReactAdmin and Auth0 SDK for admin users. Only members of Replate
+      Organization can log in to this website
+    - **damin/api** APIs that power admin app
+- **donor/** Consumer user App and API
+    - **consumer/spa** single page application (SPA) with React and Auth0 SDK for consumer users
+    - **consumer/api** APIs that power donor app built
 - **business/** Business user App and API
-    - **app/** single page application (SPA) with ReactAdmin and Auth0 SDK for business users
-    - **business/api** server-side API protected by access_token issued by Auth0 and built with Hono SDK running on top
-      of Cloudflare ESM worker
+    - **business/spa** single page application (SPA) with ReactAdmin and Auth0 SDK for business users
+    - **business/api** APIs that power business app
 - **crm/** Data model SQL files and scripts
 - **ciam/** Auth0 configuration and supporting assets
     - **ciam/actions** Actions source code
@@ -73,6 +76,8 @@ The source code is managed as a monorepo. Each subproject (`app/`, `donor/`, `ap
 All code folders (like `/app`, `/donor`, `/api`) rely on a `.env` file for configuration. A template file named
 `.env.example` exists in each project's root. Terraform populates `.env` files with operational configuration such as
 `AUTH0_CLIENT_ID` and `CALLBACK_URL`.
+
+All apis are with Hono SDK, accept Auth0 issued access_token and deployed on top of Cloudflare ESM worker.
 
 ## Domain names
 
@@ -115,8 +120,7 @@ Replate Admin is a member of the Replate workforce who can run business operatio
 
 Use cases:
 
-1. **Onboard** new supplier, community or logistics organization; Admin does this by calling Auth0 API for self-service
-   SSO.
+1. **Onboard** new supplier, community or logistics organization; Admin does this by calling Auth0 API for self-service SSO.
 2. See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and
    fetched by calling the Auth0 management API.
 

@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/http"
       version = "~> 3.5"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = ">= 4.0"
+    }
   }
 }
 
@@ -34,5 +38,9 @@ provider "restapi" {
   id_attribute = "id"
 
   write_returns_object = true
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
 

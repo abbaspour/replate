@@ -32,3 +32,21 @@ variable "airtable_base_id" {
   type        = string
   description = "The ID of the Airtable Base you want to provision the tables in (e.g., 'appXXXXXXXXXXXXXX')."
 }
+
+# Cloudflare
+variable "cloudflare_api_token" {
+  type        = string
+  description = "Cloudflare API Token with permissions to manage D1 Databases (Account.D1:Edit) and read account details."
+  sensitive   = true
+}
+
+variable "cloudflare_account_id" {
+  type        = string
+  description = "Cloudflare Account ID where resources will be created."
+}
+
+variable "cloudflare_d1_db_name" {
+  type        = string
+  description = "Name for the CRM D1 database."
+  default     = "replate-crm"
+}
