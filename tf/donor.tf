@@ -31,3 +31,10 @@ resource "local_file" "donor_auth_config_json" {
 }
 EOT
 }
+
+# sample users
+resource "auth0_user" "user1" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email = "user1@atko.email"
+  password = "user1@atko.email"
+}
