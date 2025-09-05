@@ -58,8 +58,8 @@ We have a high-level working prototype that's built on top of the following inte
       Organization can log in to this website
     - **damin/api** APIs that power admin app
 - **donor/** Consumer user App and API
-    - **consumer/spa** single page application (SPA) with React and Auth0 SDK for consumer users
-    - **consumer/api** APIs that power donor app built
+    - **donor/spa** single page application (SPA) with React and Auth0 SDK for consumer users
+    - **donor/api** APIs that power donor app built
 - **business/** Business user App and API
     - **business/spa** single page application (SPA) with ReactAdmin and Auth0 SDK for business users
     - **business/api** APIs that power business app
