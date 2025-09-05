@@ -1,8 +1,11 @@
+locals {
+  auth0_custom_domain = "${var.auth0_subdomain}.${var.top_level_domain}"
+}
 // -- cloudflare worker --
 resource "cloudflare_dns_record" "cf-worker-fetch_verification_record" {
-  zone_id = data.cloudflare_zone.main_domain.zone_id
+  zone_id = data.cloudflare_zone.replate-dev.zone_id
   type = "CNAME"
-  name = "id.replate.dev"
+  name = local.auth0_custom_domain
   ttl     = 300
   content = "replate-prd-cd-cxtx7g73zqykcr6v.edge.tenants.au.auth0.com"
 }

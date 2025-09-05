@@ -1,4 +1,4 @@
 .idea
 .junie
-*.sqlite
-wrangler.toml
+.wrangler
+auth_config.json
