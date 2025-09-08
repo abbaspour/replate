@@ -29,7 +29,7 @@ resource "auth0_resource_server_scope" "create_payment_intent" {
 }
 */
 
-# simple SPA client
+# donor SPA client
 resource "auth0_client" "donor" {
   name            = "Donor"
   description     = "Donor SPA client"
@@ -52,6 +52,34 @@ resource "auth0_client" "donor" {
   organization_usage = "deny"
 }
 
+# donor cli client
+resource "auth0_client" "donor-cli" {
+  name            = "Donor CLI"
+  description     = "Donor CLI client"
+  app_type        = "spa"
+  oidc_conformant = true
+  is_first_party  = true
+
+  callbacks = [
+    "https://donor.${var.top_level_domain}"
+  ]
+
+  allowed_logout_urls = [
+    "https://donor.${var.top_level_domain}"
+  ]
+
+  jwt_configuration {
+    alg = "RS256"
+  }
+
+  grant_types = [
+    "password",
+    "http://auth0.com/oauth/grant-type/password-realm"
+  ]
+
+  organization_usage = "deny"
+}
+
 # Generate auth config file for donor SPA
 resource "local_file" "donor_auth_config_json" {
   filename = "${path.module}/../donor/spa/public/auth_config.json"
@@ -63,6 +91,24 @@ resource "local_file" "donor_auth_config_json" {
   "redirectUri": "https://donor.${var.top_level_domain}/callback"
 }
 EOT
+}
+
+resource "auth0_action" "donor_post_login" {
+  name    = "Donor Post Login Action"
+  runtime = "node22"
+  deploy  = true
+  code    = file("${path.module}/../auth0/actions/post-login-action-donor.js")
+
+  supported_triggers {
+    id      = "post-login"
+    version = "v3"
+  }
+}
+
+resource "auth0_trigger_action" "donor_post_login_binding" {
+  trigger      = "post-login"
+  action_id    = auth0_action.donor_post_login.id
+  display_name = "Set Donor Claim"
 }
 
 # sample users

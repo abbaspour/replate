@@ -1,0 +1,8 @@
+{
+  "type": "commonjs",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@auth0/actions": "0.3.0"
+  }
+}

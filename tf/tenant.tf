@@ -25,6 +25,7 @@ resource "auth0_connection_clients" "UPA-clients" {
   enabled_clients = [
     auth0_client.donor.client_id,
     var.auth0_tf_client_id,
-    data.auth0_client.default-app.client_id
+    data.auth0_client.default-app.client_id,
+    auth0_client.donor-cli.client_id,
   ]
 }
