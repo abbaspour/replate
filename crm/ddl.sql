@@ -7,13 +7,13 @@ DROP TABLE IF EXISTS PickupJob;
 DROP TABLE IF EXISTS PickupSchedule;
 DROP TABLE IF EXISTS Donation;
 DROP TABLE IF EXISTS Contact;
-DROP TABLE IF EXISTS Company;
+DROP TABLE IF EXISTS Organization;
 
 -------------------------------------------------
--- Table: Company
+-- Table: Organization
 -- Represents a Supplier, Community, or Logistics organization.
 -------------------------------------------------
-CREATE TABLE Company (
+CREATE TABLE Organization (
                          id INTEGER PRIMARY KEY AUTOINCREMENT,
                          auth0_org_id TEXT UNIQUE NOT NULL,
                          org_type TEXT NOT NULL CHECK(org_type IN ('supplier', 'community', 'logistics')),
@@ -27,8 +27,8 @@ CREATE TABLE Company (
                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_company_auth0_org_id ON Company(auth0_org_id);
-CREATE INDEX idx_company_org_type ON Company(org_type);
+CREATE INDEX idx_organization_auth0_org_id ON Organization(auth0_org_id);
+CREATE INDEX idx_organization_org_type ON Organization(org_type);
 
 
 -------------------------------------------------
@@ -38,7 +38,7 @@ CREATE INDEX idx_company_org_type ON Company(org_type);
 CREATE TABLE Contact (
                          id INTEGER PRIMARY KEY AUTOINCREMENT,
                          auth0_user_id TEXT UNIQUE NOT NULL,
-                         company_id INTEGER,
+                         organization_id INTEGER,
                          email TEXT NOT NULL,
                          email_verified INTEGER NOT NULL DEFAULT 0, -- Boolean (0=false, 1=true)
                          name TEXT,
@@ -49,10 +49,10 @@ CREATE TABLE Contact (
                          consumer_lifecycle_stage TEXT DEFAULT 'registered' CHECK(consumer_lifecycle_stage IN ('visitor', 'registered', 'donor_first_time', 'donor_repeat', 'advocate')),
                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         FOREIGN KEY (company_id) REFERENCES Company(id)
+                         FOREIGN KEY (organization_id) REFERENCES Organization(id)
 );
 CREATE INDEX idx_contact_auth0_user_id ON Contact(auth0_user_id);
-CREATE INDEX idx_contact_company_id ON Contact(company_id);
+CREATE INDEX idx_contact_organization_id ON Contact(organization_id);
 
 
 -------------------------------------------------
@@ -88,8 +88,8 @@ CREATE TABLE PickupSchedule (
                                 default_estimated_weight_kg REAL,
                                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                FOREIGN KEY (supplier_id) REFERENCES Company(id),
-                                FOREIGN KEY (default_community_id) REFERENCES Company(id)
+                                FOREIGN KEY (supplier_id) REFERENCES Organization(id),
+                                FOREIGN KEY (default_community_id) REFERENCES Organization(id)
 );
 CREATE INDEX idx_pickupschedule_supplier_id ON PickupSchedule(supplier_id);
 
@@ -115,9 +115,9 @@ CREATE TABLE PickupJob (
                            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            FOREIGN KEY (schedule_id) REFERENCES PickupSchedule(id),
-                           FOREIGN KEY (supplier_id) REFERENCES Company(id),
-                           FOREIGN KEY (community_id) REFERENCES Company(id),
-                           FOREIGN KEY (logistics_id) REFERENCES Company(id),
+                           FOREIGN KEY (supplier_id) REFERENCES Organization(id),
+                           FOREIGN KEY (community_id) REFERENCES Organization(id),
+                           FOREIGN KEY (logistics_id) REFERENCES Organization(id),
                            FOREIGN KEY (driver_id) REFERENCES Contact(id)
 );
 CREATE INDEX idx_pickupjob_status ON PickupJob(status);
@@ -132,14 +132,14 @@ CREATE INDEX idx_pickupjob_driver_id ON PickupJob(driver_id);
 CREATE TABLE Suggestion (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             submitter_id INTEGER NOT NULL,
-                            converted_company_id INTEGER, -- The company created from this suggestion
+                            converted_organization_id INTEGER, -- The organization created from this suggestion
                             type TEXT NOT NULL CHECK(type IN ('supplier', 'community', 'logistics')),
                             name TEXT NOT NULL,
                             address TEXT,
                             qualification_status TEXT NOT NULL DEFAULT 'New' CHECK(qualification_status IN ('New', 'Contacted', 'Qualified', 'Rejected')),
                             submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                             FOREIGN KEY (submitter_id) REFERENCES Contact(id),
-                            FOREIGN KEY (converted_company_id) REFERENCES Company(id)
+                            FOREIGN KEY (converted_organization_id) REFERENCES Organization(id)
 );
 CREATE INDEX idx_suggestion_submitter_id ON Suggestion(submitter_id);
 
@@ -147,11 +147,11 @@ CREATE INDEX idx_suggestion_submitter_id ON Suggestion(submitter_id);
 -------------------------------------------------
 -- Triggers for automatically updating the 'updated_at' timestamp
 -------------------------------------------------
-CREATE TRIGGER update_company_updated_at
-    AFTER UPDATE ON Company
+CREATE TRIGGER update_organization_updated_at
+    AFTER UPDATE ON Organization
     FOR EACH ROW
 BEGIN
-    UPDATE Company SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+    UPDATE Organization SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
 CREATE TRIGGER update_contact_updated_at
