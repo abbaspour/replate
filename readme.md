@@ -34,15 +34,17 @@ donating money and suggesting businesses that Replate can connect to.
 
 We have a high-level working prototype that's built on top of the following integrations:
 
-- Websites, including static `www.` websites and two SPA websites `donor.` (for consumers) and `app.` (for businesses),
-  are all hosted on Cloudflare workers.
+- Websites, including static `www.` websites and three SPA websites are all hosted on Cloudflare workers.
+  - `donor.`: for consumer users (aka donors)
+  - `business.`: for businesses users 
+  - `admin.`: for replate admin users
 - Auth0 for CIAM
 - Cloudflare D1 for our core operational database and CRM
 - Terraform for platform provisioning
-- [ReactAdmin](https://marmelab.com/react-admin/) is a front-end SPA technology for business website `app.`
+- [ReactAdmin](https://marmelab.com/react-admin/) is a front-end SPA technology for business website `business.`
 - Client side React is a front-end SPA technology for consumer website `donor.`
 - The static website is using plain HTML/CSS
-- Okta is the Workforce identity for Replate employees
+- Okta is the Workforce identity for Replate employees- It's added an organization & connection in Auth0 with Terraform 
 - API is built with [Hono](https://hono.dev) and TypeScript
 - Mailtrap as an SMTP server for email communications
 - Makefile, npm and wrangler for executing build and deployment
@@ -53,31 +55,30 @@ We have a high-level working prototype that's built on top of the following inte
 - **websites/** static website contents
     - **websites/replate.dev** static website for www.replate.dev
     - **websites/reuse.dev** static website for www.reuse.dev
-- **admin/** Replate administration user App and API
-    - **admin/spa** single page application (SPA) with ReactAdmin and Auth0 SDK for admin users. Only members of Replate
-      Organization can log in to this website
+- **admin/** Replate administration application and API
+    - **admin/spa** single page application (SPA) for replate users. Only members of Replate Organization can log in to this website
     - **damin/api** APIs that power admin app
-- **donor/** Consumer user App and API
-    - **donor/spa** single page application (SPA) with React and Auth0 SDK for consumer users
-    - **donor/api** APIs that power donor app built
-- **business/** Business user App and API
-    - **business/spa** single page application (SPA) with ReactAdmin and Auth0 SDK for business users
+- **donor/** Consumer application and API
+    - **donor/spa** single page application (SPA) for donors
+    - **donor/api** APIs that power donor app 
+- **business/** Business application and API
+    - **business/spa** single page application (SPA) for business users
     - **business/api** APIs that power business app
 - **crm/** Data model SQL files and scripts
-- **ciam/** Auth0 configuration and supporting assets
-    - **ciam/actions** Actions source code
-    - **ciam/api** contains API exposed to Auth0 for Event streaming and Actions
+- **auth0/** Auth0 configuration and supporting assets
+    - **auth0/actions** Actions source code
+    - **auth0/api** contains API exposed to Auth0 for Event streaming and Actions
 - **native/** native apps
     - **native/ios** native app for iOS in Swift/Auth0
     - **native/android** native app for Android in Kotlin/Auth0
 
 The source code is managed as a monorepo. Each subproject (`app/`, `donor/`, `api/`) has its own `package.json`.
 
-All code folders (like `/app`, `/donor`, `/api`) rely on a `.env` file for configuration. A template file named
-`.env.example` exists in each project's root. Terraform populates `.env` files with operational configuration such as
-`AUTH0_CLIENT_ID` and `CALLBACK_URL`.
+When code assets rely on a `.env` file for configuration, a template file named `.env.example` exists in each project's root. Terraform populates `.env` files with operational configuration such as `AUTH0_CLIENT_ID` and `CALLBACK_URL`.
 
 All apis are with Hono SDK, accept Auth0 issued access_token and deployed on top of Cloudflare ESM worker.
+
+App SPA apps are using React v19 (client side mode) and Auth0 React SDK v2.4. SPA apps use browser's native fetch to make API calls.
 
 ## Domain names
 
@@ -88,11 +89,11 @@ The following are business subdomains under top-level domain name `replate.dev`:
   dropdown to log in to Consumer App or Business App.
     - If the user is already logged in (detected by Auth0 SDK), the top right of the website shows a button to go to the
       app and log out.
-- **donor.** SPA app (using Auth0 SDK) that is for consumer persona (Donor)
+- **donor.** SPA app that is for consumer persona (Donor)
     - **api.donor.** are consumer APIs used by **donor** app; protected by CORS and Auth0 issued bearer access_token
-- **app.** SPA app (using Auth0 SDK) that is for business user personas (see Actors section for details)
-    - **api.app.** are business APIs used by **app** subdomain; protected by CORS and Auth0 issued bearer access_token
-- **id.** Auth0 self-managed custom domain. This is a proxy Cloudflare worker against Replate's production Auth0 tenant.
+- **business.** SPA app that is for business user personas (see Actors section for details)
+    - **api.business.** are business APIs used by **app** subdomain; protected by CORS and Auth0 issued bearer access_token
+- **id.** Auth0-managed custom domain name pointing to production tenant `replate-prd.au.auth0.com`. 
 - **api.id.** Webhook that receives events from Auth0. Authenticate with a static bearer token and deployed as a
   Cloudflare worker.
 
@@ -120,23 +121,26 @@ Replate Admin is a member of the Replate workforce who can run business operatio
 
 Use cases:
 
-1. **Onboard** new supplier, community or logistics organization; Admin does this by calling Auth0 API for self-service SSO.
-2. See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and
+1. **Invite** an organization for self-service SSO; Admin does this by calling Auth0 API for self-service
+   SSO.
+2. See the **status of invitations** 
+3. See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and
    fetched by calling the Auth0 management API.
 
 ### Supplier Admin
 
 Supplier Admin is a member of the supplier organisation in Auth0.
 
-1. **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their
+1. **log in** to admin website.
+2. **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their
    workforce IDP.
-2. **Update the address** of the supplier's pick-up location
+3. **Update the address** of the supplier's pick-up location
 
 ### Supplier Member
 
 Supplier Member is a member of a supplier organisation in Auth0.
 
-1. Can **log in** to the app website with the SSO that their admin has set up. SSO is powered with HRD (Home Realm
+1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD (Home Realm
    Discovery), such as when email is matched for the company domain, like `member@supplier.com`, the user is redirected
    to the supplier's IdP at `idp.supplier.com`
 2. Can **view and update pick-up schedule**.
@@ -154,7 +158,7 @@ Logistics Admin is a member of the logistics organisation in Auth0
 
 Driver is a member of the logistics organisation in Auth0
 
-1. Can **log in** to app website with the SSO that their admin has set up. SSO is powered by HRD.
+1. Can **log in** to business website with the SSO that their admin has set up. SSO is powered by HRD.
 2. Can **view the list of deliveries** assigned to them and their pickup location and address.
 3. Mark delivery **in progress**.
 4. Mark delivery as **completed**.
@@ -163,15 +167,16 @@ Driver is a member of the logistics organisation in Auth0
 
 Community Admin is a member of a community organisation in Auth0
 
-1. **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their
+1. Can **log in** to business website.
+2. **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their
    workforce IDP.
-2. **Update the address** of the community's delivery location
+3. **Update the address** of the community's delivery location
 
 ### Community Member
 
 Community Member is a member of a community organisation in Auth0
 
-1. Can **log in** to the app website with the SSO that their admin has set up. SSO is powered with HRD.
+1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD.
 2. Can **view and update the delivery schedule**.
 
 ## Core Data Model in Airtable
@@ -312,15 +317,16 @@ The API follows the OpenAPI 3.1 specification.
 The full contract is defined in `consumer/api/openapi.yml`. All development must adhere to this contract.
 
 - **`GET /donations`**: Retrieves the donation history for the logged-in user.
-    - **Permissions**: Requires a token with `read:donations` permission.
+    - **Permissions**: Authenticated user with a valid access_token.
     - **Implementation**: Reads records from the `Donation` table, filtering by the User record associated with the
       caller's `auth0_user_id`.
 - **`POST /donations/create-payment-intent`**: Creates a Payment Intent.
     - **Request Body**: `{ "amount": 50.00 }` (in dollars)
-    - **Permissions**: Authenticated user.
+    - **Implementation**: Creates a new record in the `Donation` table and returns its ID.
+    - **Permissions**: Authenticated user with a valid access_token.
 - **`POST /suggestions`**: Submits a suggestion for a new supplier/community.
     - **Request Body**: `{ "type": "supplier", "name": "Local Bakery", "address": "456 Oak Ave" }`
-    - **Permissions**: Authenticated user.
+    - **Permissions**: Authenticated user with a valid access_token.
     - **Implementation**: Creates a new record in the `Suggestion` table and returns its ID.
 
 ### Business API
@@ -349,8 +355,236 @@ The full contract is defined in `business/api/openapi.yml`. All development must
 - **`PATCH /schedules/{scheduleId}`**: Updates an existing pickup schedule.
     - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
 
+### Admin API
+
+The full contract is defined in `admin/api/openapi.yml`. All development must adhere to this contract.
+
+These endpoints support workforce Admin operations described earlier (inviting organizations for self‑service SSO, checking invitation status, and listing organizations). Admin API runs as a Cloudflare Worker using Hono and typically calls the Auth0 Management API plus Cloudflare D1 for CRM mirroring.
+
+- `POST /organizations/invitations`: Initiates a self-service SSO invitation for a business organization (supplier, community, or logistics).
+  - Request Body: `{ "org_type": "supplier|community|logistics", "name": "Acme Bakery", "domains": ["acme.com"], "admin_email": "owner@acme.com" }`
+  - Implementation:
+    - Creates or finds the organization in Auth0 (via Management API), setting display name and domains used for HRD.
+    - Creates an invitation object and sends the invitation email (Auth0 B2B Connections / Organization Invitations flow) or records an onboarding token to complete IdP setup.
+    - Mirrors/updates the Company record in D1 with `auth0_org_id`, `org_type`, `name`, `domains`, and sets `sso_status` to `invited`.
+  - Permissions: Requires an admin workforce token with scope `create:org_invitations` and `update:organizations`.
+  - Response: `{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "status": "invited" }`
+
+- `GET /organizations/invitations`: Lists invitations and their current statuses.
+  - Query Params (optional): `status=invited|configured|active`, `org_type=supplier|community|logistics`, `q=searchTerm`.
+  - Implementation: Reads invitation objects from Auth0, joins with D1 Company mirror to enrich `org_type`, `domains`, and computed `sso_status`.
+  - Permissions: Requires `read:org_invitations`.
+  - Response: `[{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domains": ["acme.com"], "sso_status": "invited", "sent_at": "2025-09-01T10:00:00Z" }]`
+
+- `GET /organizations`: Lists organizations known to Replate.
+  - Query Params: `org_type`, `sso_status`, `q`.
+  - Implementation: Combines Auth0 Organizations (Management API) with D1 `Company` mirror. Supports pagination.
+  - Permissions: Requires `read:organizations`.
+  - Response: `[{ "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domains": ["acme.com"], "sso_status": "configured" }]`
+
+- `GET /organizations/{orgId}`: Retrieves details for a specific organization, including SSO setup status.
+  - Implementation: Proxies to Auth0 Management API for org details and enriches from D1 metadata (addresses, schedules for suppliers/communities if present).
+  - Permissions: Requires `read:organizations`.
+
+- `PATCH /organizations/{orgId}`: Updates organization details/metadata managed by Replate (not identity-provider credentials).
+  - Request Body (example): `{ "name": "Acme Bakery", "domains": ["acme.com"], "metadata": { "org_type": "supplier", "pickup_address": "12 King St", "delivery_address": "", "coverage_regions": "", "vehicle_types": ["van"] } }`
+  - Implementation: Updates Auth0 org name/domains via Management API where supported; updates D1 Company fields; may update computed `sso_status`.
+  - Permissions: Requires `update:organizations`.
+
+- `POST /organizations`: Creates a new organization record in Auth0 and mirrors it to D1 (without sending an invitation).
+  - Request Body: `{ "name": "Beta Logistics", "org_type": "logistics", "domains": ["betalogs.io"] }`
+  - Permissions: `create:organizations`.
+  - Response: `{ "auth0_org_id": "org_DEF456" }`
+
+- `DELETE /organizations/{orgId}`: Archives an organization in Replate (soft delete in D1; Auth0 org remains unless explicitly removed outside of this API).
+  - Permissions: `update:organizations`.
+  - Response: `{ "archived": true }`
+
+Notes and Constraints:
+- Authentication: Only workforce Admins (Okta-managed) obtain tokens to call Admin API. Tokens include appropriate scopes noted above.
+- SSO invitation flows vary by IdP; this API focuses on orchestrating Auth0 Organization Invitations and capturing status (`not_started`, `invited`, `configured`, `active`).
+- Data consistency: D1 is a mirror for reporting and enrichment; Auth0 is the source of truth for org identity and invitations.
+- Errors: Return 400 for validation errors (e.g., invalid domain), 404 for unknown orgId, 409 for duplicate domain, 502 if Auth0 Management API is unavailable.
+
+## Website Details
+
+This section describes how each website is built and how it should look and behave so an implementation (or code generator) can create working SPAs that integrate with Auth0 and our APIs on Cloudflare Workers.
+
+- Hosting: All sites are hosted on Cloudflare Workers with static assets on Workers Sites. SPA routing uses not_found_handling = "single-page-application" in wrangler.toml.
+- Frameworks: Donor uses client-side React (simple SPA) or vanilla DOM where noted; Business and Admin use React. Admin uses ReactAdmin.
+- State: Lightweight state via React Context + hooks; URL state in query strings where useful. No Redux required.
+- Styling: CSS variables and utility classes. Dark-mode-aware. Accessible (WCAG AA), responsive. Fonts: Inter (fallback system fonts).
+- Auth: Auth0 SPA SDK @auth0/auth0-spa-js for Donor and Business. Admin uses Auth0/OIDC with DPoP. All SPAs use PKCE. Custom claims in tokens under https://replate.dev/ namespace.
+- Environments: Configuration via env-specific auth_config.json and .env populated by Terraform.
+- APIs: Hono workers per domain, CORS restricted, bearer verification, DPoP on Admin.
+
+Folder hints (existing and to be generated by an implementation):
+- websites/replate.dev: Static marketing site for www.replate.dev.
+- donor/spa: Donor SPA static bundle (already present: public/index.html, js/app.js, js/ui.js, css/main.css, auth_config.json)
+- business/spa: Business SPA static bundle (to be generated using this spec)
+- admin/spa: Admin SPA static bundle (ReactAdmin) (to be generated using this spec)
+
+### Common Auth0 configuration
+- Auth0 domain: `id.replate.dev` (custom domain proxied to Auth0 tenant)
+- Donor Application (SPA):
+  - client_id: AUTH0_CLIENT_ID_DONOR
+  - audience: `api://donor.replate.dev`
+  - scope: openid profile email 
+  - Allowed callback URLs: https://donor.replate.dev/callback
+  - Allowed logout URLs: https://donor.replate.dev/
+- Business Application (SPA with Organizations):
+  - client_id: AUTH0_CLIENT_ID_BUSINESS
+  - audience: ns://business.replate.dev
+  - scope: openid profile email read:organization update:organization read:pickups create:pickups read:schedules update:schedules
+  - Allowed callback URLs: https://business.replate.dev/callback
+  - Allowed logout URLs: https://business.replate.dev/
+  - Organizations: enabled; prompt=login or organization hint supported; org_id claim expected.
+- Admin Application (SPA/Console):
+  - client_id: AUTH0_CLIENT_ID_ADMIN
+  - audience: ns://admin.replate.dev
+  - scope: openid profile email read:organizations update:organizations create:organizations read:org_invitations create:org_invitations
+  - Token type: DPoP access tokens with 5-minute lifetime
+  - Allowed callback URLs: https://admin.replate.dev/callback
+  - Allowed logout URLs: https://admin.replate.dev/
+
+### Auth SDK usage patterns
+- Initialize Auth0 client at app start reading `config.json` containing `domain`, `clientId`, `audience`. 
+- Use `loginWithRedirect()` with appState.returnTo to preserve route on login.
+- Post-login callback route at /callback exchanges code for tokens and redirects to appState.returnTo or "/".
+- Attach Authorization: Bearer <access_token> (or DPoP for Admin) to API calls. For Admin, also attach DPoP header created per request.
+- Logout uses returnTo homepage.
+- Token claims relied upon:
+  - `sub` (Auth0 user id)
+  - `org_id` (for Business; may be null for Donor)
+  - `scope` (string)
+  - `https://replate.dev/donor`: boolean (true for Donor app users)
+  - `https://replate.dev/org_role`: one of admin|member|driver|null
+
+Routing conventions
+- Single-page routing using History API.
+- Donor routes: /, /donate, /history, /suggest, /callback, /logout
+- Business routes: /, /jobs, /jobs/new, /schedules, /schedules/new, /organization, /callback, /logout
+- Admin routes: /, /organizations, /organizations/:id, /invitations, /callback, /logout
+
+Look & Feel (shared)
+- Header: left logo, center section-specific title, right auth button (Login/Logout and Profile avatar).
+- Colors: primary #2E7D32 (green), secondary #1565C0 (blue), accent #FFB300 (amber), neutral grays. Respect prefers-color-scheme.
+- Buttons: rounded 6px, hover transitions, focus outlines 2px.
+- Cards: subtle shadow for content blocks, max-width 1200px content.
+- Forms: labeled inputs, inline validation messages, large touch targets.
+
+### Donor SPA (`donor.replate.dev`)
+- Technology: React 19 + @auth0/auth0-react + Fetch; built as static assets served by Cloudflare Worker. 
+- Purpose: Allow consumers to authenticate and donate, view history, and submit suggestions.
+- Pages/Components:
+  - HomePage: hero image, counter of plates saved (from a public stats endpoint or mocked), CTA buttons "Donate" and "Suggest a Partner".
+  - DonatePage: form with amount (number, min 1.00, step 0.5), currency (USD by default), optional testimonial. On submit, POST /donations/create-payment-intent then show confirmation.
+  - HistoryPage: list of past donations (GET /donations), with date, amount, status.
+  - SuggestPage: form to submit suggestion (type select: supplier/community/logistics; name; address) -> POST /suggestions.
+  - CallbackPage: handles Auth0 code exchange and redirects.
+  - NavBar, Footer, ProtectedRoute wrapper.
+- Auth rules:
+  - Audience `api://donor.replate.dev`
+  - Ensure claim `https://replate.dev/donor === true`, otherwise show error or logout.
+  - Silent token refresh
+- API integration:
+  - `GET /donations`
+  - `POST /donations/create-payment-intent { amount }`
+  - `POST /suggestions { type, name, address }`
+  - All with Authorization header using access_token.
+- Example config file (donor/spa/public/auth_config.json):
+```json
+{ "domain": "id.replate.dev", 
+  "clientId": "AUTH0_CLIENT_ID_DONOR", 
+  "audience": "api://donor.replate.dev", 
+  "redirectUri": "https://donor.replate.dev/callback"
+}
+```
+- Build/Deploy: npm run build produces static assets; wrangler.toml uses not_found_handling = "single-page-application"; Makefile target deploy.
+
+### Business SPA (`business.replate.dev`)
+- Technology: React 19 + @auth0/auth0-react + React Router + Fetch; optional UI kit (MUI or lightweight CSS).
+- Personas: Supplier Admin/Member, Logistics Admin/Driver, Community Admin/Member.
+- Auth rules:
+  - Audience ns://business.replate.dev
+  - org_id must be present; enforce membership and role via claims and scopes.
+  - roles from https://replate.dev/org_role determine UI capabilities: admin (can PATCH org, manage schedules), member (create ad-hoc jobs, view lists), driver (view assigned jobs only, update status).
+- Pages/Features:
+  - Dashboard: summary of active jobs, schedules.
+  - JobsList: GET /jobs filtered by org_id and role; Driver sees "My Jobs" with status updates (PATCH job status endpoints may exist later).
+  - JobNew: POST /jobs to create ad-hoc job (Supplier role only: admin/member).
+  - SchedulesList: GET /schedules; Admin can edit.
+  - ScheduleNew/Edit: POST /schedules and PATCH /schedules/{id}.
+  - OrganizationDetails: GET /organizations/{orgId} and PATCH for admins to update metadata (addresses, etc.).
+  - CallbackPage, ProtectedRoute, OrgSwitcher (optional if user is in multiple orgs; pass organization hint).
+- API integration: attach bearer token; handle 401/403 by redirecting to login; show scope errors.
+- Routing: /, /jobs, /jobs/new, /schedules, /schedules/new, /organization, /callback.
+- Config file example (business/spa/public/auth_config.json):
+  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_BUSINESS", "audience": "ns://business.replate.dev", "redirectUri": "https://business.replate.dev/callback", "useOrganizations": true }
+
+### Admin SPA (`admin.replate.dev`)
+- Technology: React 18 + ReactAdmin + @auth0/auth0-spa-js (or OIDC lib) with DPoP; custom RA authProvider and dataProvider.
+- Auth rules:
+  - Audience ns://admin.replate.dev
+  - DPoP tokens only; 5-minute access token lifetime; refresh tokens allowed; attach DPoP proof header per request.
+  - Scopes: read:organizations, update:organizations, create:organizations, read:org_invitations, create:org_invitations.
+- Resources (ReactAdmin):
+  - organizations: list, show, edit, create.
+  - invitations: list, create.
+- Screens:
+  - OrganizationsList: table with name, org_type, domains, sso_status.
+  - OrganizationShow: details + related metadata from D1 (addresses, schedules where relevant).
+  - OrganizationEdit: edit form; PATCH /organizations/{orgId}.
+  - OrganizationCreate: POST /organizations.
+  - InvitationsList: GET /organizations/invitations with filters status/org_type.
+  - InvitationCreate: POST /organizations/invitations; form fields org_type, name, domains[], admin_email.
+- Data provider endpoints map directly to Admin API described above.
+- Config example (admin/spa/public/auth_config.json):
+  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_ADMIN", "audience": "ns://admin.replate.dev", "redirectUri": "https://admin.replate.dev/callback", "dpop": true }
+
+### Accessibility & i18n
+- All interactive elements keyboard accessible. Labels tied to inputs with aria-* where necessary.
+- Color contrast >= 4.5:1 for text.
+- String resources abstracted for future i18n; default locale en-US.
+
+### Error handling & Loading
+- Global ErrorBoundary shows friendly message and retry.
+- API errors mapped: 400 validation -> inline field errors; 401 -> login; 403 -> permission message; 404 -> not found view; 5xx -> toast with retry.
+- Skeleton loaders for lists/forms; optimistic UI for simple PATCH.
+
+### Telemetry (optional)
+- Simple pageview events via Cloudflare Analytics or a pluggable analytics.js; avoid tracking PII.
+
+### Local Development
+- Each SPA uses a static dev server or wrangler dev; set auth_config.json to point to a dev Auth0 tenant/custom domain and localhost callback when running locally.
+- Example local redirect URIs: http://localhost:5173/callback (Vite) or http://localhost:8787/callback (wrangler dev).
+
+### Deployment
+- Use Makefile in each SPA folder to build and wrangler publish to Cloudflare.
+- Static cache headers for assets; HTML not cached.
+
+### Notes for code generators
+- Generate `index.html` that loads a root React bundle, defines a #root element, and fetches `/auth_config.json` at startup to init Auth0.
+- Implement an AuthProvider component exposing isAuthenticated, user, login, logout, getAccessTokenSilently.
+- Implement ProtectedRoute that waits for Auth0 to initialize and then either renders children or triggers loginWithRedirect.
+- Keep configuration externalized in public/auth_config.json; do not hardcode client IDs or domains.
+
 ## Authorization Model
 
+### Donor
+Donors are simply authenticated with Auth0 and need to present a valid access_token against resource server `api://donor.replate.dev` and _must_ contain claim `"https://replate.dev/donor": true`
+
+
+### Replate Admin
+Replate admin has strict security rules.
+- resource server is `ns://admin.replate.dev`
+- access_tokens should be DPoP
+- validity is 5min
+
+
+### Business
+
+Business access_token is issued against resource server `ns://business.replate.dev`. 
 This section governs how access_token issued by Auth0 is consumed by API and which claims control which API.
 
 Sample access_token. `org_id` is nullable for donors.
@@ -358,8 +592,8 @@ Sample access_token. `org_id` is nullable for donors.
 ```json
 {
   "sub": "auth0|123",
-  "scope": "read:donations create:payment_intent read:organization update:organization read:pickups create:pickups",
+  "scope": "read:organization update:organization read:pickups create:pickups",
   "org_id": "org_abc123",
   "https://replate.dev/org_role": "admin|member|driver|null",
-  "https://replate.dev/donor": true|false
+  "https://replate.dev/donor": false
 }

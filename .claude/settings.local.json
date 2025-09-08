@@ -7,24 +7,15 @@
       "WebFetch(domain:docs.auth0.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:developers.cloudflare.com)",
-      "Bash(terraform:*)"
+      "Bash(terraform:*)",
+      "mcp__terraform__search_providers",
+      "mcp__terraform__get_provider_details",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
   },
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ]
-    },
-    "terraform": {
-      "command": "/Users/amin/go/bin/terraform-mcp-server",
-      "args": [
-        "stdio"
-      ]
-    }
-  }
+  "enableAllProjectMcpServers": true
 }
