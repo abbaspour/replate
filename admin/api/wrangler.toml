@@ -1,0 +1,20 @@
+name = "replate-admin-api"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+preview_urls = false
+
+routes = [
+    { pattern = "api.admin.replate.dev", custom_domain = true }
+]
+
+[vars]
+# Set these via Terraform or wrangler secrets in real envs
+AUTH0_JWKS_URL = "https://id.replate.dev/.well-known/jwks.json"
+AUTH0_AUDIENCE_ADMIN = "admin.api"
+AUTH0_ISSUER = "https://id.replate.dev/"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "replate-crm"
+database_id = "853a7d3f-50b0-4170-a73a-7a5d34500b36"

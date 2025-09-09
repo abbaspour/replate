@@ -10,9 +10,13 @@ Replate is a hypothetical start-up demonstrating Auth0’s B2C, B2B/Organization
   - business SPA: business/spa/public/auth_config.json 
   - admin SPA: admin/spa/public/auth_config.json 
 - API contracts to follow:
-  - donor/api/openapi.yml 
-  - business/api/openapi.yml 
-  - admin/api/openapi.yml 
+  - donor/api/spec/openapi.yaml 
+  - business/api/spec/openapi.yaml 
+  - admin/api/spec/openapi.yaml 
+- API code to follow:
+  - donor/api/src 
+  - business/src 
+  - admin/api/src 
 - Where to place routes and bundles:
   - SPAs live under donor/spa, business/spa, admin/spa (React single-page bundles) 
   - API workers live under donor/api, business/api, admin/api (Hono + Cloudflare Workers) 
@@ -323,11 +327,11 @@ Captures new leads for potential partners, submitted by consumers.
 
 ## API Contract
 
-The API follows the OpenAPI 3.1 specification.
+The API follows the OpenAPI 3.1 specification. securitySchemes is OAuth2 with authorizationCode as only supported flow. Endpoints are according to Auth0 endpoints.
 
 ### Consumer API
 
-The full contract is defined in `consumer/api/openapi.yml`. All development must adhere to this contract.
+The full contract is defined in `consumer/api/spec/openapi.yaml`. All development must adhere to this contract.
 
 - **`GET /donations`**: Retrieves the donation history for the logged-in user.
     - **Permissions**: Authenticated user with a valid access_token.
@@ -344,7 +348,7 @@ The full contract is defined in `consumer/api/openapi.yml`. All development must
 
 ### Business API
 
-The full contract is defined in `business/api/openapi.yml`. All development must adhere to this contract.
+The full contract is defined in `business/api/spec/openapi.yaml`. All development must adhere to this contract.
 
 - **`GET /organizations/{orgId}`**: Retrieves details for a specific organization.
     - **Permissions**: Requires a token with `read:organization` permission. User must be a member of `{orgId}`.
@@ -370,7 +374,7 @@ The full contract is defined in `business/api/openapi.yml`. All development must
 
 ### Admin API
 
-The full contract is defined in `admin/api/openapi.yml`. All development must adhere to this contract.
+The full contract is defined in `admin/api/spec/openapi.yaml`. All development must adhere to this contract.
 
 These endpoints support workforce Admin operations described earlier (inviting organizations for self‑service SSO, checking invitation status, and listing organizations). Admin API runs as a Cloudflare Worker using Hono and typically calls the Auth0 Management API plus Cloudflare D1 for CRM mirroring.
 
@@ -584,7 +588,7 @@ Look & Feel (shared)
 
 ### Notes for code generators
 - Prefer explicit file paths and keep edits minimal; do not introduce new frameworks.
-- Follow the API contracts in donor/api/openapi.yml, business/api/openapi.yml, admin/api/openapi.yml when implementing endpoints or clients.
+- Follow the API contracts in donor/api/openapi.yaml, business/api/openapi.yaml, admin/api/openapi.yaml when implementing endpoints or clients.
 - Externalize configuration via public/auth_config.json and .env; never hardcode secrets or client IDs.
 - For SPA routing, ensure not_found_handling = "single-page-application" in wrangler.toml.
 - Use Hono for Workers, React 19 for SPAs, and @auth0/auth0-react v2.4 patterns shown here.
