@@ -5,7 +5,7 @@ export default defineConfig({
     plugins: [react()],
     build: {
         outDir: 'dist',
-        chunkSizeWarningLimit: 1000
+        chunkSizeWarningLimit: 1200
     },
     server: {
         port: 5175
