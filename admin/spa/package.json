@@ -1,0 +1,25 @@
+{
+  "name": "replate-admin-spa",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@auth0/auth0-spa-js": "^2.4.0",
+    "ra-data-simple-rest": "^5.11.1",
+    "react": "^18.3.1",
+    "react-admin": "^5.11.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.9.2",
+    "vite": "^5.4.20"
+  }
+}

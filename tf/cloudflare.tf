@@ -12,6 +12,7 @@ data "cloudflare_zone" "replate-dev" {
 resource "cloudflare_d1_database" "crm" {
   account_id = var.cloudflare_account_id
   name       = var.cloudflare_d1_db_name
+  primary_location_hint = "apac"
   read_replication = {
     mode = "disabled"
   }

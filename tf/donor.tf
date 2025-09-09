@@ -1,7 +1,7 @@
 # Auth0 resource server for donor API
 resource "auth0_resource_server" "donor_api" {
   name       = "Donor API"
-  identifier = "api://donor.${var.top_level_domain}"
+  identifier = "donor.api"
   
   # Token settings
   token_lifetime                                  = 86400  # 24 hours

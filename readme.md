@@ -1,16 +1,31 @@
-# Replate Project Guideline
+# Replate Project Guidelines
 
-Replate is a hypothetical start-up to demonstrate Auth0's B2C, B2B, SaaS and AI capabilities. The goal of this project
-is to provide reusable assets and patterns to Auth0 customers, showing them how the Auth0 platform works and how they
-can leverage it in their own business use cases.
+Note: This repository is an informative demo to showcase Auth0 patterns (B2C, B2B/Organizations, SaaS, AI). Some features are intentionally stubbed. The focus is clarity and code generation.
 
-Note that since the purpose of this demo project is to showcase Auth0, some functionalities may not be fully
-implemented. The goal of this repo is to be an informative demo rather than a fully functional code base.
+Replate is a hypothetical start-up demonstrating Auth0’s B2C, B2B/Organizations, SaaS, and AI capabilities. This repo provides reusable assets and patterns to show how Auth0 integrates with Cloudflare Workers and related services. Some features are intentionally stubbed for clarity; the repo is an informative demo rather than a fully functional product.
+
+## Quickstart for Code Generators
+- Read config from the following files (do not hardcode):
+  - donor SPA: donor/spa/public/auth_config.json 
+  - business SPA: business/spa/public/auth_config.json 
+  - admin SPA: admin/spa/public/auth_config.json 
+- API contracts to follow:
+  - donor/api/spec/openapi.yaml 
+  - business/api/spec/openapi.yaml 
+  - admin/api/spec/openapi.yaml 
+- API code to follow:
+  - donor/api/src 
+  - business/src 
+  - admin/api/src 
+- Where to place routes and bundles:
+  - SPAs live under donor/spa, business/spa, admin/spa (React single-page bundles) 
+  - API workers live under donor/api, business/api, admin/api (Hono + Cloudflare Workers) 
+- Auth initialization: fetch /auth_config.json at startup; use PKCE flows; attach Bearer/DPoP tokens as specified 
+- Cloudflare SPA routing: set not_found_handling = "single-page-application" in each wrangler.toml 
 
 ## Business Case
 
 Replate aims to use technology to reduce food waste.
-// TODO: stats on how much food is wasted in commercial venues
 
 Replate connects three groups of entities within its platform:
 
@@ -57,7 +72,7 @@ We have a high-level working prototype that's built on top of the following inte
     - **websites/reuse.dev** static website for www.reuse.dev
 - **admin/** Replate administration application and API
     - **admin/spa** single page application (SPA) for replate users. Only members of Replate Organization can log in to this website
-    - **damin/api** APIs that power admin app
+    - **admin/api** APIs that power admin app
 - **donor/** Consumer application and API
     - **donor/spa** single page application (SPA) for donors
     - **donor/api** APIs that power donor app 
@@ -179,7 +194,7 @@ Community Member is a member of a community organisation in Auth0
 1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD.
 2. Can **view and update the delivery schedule**.
 
-## Core Data Model in Airtable
+## Core Data Model in CRM
 
 The API layer doesn't have a DB layer on its own. Two sources of backend for the API are:
 
@@ -189,19 +204,21 @@ The API layer doesn't have a DB layer on its own. Two sources of backend for the
 2. Cloudflare D1 relational database. Contains a mirror of users and organizations from Auth0 as well as other
    operational tables like Pickups, Suggestions, Donation.
 
-### 1) `Contact` Table
+![Data Model](./crm/crm.png)
+
+### 1) `Users` Table
 
 Every person who logs into Replate is a user. This table stores all users, regardless of whether they are a business
 user or a consumer.
 
 Data is federated between Auth0 and D1. The API layer is responsible for combining this data when needed. The Auth0
-`user_id` is the primary key in Auth0, and in D1, the AUTOINCREMENT Contact `id` is the primary key.
+`user_id` is the primary key in Auth0, and in D1, the AUTOINCREMENT User `id` is the primary key.
 
-The link between an Auth0 user and an D1 record is bidirectional. In the Auth0 user profile, `app_metadata.contact_id`
-points to their D1 Contact ID. Auth0's `user_id` is stored in a custom `auth0_user_id` field in the D1 record.
+The link between an Auth0 user and an D1 record is bidirectional. In the Auth0 user profile, `app_metadata.user_id`
+points to their D1 User ID. Auth0's `user_id` is stored in a custom `auth0_user_id` field in the D1 record.
 
 An Auth0 Post-User-Registration Action ensures all users have a corresponding record in D1. If the
-`app_metadata.contact_id` field is missing, the Action calls `api.id.` API to create a record in the `Contact` table and
+`app_metadata.user_id` field is missing, the Action calls `api.id.` API to create a record in the `User` table and
 stores the resulting Record ID in the user's `app_metadata`.
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
@@ -217,20 +234,20 @@ stores the resulting Record ID in the user's `app_metadata`.
     - `consumer_lifecycle_stage` (Single Select: `visitor`, `registered`, `donor_first_time`, `donor_repeat`,
       `advocate`)
 - **Associations**:
-    - Linked to one record in the `Company` table (for business users).
+    - Linked to one record in the `Organizations` table (for business users).
 
-### 2) `Company` Table
+### 2) `Organizations` Table
 
 Represents a Supplier, Community, or Logistics organization.
 
 Businesses are stored as organizations in Auth0. We use Auth0 Event Streams to sync organizations from Auth0 into
-records in this table. The company domain stored here is the same domain used for email-based HRD federation.
+records in this table. The organization domain stored here is the same domain used for email-based HRD federation.
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields**:
     - `auth0_org_id` (Text, Unique)
     - `org_type` (Single Select: `supplier`, `community`, `logistics`)
-    - `name`, `domains` (synced from Auth0)
+    - `name`, `domain` (synced from Auth0)
     - `sso_status` (Single Select: `not_started`, `invited`, `configured`, `active`)
     - `pickup_address` (Text, for Suppliers)
     - `pickup_schedule` (Long Text / JSON, for Suppliers)
@@ -239,9 +256,9 @@ records in this table. The company domain stored here is the same domain used fo
     - `coverage_regions` (Long Text, for Logistics)
     - `vehicle_types` (Multiple Select, for Logistics)
 - **Associations**:
-    - Linked to many records in the `Contact` table (the members of the company).
+    - Linked to many records in the `Users` table (the members of the organization).
 
-### 3) `Donation` Table
+### 3) `Donations` Table
 
 Tracks all monetary donations from consumer users (Donors).
 
@@ -252,17 +269,17 @@ Tracks all monetary donations from consumer users (Donors).
     - `created_at` (Created Time)
     - `testimonial` (Long Text)
 - **Associations**:
-    - Linked to one record in the `Contact` table (the Donor).
+    - Linked to one record in the `Users` table (the Donor).
 
-### 4) `PickupSchedule` Table
+### 4) `PickupSchedules` Table
 
 This table defines the recurring pickup arrangements (i.e., "standing orders"). It acts as a template for creating
 individual PickupJob records.
 
 - **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields:**
-- `supplier_id` (FK to `Company` table)
-- `default_community_id` (FK to `Company` table)
+- `supplier_id` (FK to `Organizations` table)
+- `default_community_id` (FK to `Organizations` table)
 - `is_active` (Boolean)
 - `cron_expression` (Text, e.g., 0 19 * * 1-5 for 7 PM on weekdays)
 - `pickup_time_of_day` (Time)
@@ -270,17 +287,17 @@ individual PickupJob records.
 - `default_food_category` (Multiple Select)
 - `default_estimated_weight_kg` (Number)
 - **Associations**:
-    - Linked to one record in `Company` (the Supplier).
-    - Has a one-to-many relationship with the `PickupJob` table.
+    - Linked to one record in `Organizations` (the Supplier).
+    - Has a one-to-many relationship with the `PickupJobs` table.
 
-### 5) `PickupJob` Table
+### 5) `PickupJobs` Table
 
 This table tracks the lifecycle of a single, concrete pickup event, whether it was generated from a schedule or created
 as an ad-hoc request.
 
 - **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields:**
-- `schedule_id` (FK to PickupSchedule table, nullable) - If NULL, this is an ad-hoc request.
+- `schedule_id` (FK to PickupSchedules table, nullable) - If NULL, this is an ad-hoc request.
 - `status` (Single Select pipeline: `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`, `Canceled`)
 - `pickup_window_start` (DateTime), `pickup_window_end` (DateTime)
 - `food_category` (Multiple Select),
@@ -288,13 +305,13 @@ as an ad-hoc request.
 - `packaging` (Long Text),
 - `handling_notes` (Long Text)
 - **Associations**:
-    - Linked to one record in Company (the Supplier).
-    - Linked to one record in Company (the destination Community).
-    - Linked to one record in Company (the assigned Logistics partner).
-    - Linked to one record in Contact (the assigned Driver).
-    - (Optionally) Linked to one record in PickupSchedule.
+    - Linked to one record in Organizations (the Supplier).
+    - Linked to one record in Organizations (the destination Community).
+    - Linked to one record in Organizations (the assigned Logistics partner).
+    - Linked to one record in Users (the assigned Driver).
+    - (Optionally) Linked to one record in PickupSchedules.
 
-### 6) `Suggestion` Table
+### 6) `Suggestions` Table
 
 Captures new leads for potential partners, submitted by consumers.
 
@@ -305,16 +322,16 @@ Captures new leads for potential partners, submitted by consumers.
     - `submitted_at` (Created Time)
     - `qualification_status` (Single Select: `New`, `Contacted`, `Qualified`, `Rejected`)
 - **Associations**:
-    - Linked to one record in `Contact` (the Submitter).
-    - (Optionally) Linked to one record in `Company` once the suggestion is converted into a partner.
+    - Linked to one record in `Users` (the Submitter).
+    - (Optionally) Linked to one record in `Organizations` once the suggestion is converted into a partner.
 
 ## API Contract
 
-The API follows the OpenAPI 3.1 specification.
+The API follows the OpenAPI 3.1 specification. securitySchemes is OAuth2 with authorizationCode as only supported flow. Endpoints are according to Auth0 endpoints.
 
 ### Consumer API
 
-The full contract is defined in `consumer/api/openapi.yml`. All development must adhere to this contract.
+The full contract is defined in `consumer/api/spec/openapi.yaml`. All development must adhere to this contract.
 
 - **`GET /donations`**: Retrieves the donation history for the logged-in user.
     - **Permissions**: Authenticated user with a valid access_token.
@@ -331,7 +348,7 @@ The full contract is defined in `consumer/api/openapi.yml`. All development must
 
 ### Business API
 
-The full contract is defined in `business/api/openapi.yml`. All development must adhere to this contract.
+The full contract is defined in `business/api/spec/openapi.yaml`. All development must adhere to this contract.
 
 - **`GET /organizations/{orgId}`**: Retrieves details for a specific organization.
     - **Permissions**: Requires a token with `read:organization` permission. User must be a member of `{orgId}`.
@@ -340,15 +357,15 @@ The full contract is defined in `business/api/openapi.yml`. All development must
     - **Permissions**: Requires a token with `update:organization` permission. User must be an 'Admin' of `{orgId}`.
 - **`GET /jobs`**: Fetches a list of pickup jobs for the user's organization.
     - **Permissions**: Requires a token with `read:pickups` permission.
-    - **Implementation**: Lists records from the PickupJob table, filtering by the Company record associated with the
+    - **Implementation**: Lists records from the PickupJob table, filtering by the Organization record associated with the
       caller’s auth0_org_id claim.
 - **`POST /jobs`**: Creates a new ad-hoc pickup job.
     - **Permissions**: Requires a token with create:pickups permission.
     - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier
-      company from the caller’s org.
+      organization from the caller’s org.
 - **`GET /schedules`**: Fetches the pickup schedules for the user's organization.
     - **Permissions**: Requires a token with read:schedules permission.
-    - **Implementation**: Lists records from the PickupSchedule table, filtering by the Company record associated with
+    - **Implementation**: Lists records from the PickupSchedule table, filtering by the Organization record associated with
       the caller's auth0_org_id.
 - **`POST /schedules`**: Creates a new recurring pickup schedule.
     - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
@@ -357,54 +374,60 @@ The full contract is defined in `business/api/openapi.yml`. All development must
 
 ### Admin API
 
-The full contract is defined in `admin/api/openapi.yml`. All development must adhere to this contract.
+The full contract is defined in `admin/api/spec/openapi.yaml`. All development must adhere to this contract.
 
 These endpoints support workforce Admin operations described earlier (inviting organizations for self‑service SSO, checking invitation status, and listing organizations). Admin API runs as a Cloudflare Worker using Hono and typically calls the Auth0 Management API plus Cloudflare D1 for CRM mirroring.
 
-- `POST /organizations/invitations`: Initiates a self-service SSO invitation for a business organization (supplier, community, or logistics).
-  - Request Body: `{ "org_type": "supplier|community|logistics", "name": "Acme Bakery", "domains": ["acme.com"], "admin_email": "owner@acme.com" }`
+Admin API is backed by two systems:
+1. Cloudflare D1 database. Use Cloudflare database binding to query and update data. Primary source of truth.
+2. Auth0 management API.  
+
+- **`POST /organizations/invitations`**: Initiates a self-service SSO invitation for a business organization (supplier, community, or logistics).
+  - Request Body: `{ "org_type": "supplier|community|logistics", "name": "Acme Bakery", "domain": "acme.com", "admin_email": "owner@acme.com" }`
   - Implementation:
-    - Creates or finds the organization in Auth0 (via Management API), setting display name and domains used for HRD.
-    - Creates an invitation object and sends the invitation email (Auth0 B2B Connections / Organization Invitations flow) or records an onboarding token to complete IdP setup.
-    - Mirrors/updates the Company record in D1 with `auth0_org_id`, `org_type`, `name`, `domains`, and sets `sso_status` to `invited`.
+    - Creates or finds the organization in Auth0 (via Management API), setting display name and domain used for HRD.
+    - Creates an invitation object and sends the invitation email (Auth0 B2B Connections / Organization Invitations flow) or records an onboarding token to complete IdP setup. 
+    - Mirrors/updates the Organization record in D1 with `auth0_org_id`, `org_type`, `name`, `domain`, and sets `sso_status` to `invited`.
   - Permissions: Requires an admin workforce token with scope `create:org_invitations` and `update:organizations`.
   - Response: `{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "status": "invited" }`
 
-- `GET /organizations/invitations`: Lists invitations and their current statuses.
+- **`GET /organizations/invitations`**: Lists invitations and their current statuses.
   - Query Params (optional): `status=invited|configured|active`, `org_type=supplier|community|logistics`, `q=searchTerm`.
-  - Implementation: Reads invitation objects from Auth0, joins with D1 Company mirror to enrich `org_type`, `domains`, and computed `sso_status`.
+  - Implementation: Reads invitation objects from Auth0, joins with D1 Organization mirror to enrich `org_type`, `domain`, and computed `sso_status`.
   - Permissions: Requires `read:org_invitations`.
-  - Response: `[{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domains": ["acme.com"], "sso_status": "invited", "sent_at": "2025-09-01T10:00:00Z" }]`
+  - Response: `[{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domain": "acme.com", "sso_status": "invited", "sent_at": "2025-09-01T10:00:00Z" }]`
 
-- `GET /organizations`: Lists organizations known to Replate.
+- **`GET /organizations`**: Lists organizations known to Replate.
   - Query Params: `org_type`, `sso_status`, `q`.
-  - Implementation: Combines Auth0 Organizations (Management API) with D1 `Company` mirror. Supports pagination.
+  - Implementation: Reads from D1 `Organization` table. Supports pagination.
   - Permissions: Requires `read:organizations`.
-  - Response: `[{ "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domains": ["acme.com"], "sso_status": "configured" }]`
+  - Response: `[{ "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domain": "acme.com", "sso_status": "configured" }]`
 
-- `GET /organizations/{orgId}`: Retrieves details for a specific organization, including SSO setup status.
-  - Implementation: Proxies to Auth0 Management API for org details and enriches from D1 metadata (addresses, schedules for suppliers/communities if present).
+- **`GET /organizations/{orgId}`**: Retrieves details for a specific organization, including SSO setup status.
+  - Implementation: Reads from D1 `Organization` table. 
   - Permissions: Requires `read:organizations`.
 
-- `PATCH /organizations/{orgId}`: Updates organization details/metadata managed by Replate (not identity-provider credentials).
-  - Request Body (example): `{ "name": "Acme Bakery", "domains": ["acme.com"], "metadata": { "org_type": "supplier", "pickup_address": "12 King St", "delivery_address": "", "coverage_regions": "", "vehicle_types": ["van"] } }`
-  - Implementation: Updates Auth0 org name/domains via Management API where supported; updates D1 Company fields; may update computed `sso_status`.
+- **`PATCH /organizations/{orgId}`**: Updates organization details/metadata managed by Replate (not identity-provider credentials).
+  - Request Body (example): `{ "name": "Acme Bakery", "domain": "acme.com", "metadata": { "org_type": "supplier", "pickup_address": "12 King St", "delivery_address": "", "coverage_regions": "", "vehicle_types": ["van"] } }`
+  - Implementation: Updates D1 Organization fields; Updates Auth0 org name/domain via Management API where supported;  may update computed `sso_status`.
   - Permissions: Requires `update:organizations`.
 
-- `POST /organizations`: Creates a new organization record in Auth0 and mirrors it to D1 (without sending an invitation).
-  - Request Body: `{ "name": "Beta Logistics", "org_type": "logistics", "domains": ["betalogs.io"] }`
+- **`POST /organizations`**: Creates a new organization record in Auth0 and in D1 (without sending an invitation).
+  - Request Body: `{ "name": "Beta Logistics", "org_type": "logistics", "domain": "betalogs.io" }`
   - Permissions: `create:organizations`.
   - Response: `{ "auth0_org_id": "org_DEF456" }`
 
-- `DELETE /organizations/{orgId}`: Archives an organization in Replate (soft delete in D1; Auth0 org remains unless explicitly removed outside of this API).
+- **`DELETE /organizations/{orgId}`**: Archives an organization in Replate; 
+  - Implementation: marks rows as deleted in D1 `Organization` tables (soft delete). Deletes Auth0 org remains. 
   - Permissions: `update:organizations`.
   - Response: `{ "archived": true }`
 
 Notes and Constraints:
 - Authentication: Only workforce Admins (Okta-managed) obtain tokens to call Admin API. Tokens include appropriate scopes noted above.
 - SSO invitation flows vary by IdP; this API focuses on orchestrating Auth0 Organization Invitations and capturing status (`not_started`, `invited`, `configured`, `active`).
-- Data consistency: D1 is a mirror for reporting and enrichment; Auth0 is the source of truth for org identity and invitations.
+- Data consistency: D1 is a source of truth for reporting and enrichment; calls Auth0 management API to perform selective number of operations such as sending a self-service SSO invitation.
 - Errors: Return 400 for validation errors (e.g., invalid domain), 404 for unknown orgId, 409 for duplicate domain, 502 if Auth0 Management API is unavailable.
+- Admin API has a confidential Auth0 client (client_id and client_secret) with [Auth0's Node.js SDK](https://www.npmjs.com/package/auth0) for Management API version 4.29.
 
 ## Website Details
 
@@ -428,20 +451,20 @@ Folder hints (existing and to be generated by an implementation):
 - Auth0 domain: `id.replate.dev` (custom domain proxied to Auth0 tenant)
 - Donor Application (SPA):
   - client_id: AUTH0_CLIENT_ID_DONOR
-  - audience: `api://donor.replate.dev`
+  - audience: `donor.api`
   - scope: openid profile email 
   - Allowed callback URLs: https://donor.replate.dev/callback
   - Allowed logout URLs: https://donor.replate.dev/
 - Business Application (SPA with Organizations):
   - client_id: AUTH0_CLIENT_ID_BUSINESS
-  - audience: ns://business.replate.dev
+  - audience: `business.api`
   - scope: openid profile email read:organization update:organization read:pickups create:pickups read:schedules update:schedules
   - Allowed callback URLs: https://business.replate.dev/callback
   - Allowed logout URLs: https://business.replate.dev/
   - Organizations: enabled; prompt=login or organization hint supported; org_id claim expected.
 - Admin Application (SPA/Console):
   - client_id: AUTH0_CLIENT_ID_ADMIN
-  - audience: ns://admin.replate.dev
+  - audience: `admin.api`
   - scope: openid profile email read:organizations update:organizations create:organizations read:org_invitations create:org_invitations
   - Token type: DPoP access tokens with 5-minute lifetime
   - Allowed callback URLs: https://admin.replate.dev/callback
@@ -460,7 +483,7 @@ Folder hints (existing and to be generated by an implementation):
   - `https://replate.dev/donor`: boolean (true for Donor app users)
   - `https://replate.dev/org_role`: one of admin|member|driver|null
 
-Routing conventions
+### Routing Conventions
 - Single-page routing using History API.
 - Donor routes: /, /donate, /history, /suggest, /callback, /logout
 - Business routes: /, /jobs, /jobs/new, /schedules, /schedules/new, /organization, /callback, /logout
@@ -484,7 +507,7 @@ Look & Feel (shared)
   - CallbackPage: handles Auth0 code exchange and redirects.
   - NavBar, Footer, ProtectedRoute wrapper.
 - Auth rules:
-  - Audience `api://donor.replate.dev`
+  - Audience `donor.api`
   - Ensure claim `https://replate.dev/donor === true`, otherwise show error or logout.
   - Silent token refresh
 - API integration:
@@ -496,7 +519,7 @@ Look & Feel (shared)
 ```json
 { "domain": "id.replate.dev", 
   "clientId": "AUTH0_CLIENT_ID_DONOR", 
-  "audience": "api://donor.replate.dev", 
+  "audience": "donor.api", 
   "redirectUri": "https://donor.replate.dev/callback"
 }
 ```
@@ -506,7 +529,7 @@ Look & Feel (shared)
 - Technology: React 19 + @auth0/auth0-react + React Router + Fetch; optional UI kit (MUI or lightweight CSS).
 - Personas: Supplier Admin/Member, Logistics Admin/Driver, Community Admin/Member.
 - Auth rules:
-  - Audience ns://business.replate.dev
+  - Audience `business.api`
   - org_id must be present; enforce membership and role via claims and scopes.
   - roles from https://replate.dev/org_role determine UI capabilities: admin (can PATCH org, manage schedules), member (create ad-hoc jobs, view lists), driver (view assigned jobs only, update status).
 - Pages/Features:
@@ -520,34 +543,34 @@ Look & Feel (shared)
 - API integration: attach bearer token; handle 401/403 by redirecting to login; show scope errors.
 - Routing: /, /jobs, /jobs/new, /schedules, /schedules/new, /organization, /callback.
 - Config file example (business/spa/public/auth_config.json):
-  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_BUSINESS", "audience": "ns://business.replate.dev", "redirectUri": "https://business.replate.dev/callback", "useOrganizations": true }
+  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_BUSINESS", "audience": "business.api", "redirectUri": "https://business.replate.dev/callback", "useOrganizations": true }
 
 ### Admin SPA (`admin.replate.dev`)
 - Technology: React 18 + ReactAdmin + @auth0/auth0-spa-js (or OIDC lib) with DPoP; custom RA authProvider and dataProvider.
 - Auth rules:
-  - Audience ns://admin.replate.dev
+  - Audience `admin.api`
   - DPoP tokens only; 5-minute access token lifetime; refresh tokens allowed; attach DPoP proof header per request.
   - Scopes: read:organizations, update:organizations, create:organizations, read:org_invitations, create:org_invitations.
 - Resources (ReactAdmin):
   - organizations: list, show, edit, create.
   - invitations: list, create.
 - Screens:
-  - OrganizationsList: table with name, org_type, domains, sso_status.
+  - OrganizationsList: table with name, org_type, domain, sso_status.
   - OrganizationShow: details + related metadata from D1 (addresses, schedules where relevant).
   - OrganizationEdit: edit form; PATCH /organizations/{orgId}.
   - OrganizationCreate: POST /organizations.
   - InvitationsList: GET /organizations/invitations with filters status/org_type.
-  - InvitationCreate: POST /organizations/invitations; form fields org_type, name, domains[], admin_email.
+  - InvitationCreate: POST /organizations/invitations; form fields org_type, name, domain, admin_email.
 - Data provider endpoints map directly to Admin API described above.
 - Config example (admin/spa/public/auth_config.json):
-  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_ADMIN", "audience": "ns://admin.replate.dev", "redirectUri": "https://admin.replate.dev/callback", "dpop": true }
+  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_ADMIN", "audience": "admin.api", "redirectUri": "https://admin.replate.dev/callback", "dpop": true }
 
 ### Accessibility & i18n
 - All interactive elements keyboard accessible. Labels tied to inputs with aria-* where necessary.
 - Color contrast >= 4.5:1 for text.
 - String resources abstracted for future i18n; default locale en-US.
 
-### Error handling & Loading
+### Error Handling & Loading
 - Global ErrorBoundary shows friendly message and retry.
 - API errors mapped: 400 validation -> inline field errors; 401 -> login; 403 -> permission message; 404 -> not found view; 5xx -> toast with retry.
 - Skeleton loaders for lists/forms; optimistic UI for simple PATCH.
@@ -564,27 +587,48 @@ Look & Feel (shared)
 - Static cache headers for assets; HTML not cached.
 
 ### Notes for code generators
+- Prefer explicit file paths and keep edits minimal; do not introduce new frameworks.
+- Follow the API contracts in donor/api/openapi.yaml, business/api/openapi.yaml, admin/api/openapi.yaml when implementing endpoints or clients.
+- Externalize configuration via public/auth_config.json and .env; never hardcode secrets or client IDs.
+- For SPA routing, ensure not_found_handling = "single-page-application" in wrangler.toml.
+- Use Hono for Workers, React 19 for SPAs, and @auth0/auth0-react v2.4 patterns shown here.
+- Keep tokens’ custom claims under https://replate.dev/ namespace as referenced.
+- Validate access control using scope and, for Business, org_id and https://replate.dev/org_role claims.
 - Generate `index.html` that loads a root React bundle, defines a #root element, and fetches `/auth_config.json` at startup to init Auth0.
 - Implement an AuthProvider component exposing isAuthenticated, user, login, logout, getAccessTokenSilently.
 - Implement ProtectedRoute that waits for Auth0 to initialize and then either renders children or triggers loginWithRedirect.
-- Keep configuration externalized in public/auth_config.json; do not hardcode client IDs or domains.
+- Keep configuration externalized in public/auth_config.json; do not hardcode client IDs or domain names.
 
 ## Authorization Model
 
+### Claims and Permissions Checklist (for code generators)
+- Donor SPA
+  - Audience: `donor.api`
+  - Required claim: `https://replate.dev/donor === true`
+  - Scopes: `openid profile email`
+- Business SPA
+  - Audience: `business.api`
+  - Required claims: `org_id` present; `https://replate.dev/org_role` in `admin|member|driver`
+  - Scopes (as needed by pages): `read:organization update:organization read:pickups create:pickups read:schedules update:schedules`
+- Admin SPA
+  - Audience: `admin.api`
+  - Token type: DPoP (5-minute lifetime)
+  - Scopes: `read:organizations update:organizations create:organizations read:org_invitations create:org_invitations`
+
 ### Donor
-Donors are simply authenticated with Auth0 and need to present a valid access_token against resource server `api://donor.replate.dev` and _must_ contain claim `"https://replate.dev/donor": true`
+Donors are simply authenticated with Auth0 and need to present a valid access_token against resource server `donor.api` and _must_ contain claim `"https://replate.dev/donor": true`
 
 
 ### Replate Admin
 Replate admin has strict security rules.
-- resource server is `ns://admin.replate.dev`
-- access_tokens should be DPoP
-- validity is 5min
+- Resource server is `admin.api`
+- Access tokens should be DPoP
+- Token validity is 5 minutes
 
 
 ### Business
 
-Business access_token is issued against resource server `ns://business.replate.dev`. 
+Business access_token is issued against resource server `business.api`. 
 This section governs how access_token issued by Auth0 is consumed by API and which claims control which API.
 
 Sample access_token. `org_id` is nullable for donors.
