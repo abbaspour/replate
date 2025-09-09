@@ -1,0 +1,14 @@
+name = "replate-admin-spa"
+compatibility_date = "2025-09-03"
+preview_urls = false
+
+routes = [
+    { pattern = "admin.replate.dev", custom_domain = true }
+]
+
+[build]
+command = "npm run build"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

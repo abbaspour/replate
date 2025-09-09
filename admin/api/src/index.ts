@@ -20,9 +20,13 @@ export type Env = {
 };
 
 // Helper: scope check
-function requireScopes(required: string[], tokenScopes?: string) {
-    const set = new Set((tokenScopes ?? '').split(' ').filter(Boolean));
-    return required.every((s) => set.has(s));
+function requirePermissions(c: Context<Env>, required: string[]/*, tokenScopes?: string*/) {
+    const token  = c.get('token');
+    const permissions = token?.permissions;
+    if (!permissions || !Array.isArray(permissions)) return false;
+    const permissionArray : [string] = permissions as [string];
+    //const set = new Set((tokenScopes ?? '').split(' ').filter(Boolean));
+    return required.every((s) => permissionArray.includes(s));
 }
 
 // Middleware: validate access token with jose
@@ -45,7 +49,7 @@ async function verifyAccessToken(c: Context<Env>) {
         });
 
         // attach token payload to context for handlers
-        c.set('token', payload as any);
+        c.set('token', payload);
         return null;
     } catch (e) {
         return c.json({error: 'Unauthorized'}, 401);
@@ -63,8 +67,7 @@ app.get('/health', (c) => c.json({ok: true}));
 app.get('/organizations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['read:organizations'], token.scope)) {
+    if (!requirePermissions(c, ['read:organizations']/*, token.scope*/)) {
         return c.json({error: 'Forbidden'}, 403);
     }
 
@@ -103,8 +106,8 @@ app.get('/organizations', async (c) => {
 app.get('/organizations/:orgId', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['read:organizations'], token.scope)) {
+    //const token: any = c.get('token');
+    if (!requirePermissions(c, ['read:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const orgId = c.req.param('orgId');
@@ -160,8 +163,8 @@ app.get('/organizations/:orgId', async (c) => {
 app.post('/organizations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['create:organizations'], token.scope)) {
+    //const token: any = c.get('token');
+    if (!requirePermissions(c, ['create:organizations']/*, token.scope*/)) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const body = await c.req.json<components['schemas']['OrganizationCreateRequest']>();
@@ -192,8 +195,8 @@ app.post('/organizations', async (c) => {
 app.patch('/organizations/:orgId', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['update:organizations'], token.scope)) {
+    //const token: any = c.get('token');
+    if (!requirePermissions(c, ['update:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const orgId = c.req.param('orgId');
@@ -255,8 +258,8 @@ app.patch('/organizations/:orgId', async (c) => {
 app.delete('/organizations/:orgId', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['update:organizations'], token.scope)) {
+    //const token: any = c.get('token');
+    if (!requirePermissions(c, ['update:organizations']/*, token.scope*/)) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const orgId = c.req.param('orgId');
@@ -272,8 +275,8 @@ app.delete('/organizations/:orgId', async (c) => {
 app.get('/organizations/invitations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['read:org_invitations'], token.scope)) {
+    //const token: any = c.get('token');
+    if (!requirePermissions(c, ['read:org_invitations']/*, token.scope*/)) {
         return c.json({error: 'Forbidden'}, 403);
     }
     // Minimal: return empty list or demo row joined from Organizations
@@ -298,8 +301,8 @@ app.get('/organizations/invitations', async (c) => {
 app.post('/organizations/invitations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    const token: any = c.get('token');
-    if (!requireScopes(['create:org_invitations', 'update:organizations'], token.scope)) {
+    //const token: any = c.get('token');
+    if (!requirePermissions(c, ['create:org_invitations', 'update:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const body = await c.req.json<components['schemas']['InvitationCreateRequest']>();

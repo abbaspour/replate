@@ -21,15 +21,20 @@ variable "auth0_tf_client_assertion_signing_alg" {
   default = "RS256"
 }
 
-# Cloudflare
-/*
-variable "cloudflare_api_token" {
+# Domain configuration for Auth0 custom domain
+variable "top_level_domain" {
+  description = "Top level domain name (e.g., replate.dev)"
   type        = string
-  description = "Cloudflare API Token with permissions to manage D1 Databases (Account.D1:Edit) and read account details."
-  sensitive   = true
+  default     = "replate.dev"
 }
-*/
 
+variable "auth0_subdomain" {
+  description = "Subdomain for Auth0 custom domain (e.g., 'id' for id.replate.dev)"
+  type        = string
+  default     = "id"
+}
+
+# Cloudflare
 variable "cloudflare_api_key" {
   type        = string
   description = "Cloudflare API Key."
@@ -46,28 +51,37 @@ variable "cloudflare_email" {
   description = "Cloudflare Account Email"
 }
 
-/*
-variable "cloudflare_zone_id" {
-  type        = string
-  description = "Cloudflare DNS zone_id"
-}
-*/
-
 variable "cloudflare_d1_db_name" {
   type        = string
   description = "Name for the CRM D1 database."
   default     = "replate-crm"
 }
 
-# Domain configuration for Auth0 custom domain
-variable "top_level_domain" {
-  description = "Top level domain name (e.g., replate.dev)"
+## okta
+variable "okta_org_name" {
   type        = string
-  default     = "replate.dev"
+  description = "Okta org name"
 }
 
-variable "auth0_subdomain" {
-  description = "Subdomain for Auth0 custom domain (e.g., 'id' for id.replate.dev)"
+/*
+variable "okta_tf_client_id" {
   type        = string
-  default     = "id"
+  description = "Terraform client_id"
+}
+*/
+
+variable "okta_tf_api_token" {
+  type        = string
+  description = "Terraform API token"
+  sensitive = true
+}
+
+variable "okta_base_url" {
+  type = string
+  default = "okta.com"
+}
+
+variable "default-password" {
+  type = string
+  sensitive = true
 }

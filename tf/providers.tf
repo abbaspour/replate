@@ -9,6 +9,10 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = ">= 5.9"
     }
+    okta = {
+      source  = "okta/okta"
+      version = ">= 6.0"
+    }
   }
 }
 
@@ -20,8 +24,19 @@ provider "auth0" {
 }
 
 provider "cloudflare" {
-  email = var.cloudflare_email
+  email   = var.cloudflare_email
   api_key = var.cloudflare_api_key
   #api_token = var.cloudflare_api_token
+}
+
+provider "okta" {
+  org_name    = var.okta_org_name
+  base_url    = var.okta_base_url
+  api_token = var.okta_tf_api_token
+/*
+  client_id   = var.okta_tf_client_id
+  private_key = file("converted-tf-private-key.pem")
+  scopes      = ["okta.apps.manage", "okta.users.manage", "okta.groups.manage"]
+*/
 }
 
