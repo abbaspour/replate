@@ -190,7 +190,7 @@ Community Member is a member of a community organisation in Auth0
 1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD.
 2. Can **view and update the delivery schedule**.
 
-## Core Data Model in Airtable
+## Core Data Model in CRM
 
 The API layer doesn't have a DB layer on its own. Two sources of backend for the API are:
 
@@ -200,19 +200,21 @@ The API layer doesn't have a DB layer on its own. Two sources of backend for the
 2. Cloudflare D1 relational database. Contains a mirror of users and organizations from Auth0 as well as other
    operational tables like Pickups, Suggestions, Donation.
 
-### 1) `Contact` Table
+![Data Model](./crm/crm.png)
+
+### 1) `Users` Table
 
 Every person who logs into Replate is a user. This table stores all users, regardless of whether they are a business
 user or a consumer.
 
 Data is federated between Auth0 and D1. The API layer is responsible for combining this data when needed. The Auth0
-`user_id` is the primary key in Auth0, and in D1, the AUTOINCREMENT Contact `id` is the primary key.
+`user_id` is the primary key in Auth0, and in D1, the AUTOINCREMENT User `id` is the primary key.
 
-The link between an Auth0 user and an D1 record is bidirectional. In the Auth0 user profile, `app_metadata.contact_id`
-points to their D1 Contact ID. Auth0's `user_id` is stored in a custom `auth0_user_id` field in the D1 record.
+The link between an Auth0 user and an D1 record is bidirectional. In the Auth0 user profile, `app_metadata.user_id`
+points to their D1 User ID. Auth0's `user_id` is stored in a custom `auth0_user_id` field in the D1 record.
 
 An Auth0 Post-User-Registration Action ensures all users have a corresponding record in D1. If the
-`app_metadata.contact_id` field is missing, the Action calls `api.id.` API to create a record in the `Contact` table and
+`app_metadata.user_id` field is missing, the Action calls `api.id.` API to create a record in the `User` table and
 stores the resulting Record ID in the user's `app_metadata`.
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
@@ -228,9 +230,9 @@ stores the resulting Record ID in the user's `app_metadata`.
     - `consumer_lifecycle_stage` (Single Select: `visitor`, `registered`, `donor_first_time`, `donor_repeat`,
       `advocate`)
 - **Associations**:
-    - Linked to one record in the `Organization` table (for business users).
+    - Linked to one record in the `Organizations` table (for business users).
 
-### 2) `Organization` Table
+### 2) `Organizations` Table
 
 Represents a Supplier, Community, or Logistics organization.
 
@@ -241,7 +243,7 @@ records in this table. The organization domain stored here is the same domain us
 - **Fields**:
     - `auth0_org_id` (Text, Unique)
     - `org_type` (Single Select: `supplier`, `community`, `logistics`)
-    - `name`, `domains` (synced from Auth0)
+    - `name`, `domain` (synced from Auth0)
     - `sso_status` (Single Select: `not_started`, `invited`, `configured`, `active`)
     - `pickup_address` (Text, for Suppliers)
     - `pickup_schedule` (Long Text / JSON, for Suppliers)
@@ -250,9 +252,9 @@ records in this table. The organization domain stored here is the same domain us
     - `coverage_regions` (Long Text, for Logistics)
     - `vehicle_types` (Multiple Select, for Logistics)
 - **Associations**:
-    - Linked to many records in the `Contact` table (the members of the organization).
+    - Linked to many records in the `Users` table (the members of the organization).
 
-### 3) `Donation` Table
+### 3) `Donations` Table
 
 Tracks all monetary donations from consumer users (Donors).
 
@@ -263,17 +265,17 @@ Tracks all monetary donations from consumer users (Donors).
     - `created_at` (Created Time)
     - `testimonial` (Long Text)
 - **Associations**:
-    - Linked to one record in the `Contact` table (the Donor).
+    - Linked to one record in the `Users` table (the Donor).
 
-### 4) `PickupSchedule` Table
+### 4) `PickupSchedules` Table
 
 This table defines the recurring pickup arrangements (i.e., "standing orders"). It acts as a template for creating
 individual PickupJob records.
 
 - **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields:**
-- `supplier_id` (FK to `Organization` table)
-- `default_community_id` (FK to `Organization` table)
+- `supplier_id` (FK to `Organizations` table)
+- `default_community_id` (FK to `Organizations` table)
 - `is_active` (Boolean)
 - `cron_expression` (Text, e.g., 0 19 * * 1-5 for 7 PM on weekdays)
 - `pickup_time_of_day` (Time)
@@ -281,17 +283,17 @@ individual PickupJob records.
 - `default_food_category` (Multiple Select)
 - `default_estimated_weight_kg` (Number)
 - **Associations**:
-    - Linked to one record in `Organization` (the Supplier).
-    - Has a one-to-many relationship with the `PickupJob` table.
+    - Linked to one record in `Organizations` (the Supplier).
+    - Has a one-to-many relationship with the `PickupJobs` table.
 
-### 5) `PickupJob` Table
+### 5) `PickupJobs` Table
 
 This table tracks the lifecycle of a single, concrete pickup event, whether it was generated from a schedule or created
 as an ad-hoc request.
 
 - **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields:**
-- `schedule_id` (FK to PickupSchedule table, nullable) - If NULL, this is an ad-hoc request.
+- `schedule_id` (FK to PickupSchedules table, nullable) - If NULL, this is an ad-hoc request.
 - `status` (Single Select pipeline: `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`, `Canceled`)
 - `pickup_window_start` (DateTime), `pickup_window_end` (DateTime)
 - `food_category` (Multiple Select),
@@ -299,13 +301,13 @@ as an ad-hoc request.
 - `packaging` (Long Text),
 - `handling_notes` (Long Text)
 - **Associations**:
-    - Linked to one record in Organization (the Supplier).
-    - Linked to one record in Organization (the destination Community).
-    - Linked to one record in Organization (the assigned Logistics partner).
-    - Linked to one record in Contact (the assigned Driver).
-    - (Optionally) Linked to one record in PickupSchedule.
+    - Linked to one record in Organizations (the Supplier).
+    - Linked to one record in Organizations (the destination Community).
+    - Linked to one record in Organizations (the assigned Logistics partner).
+    - Linked to one record in Users (the assigned Driver).
+    - (Optionally) Linked to one record in PickupSchedules.
 
-### 6) `Suggestion` Table
+### 6) `Suggestions` Table
 
 Captures new leads for potential partners, submitted by consumers.
 
@@ -316,8 +318,8 @@ Captures new leads for potential partners, submitted by consumers.
     - `submitted_at` (Created Time)
     - `qualification_status` (Single Select: `New`, `Contacted`, `Qualified`, `Rejected`)
 - **Associations**:
-    - Linked to one record in `Contact` (the Submitter).
-    - (Optionally) Linked to one record in `Organization` once the suggestion is converted into a partner.
+    - Linked to one record in `Users` (the Submitter).
+    - (Optionally) Linked to one record in `Organizations` once the suggestion is converted into a partner.
 
 ## API Contract
 
@@ -377,37 +379,37 @@ Admin API is backed by two systems:
 2. Auth0 management API.  
 
 - **`POST /organizations/invitations`**: Initiates a self-service SSO invitation for a business organization (supplier, community, or logistics).
-  - Request Body: `{ "org_type": "supplier|community|logistics", "name": "Acme Bakery", "domains": ["acme.com"], "admin_email": "owner@acme.com" }`
+  - Request Body: `{ "org_type": "supplier|community|logistics", "name": "Acme Bakery", "domain": "acme.com", "admin_email": "owner@acme.com" }`
   - Implementation:
-    - Creates or finds the organization in Auth0 (via Management API), setting display name and domains used for HRD.
+    - Creates or finds the organization in Auth0 (via Management API), setting display name and domain used for HRD.
     - Creates an invitation object and sends the invitation email (Auth0 B2B Connections / Organization Invitations flow) or records an onboarding token to complete IdP setup. 
-    - Mirrors/updates the Organization record in D1 with `auth0_org_id`, `org_type`, `name`, `domains`, and sets `sso_status` to `invited`.
+    - Mirrors/updates the Organization record in D1 with `auth0_org_id`, `org_type`, `name`, `domain`, and sets `sso_status` to `invited`.
   - Permissions: Requires an admin workforce token with scope `create:org_invitations` and `update:organizations`.
   - Response: `{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "status": "invited" }`
 
 - **`GET /organizations/invitations`**: Lists invitations and their current statuses.
   - Query Params (optional): `status=invited|configured|active`, `org_type=supplier|community|logistics`, `q=searchTerm`.
-  - Implementation: Reads invitation objects from Auth0, joins with D1 Organization mirror to enrich `org_type`, `domains`, and computed `sso_status`.
+  - Implementation: Reads invitation objects from Auth0, joins with D1 Organization mirror to enrich `org_type`, `domain`, and computed `sso_status`.
   - Permissions: Requires `read:org_invitations`.
-  - Response: `[{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domains": ["acme.com"], "sso_status": "invited", "sent_at": "2025-09-01T10:00:00Z" }]`
+  - Response: `[{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domain": "acme.com", "sso_status": "invited", "sent_at": "2025-09-01T10:00:00Z" }]`
 
 - **`GET /organizations`**: Lists organizations known to Replate.
   - Query Params: `org_type`, `sso_status`, `q`.
   - Implementation: Reads from D1 `Organization` table. Supports pagination.
   - Permissions: Requires `read:organizations`.
-  - Response: `[{ "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domains": ["acme.com"], "sso_status": "configured" }]`
+  - Response: `[{ "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domain": "acme.com", "sso_status": "configured" }]`
 
 - **`GET /organizations/{orgId}`**: Retrieves details for a specific organization, including SSO setup status.
   - Implementation: Reads from D1 `Organization` table. 
   - Permissions: Requires `read:organizations`.
 
 - **`PATCH /organizations/{orgId}`**: Updates organization details/metadata managed by Replate (not identity-provider credentials).
-  - Request Body (example): `{ "name": "Acme Bakery", "domains": ["acme.com"], "metadata": { "org_type": "supplier", "pickup_address": "12 King St", "delivery_address": "", "coverage_regions": "", "vehicle_types": ["van"] } }`
-  - Implementation: Updates D1 Organization fields; Updates Auth0 org name/domains via Management API where supported;  may update computed `sso_status`.
+  - Request Body (example): `{ "name": "Acme Bakery", "domain": "acme.com", "metadata": { "org_type": "supplier", "pickup_address": "12 King St", "delivery_address": "", "coverage_regions": "", "vehicle_types": ["van"] } }`
+  - Implementation: Updates D1 Organization fields; Updates Auth0 org name/domain via Management API where supported;  may update computed `sso_status`.
   - Permissions: Requires `update:organizations`.
 
 - **`POST /organizations`**: Creates a new organization record in Auth0 and in D1 (without sending an invitation).
-  - Request Body: `{ "name": "Beta Logistics", "org_type": "logistics", "domains": ["betalogs.io"] }`
+  - Request Body: `{ "name": "Beta Logistics", "org_type": "logistics", "domain": "betalogs.io" }`
   - Permissions: `create:organizations`.
   - Response: `{ "auth0_org_id": "org_DEF456" }`
 
@@ -549,12 +551,12 @@ Look & Feel (shared)
   - organizations: list, show, edit, create.
   - invitations: list, create.
 - Screens:
-  - OrganizationsList: table with name, org_type, domains, sso_status.
+  - OrganizationsList: table with name, org_type, domain, sso_status.
   - OrganizationShow: details + related metadata from D1 (addresses, schedules where relevant).
   - OrganizationEdit: edit form; PATCH /organizations/{orgId}.
   - OrganizationCreate: POST /organizations.
   - InvitationsList: GET /organizations/invitations with filters status/org_type.
-  - InvitationCreate: POST /organizations/invitations; form fields org_type, name, domains[], admin_email.
+  - InvitationCreate: POST /organizations/invitations; form fields org_type, name, domain, admin_email.
 - Data provider endpoints map directly to Admin API described above.
 - Config example (admin/spa/public/auth_config.json):
   { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_ADMIN", "audience": "admin.api", "redirectUri": "https://admin.replate.dev/callback", "dpop": true }
@@ -591,7 +593,7 @@ Look & Feel (shared)
 - Generate `index.html` that loads a root React bundle, defines a #root element, and fetches `/auth_config.json` at startup to init Auth0.
 - Implement an AuthProvider component exposing isAuthenticated, user, login, logout, getAccessTokenSilently.
 - Implement ProtectedRoute that waits for Auth0 to initialize and then either renders children or triggers loginWithRedirect.
-- Keep configuration externalized in public/auth_config.json; do not hardcode client IDs or domains.
+- Keep configuration externalized in public/auth_config.json; do not hardcode client IDs or domain names.
 
 ## Authorization Model
 

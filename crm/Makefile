@@ -46,7 +46,7 @@ d1-load:
 
 d1-users:
 	@echo "Listing all users from D1 database..."
-	wrangler d1 execute $(D1_DB_NAME) --command="SELECT id, name, email, donor, org_role, consumer_lifecycle_stage FROM Contact ORDER BY id;" --remote
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT id, name, email, donor, org_role, consumer_lifecycle_stage FROM User ORDER BY id;" --remote
 
 d1-companies:
 	@echo "Listing all companies from D1 database..."
@@ -54,7 +54,7 @@ d1-companies:
 
 d1-donations:
 	@echo "Listing all donations from D1 database..."
-	wrangler d1 execute $(D1_DB_NAME) --command="SELECT d.id, c.name as donor_name, d.amount, d.currency, d.status, d.created_at FROM Donation d JOIN Contact c ON d.contact_id = c.id ORDER BY d.created_at DESC;" --remote
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT d.id, u.name as donor_name, d.amount, d.currency, d.status, d.created_at FROM Donation d JOIN User u ON d.user_id = u.id ORDER BY d.created_at DESC;" --remote
 
 d1-schedules:
 	@echo "Listing all pickup schedules from D1 database..."
@@ -66,7 +66,7 @@ d1-jobs:
 
 d1-suggestions:
 	@echo "Listing all suggestions from D1 database..."
-	wrangler d1 execute $(D1_DB_NAME) --command="SELECT sg.id, c.name as submitter_name, sg.type, sg.name as suggested_name, sg.qualification_status FROM Suggestion sg JOIN Contact c ON sg.submitter_id = c.id ORDER BY sg.submitted_at DESC;" --remote
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT sg.id, u.name as submitter_name, sg.type, sg.name as suggested_name, sg.qualification_status FROM Suggestion sg JOIN User u ON sg.submitter_id = u.id ORDER BY sg.submitted_at DESC;" --remote
 
 clean:
 	@echo "Removing database file..."

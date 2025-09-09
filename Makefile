@@ -4,6 +4,7 @@
 # Default input and output for PDF generation
 README_MD ?= readme.md
 README_PDF ?= readme.pdf
+papersize = a4 # or letter
 
 .PHONY: pdf help
 
@@ -22,9 +23,10 @@ pdf:
 		--pdf-engine=wkhtmltopdf \
 		--metadata title="Replate README" \
 		--toc \
+		-V papersize:$(papersize) \
 		--output "${README_PDF}" \
 		|| { \
 		  echo "Primary PDF engine failed, retrying with LaTeX (pdflatex) if available..."; \
-		  pandoc "${README_MD}" --from gfm --pdf-engine=pdflatex --metadata title="Replate README" --toc --output "${README_PDF}"; \
+		  pandoc "${README_MD}" --from gfm --pdf-engine=pdflatex --metadata title="Replate README" -V papersize:$(papersize) --toc --output "${README_PDF}"; \
 		}
 	@echo "Done: $${README_PDF}"

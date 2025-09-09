@@ -1,17 +1,17 @@
 -- Sample data for Replate CRM database
 -- Generated on: 2025-09-04
 
--- Sample Companies
-INSERT INTO Company (auth0_org_id, org_type, name, domains, sso_status, pickup_address, delivery_address, coverage_regions, vehicle_types) VALUES
-('org_supplier_001', 'supplier', 'Green Grocer Market', '["greengrocer.com"]', 'active', '123 Market St, San Francisco, CA 94102', NULL, '["San Francisco", "Oakland"]', NULL),
-('org_supplier_002', 'supplier', 'Whole Foods Downtown', '["wholefoodsdowntown.com"]', 'configured', '456 Union St, San Francisco, CA 94108', NULL, '["San Francisco"]', NULL),
-('org_community_001', 'community', 'SF Food Bank', '["sffoodbank.org"]', 'active', NULL, '789 Mission St, San Francisco, CA 94103', '["San Francisco", "Daly City"]', NULL),
-('org_community_002', 'community', 'Oakland Community Kitchen', '["oaklandkitchen.org"]', 'invited', NULL, '321 Broadway, Oakland, CA 94607', '["Oakland", "Berkeley"]', NULL),
-('org_logistics_001', 'logistics', 'City Delivery Co', '["citydelivery.com"]', 'active', '555 Logistics Way, San Mateo, CA 94401', '555 Logistics Way, San Mateo, CA 94401', '["San Francisco", "Oakland", "San Mateo"]', '["van", "truck"]'),
-('org_logistics_002', 'logistics', 'Bay Area Transport', '["bayareatransport.com"]', 'configured', '777 Fleet St, Fremont, CA 94538', '777 Fleet St, Fremont, CA 94538', '["Oakland", "Fremont", "San Jose"]', '["van", "truck", "refrigerated"]');
+-- Sample Organizations
+INSERT INTO Organizations (auth0_org_id, org_type, name, domain, sso_status, pickup_address, delivery_address, coverage_regions, vehicle_types) VALUES
+('org_supplier_001', 'supplier', 'Green Grocer Market', 'greengrocer.com', 'active', '123 Market St, San Francisco, CA 94102', NULL, '["San Francisco", "Oakland"]', NULL),
+('org_supplier_002', 'supplier', 'Whole Foods Downtown', 'wholefoodsdowntown.com', 'configured', '456 Union St, San Francisco, CA 94108', NULL, '["San Francisco"]', NULL),
+('org_community_001', 'community', 'SF Food Bank', 'sffoodbank.org', 'active', NULL, '789 Mission St, San Francisco, CA 94103', '["San Francisco", "Daly City"]', NULL),
+('org_community_002', 'community', 'Oakland Community Kitchen', 'oaklandkitchen.org', 'invited', NULL, '321 Broadway, Oakland, CA 94607', '["Oakland", "Berkeley"]', NULL),
+('org_logistics_001', 'logistics', 'City Delivery Co', 'citydelivery.com', 'active', '555 Logistics Way, San Mateo, CA 94401', '555 Logistics Way, San Mateo, CA 94401', '["San Francisco", "Oakland", "San Mateo"]', '["van", "truck"]'),
+('org_logistics_002', 'logistics', 'Bay Area Transport', 'bayareatransport.com', 'configured', '777 Fleet St, Fremont, CA 94538', '777 Fleet St, Fremont, CA 94538', '["Oakland", "Fremont", "San Jose"]', '["van", "truck", "refrigerated"]');
 
--- Sample Contacts (Users)
-INSERT INTO Contact (auth0_user_id, company_id, email, email_verified, name, picture, donor, org_role, org_status, consumer_lifecycle_stage) VALUES
+-- Sample Users
+INSERT INTO Users (auth0_user_id, organization_id, email, email_verified, name, picture, donor, org_role, org_status, consumer_lifecycle_stage) VALUES
 -- Supplier contacts
 ('auth0|supplier_admin_001', 1, 'manager@greengrocer.com', 1, 'Sarah Johnson', 'https://example.com/sarah.jpg', 0, 'admin', 'active', 'registered'),
 ('auth0|supplier_member_001', 1, 'staff@greengrocer.com', 1, 'Mike Chen', 'https://example.com/mike.jpg', 0, 'member', 'active', 'registered'),
@@ -36,7 +36,7 @@ INSERT INTO Contact (auth0_user_id, company_id, email, email_verified, name, pic
 ('auth0|consumer_005', NULL, 'michael.jones@email.com', 1, 'Michael Jones', 'https://example.com/michael.jpg', 1, NULL, NULL, 'donor_repeat');
 
 -- Sample Donations
-INSERT INTO Donation (contact_id, amount, currency, status, testimonial) VALUES
+INSERT INTO Donations (user_id, amount, currency, status, testimonial) VALUES
 (11, 25.00, 'USD', 'succeeded', 'Happy to support food rescue efforts in our community!'),
 (12, 50.00, 'USD', 'succeeded', 'Great cause, keep up the excellent work.'),
 (11, 30.00, 'USD', 'succeeded', NULL),
@@ -46,20 +46,20 @@ INSERT INTO Donation (contact_id, amount, currency, status, testimonial) VALUES
 (13, 200.00, 'USD', 'succeeded', 'Proud to be part of reducing food waste while helping those in need.');
 
 -- Sample Pickup Schedules
-INSERT INTO PickupSchedule (supplier_id, default_community_id, is_active, cron_expression, pickup_time_of_day, pickup_duration_minutes, default_food_category, default_estimated_weight_kg) VALUES
+INSERT INTO PickupSchedules (supplier_id, default_community_id, is_active, cron_expression, pickup_time_of_day, pickup_duration_minutes, default_food_category, default_estimated_weight_kg) VALUES
 (1, 3, 1, '0 18 * * 1,3,5', '18:00:00', 30, '["produce", "bakery"]', 25.5),
 (2, 3, 1, '0 19 * * 2,4,6', '19:00:00', 45, '["dairy", "prepared_foods"]', 40.0),
 (1, 4, 1, '0 17 * * 7', '17:00:00', 30, '["produce"]', 15.0);
 
 -- Sample Pickup Jobs
-INSERT INTO PickupJob (schedule_id, supplier_id, community_id, logistics_id, driver_id, status, pickup_window_start, pickup_window_end, food_category, estimated_weight_kg, packaging, handling_notes) VALUES
+INSERT INTO PickupJobs (schedule_id, supplier_id, community_id, logistics_id, driver_id, status, pickup_window_start, pickup_window_end, food_category, estimated_weight_kg, packaging, handling_notes) VALUES
 (1, 1, 3, 5, 8, 'Delivered', '2025-09-02T18:00:00Z', '2025-09-02T18:30:00Z', '["produce", "bakery"]', 28.3, 'Cardboard boxes and plastic crates', 'Handle produce gently, some items near expiration'),
 (2, 2, 3, 5, 9, 'In Transit', '2025-09-04T19:00:00Z', '2025-09-04T19:45:00Z', '["dairy", "prepared_foods"]', 42.1, 'Insulated bags and containers', 'Keep dairy items refrigerated'),
 (1, 1, 3, 5, 8, 'Logistics Assigned', '2025-09-06T18:00:00Z', '2025-09-06T18:30:00Z', '["produce", "bakery"]', 25.0, 'Standard boxes', NULL),
 (NULL, 2, 4, 6, NULL, 'New', '2025-09-05T16:00:00Z', '2025-09-05T17:00:00Z', '["prepared_foods"]', 20.0, 'Hot food containers', 'Ad-hoc pickup for surplus prepared meals');
 
 -- Sample Suggestions
-INSERT INTO Suggestion (submitter_id, converted_company_id, type, name, address, qualification_status) VALUES
+INSERT INTO Suggestions (submitter_id, converted_organization_id, type, name, address, qualification_status) VALUES
 (11, NULL, 'supplier', 'Corner Deli & Market', '234 Castro St, San Francisco, CA', 'Contacted'),
 (13, NULL, 'community', 'Mission District Food Pantry', '567 Mission St, San Francisco, CA', 'New'),
 (12, NULL, 'logistics', 'Green Transport Solutions', '890 Eco Way, Berkeley, CA', 'Qualified'),
