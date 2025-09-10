@@ -190,7 +190,7 @@ CREATE TABLE SsoInvitations (
     auth0_connection_name TEXT,
     domain_verification TEXT CHECK(domain_verification IN ('Off','Optional','Required')),
     accept_idp_init_saml INTEGER NOT NULL DEFAULT 0,
-    ttl INTEGER NOT NULL, -- seconds
+    ttl INTEGER NOT NULL DEFAULT 432000, -- seconds
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (organization_id) REFERENCES Organizations(id),
     FOREIGN KEY (issuer_user_id) REFERENCES Users(id)

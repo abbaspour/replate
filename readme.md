@@ -400,8 +400,8 @@ Admin API is backed by two systems:
 1. Cloudflare D1 database. Use Cloudflare database binding to query and update data. Primary source of truth.
 2. Auth0 management API.  
 
-- **`POST /sso-invitations`**: Initiates a self-service SSO invitation for a business organization (supplier, community, or logistics).
-  - Request Body: `{ "org_id": "org_abc123", "accept_idp_init_saml": true|false, "ttl": 4800, "domain_verification": true|false }`
+- **`POST /organizations/{orgId}/sso-invitations`**: Initiates a self-service SSO invitation for a business organization (supplier, community, or logistics).
+  - Request Body: `{ "accept_idp_init_saml": true|false, "ttl": 4800, "domain_verification": true|false }`
   - Implementation:
     - Finds the organization in Organizations table (via Management API), setting display name and domain used for HRD.
     - Calls Auth0 management API to create self-service SSO invitation link
@@ -410,15 +410,14 @@ Admin API is backed by two systems:
   - Permissions: Requires an admin workforce token with scope `create:sso_invitations`.
   - Response: `{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "link": "https://invitation-link" }`
 
-- **`GET /sso-invitations`**: Lists invitations and their current statuses.
-  - Query Params (optional): `status=invited|configured|active`, `org_type=supplier|community|logistics`, `q=searchTerm`.
-  - Implementation: Reads invitation objects from Auth0, joins with D1 Organization mirror to enrich `org_type`, `domain`, and computed `sso_status`. sso_status is **expired** if current time is after `created_at` + `ttl`.
+- **`GET /organizations/{orgId}/sso-invitations`**: Lists invitations for the organization and their current statuses.
+  - Implementation: Reads invitation from D1 SsoInvitations table and computed `sso_status`. sso_status is **expired** if current time is after `created_at` + `ttl`.
   - Permissions: Requires `read:sso_invitations`.
   - Response: `[{ "invitation_id": "inv_123", "org_id": "org_abc123", "link": "link", "sso_status": "expired", "created_at": "2025-09-01T10:00:00Z" }]`
 
-- **`DELETE /sso-invitations/{invtId}`**: Deletes an invitation and revokes it from Auth0
+- **`DELETE /organizations/{orgId}/sso-invitations/{invtId}`**: Deletes an invitation and revokes it from Auth0
   - Permissions: Requires `delete:sso_invitations`.
-  - Implementation: finds record in SelfServiceSSOInvitations and revoked 
+  - Implementation: finds record in SelfServiceSSOInvitations and revokes Auth0 invitation. 
   - Response: `{ "archived": true }`
 
 - **`GET /organizations`**: Lists organizations known to Replate.
@@ -564,7 +563,7 @@ Look & Feel (shared)
   - ScheduleNew/Edit: POST /schedules and PATCH /schedules/{id}.
   - OrganizationDetails: GET /organizations/{orgId} and PATCH for admins to update metadata (addresses, etc.).
   - CallbackPage, ProtectedRoute, OrgSwitcher (optional if user is in multiple orgs; pass organization hint).
-- API integration: attach bearer token; handle 401/403 by redirecting to login; show scope errors.
+- API integration: attach bearer token; handle 401/403 by redirecting to log in; show scope errors.
 - Routing: /, /jobs, /jobs/new, /schedules, /schedules/new, /organization, /callback.
 - Config file example (business/spa/public/auth_config.json):
   { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_BUSINESS", "audience": "business.api", "redirectUri": "https://business.replate.dev/callback", "useOrganizations": true }
@@ -582,15 +581,15 @@ Look & Feel (shared)
   - OrganizationShow: details + related metadata from D1 (addresses, schedules where relevant).
   - OrganizationEdit: edit form; PATCH /organizations/{orgId}.
   - OrganizationCreate: POST /organizations.
-  - InvitationsList: GET /sso-invitations with filters status/org_type.
-  - InvitationCreate: POST /sso-invitations; form fields org_type, name, domain, admin_email.
-  - InvitationDelete: DELETE /sso-invitations;
+  - InvitationsList: GET /organizations/{orgId}/sso-invitations with filters status/org_type.
+  - InvitationCreate: POST /organizations/{orgId}/sso-invitations; form fields accept_idp_init_saml, ttl, domain_verification.
+  - InvitationDelete: DELETE /organizations/{orgId}/sso-invitations/{invtId};
 - Data provider endpoints map directly to Admin API described above.
 - Config example (admin/spa/public/auth_config.json):
   { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_ADMIN", "audience": "admin.api", "redirectUri": "https://admin.replate.dev/callback", "organization": "REPLATE_ORG_ID" }
 
 ### Accessibility & i18n
-- All interactive elements keyboard accessible. Labels tied to inputs with aria-* where necessary.
+- All interactive elements keyboard accessible. Labels tied to inputs with `aria-*` where necessary.
 - Color contrast >= 4.5:1 for text.
 - String resources abstracted for future i18n; default locale en-US.
 
