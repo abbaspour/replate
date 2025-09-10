@@ -45,7 +45,7 @@ function has_scopes() {
   return 0
 }
 
-has_scopes "$ACCESS_TOKEN" "${REQUIRED_SCOPES[@]}" || { echo "error: ACCESS_TOKEN missing required scopes" >&2; exit 2; }
+#has_scopes "$ACCESS_TOKEN" "${REQUIRED_SCOPES[@]}" || { echo "error: ACCESS_TOKEN missing required scopes" >&2; exit 2; }
 
 # Call the Admin API
 resp=$(curl -sS -H "Authorization: Bearer $ACCESS_TOKEN" -H 'accept: application/json' "$ADMIN_API_BASE_URL/organizations")
