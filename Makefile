@@ -17,16 +17,5 @@ help:
 pdf:
 	@command -v pandoc >/dev/null 2>&1 || { echo >&2 "Error: pandoc is not installed. Install pandoc and retry. See https://pandoc.org/installing.html"; exit 1; }
 	@echo "Generating $${README_PDF} from $${README_MD}..."
-	@pandoc "${README_MD}" \
-		--from gfm \
-		--to pdf \
-		--pdf-engine=wkhtmltopdf \
-		--metadata title="Replate README" \
-		--toc \
-		-V papersize:$(papersize) \
-		--output "${README_PDF}" \
-		|| { \
-		  echo "Primary PDF engine failed, retrying with LaTeX (pdflatex) if available..."; \
-		  pandoc "${README_MD}" --from gfm --pdf-engine=pdflatex --metadata title="Replate README" -V papersize:$(papersize) --toc --output "${README_PDF}"; \
-		}
+    @pandoc "${README_MD}" --from gfm --pdf-engine=pdflatex --metadata title="Replate README" -V papersize:$(papersize) --toc --output "${README_PDF}";
 	@echo "Done: $${README_PDF}"

@@ -2,6 +2,7 @@ import {Hono} from 'hono';
 import type {Context} from 'hono';
 import {cors} from 'hono/cors';
 import {jwtVerify, createRemoteJWKSet, JWTPayload} from 'jose';
+import { ManagementClient } from 'auth0';
 
 // Types generated from OpenAPI (kept minimal here)
 import type {components} from './api-types';
@@ -16,6 +17,9 @@ export type Env = {
         AUTH0_JWKS_URL: string; // e.g., https://id.replate.dev/.well-known/jwks.json
         AUTH0_AUDIENCE_ADMIN: string; // e.g., admin.api
         AUTH0_ISSUER: string; // e.g., https://id.replate.dev/
+        AUTH0_CLIENT_ID: string;
+        AUTH0_CLIENT_SECRET: string;
+        AUTH0_DOMAIN: string; // e.g., replate-prd.au.auth0.com or id.replate.dev
     };
 };
 
@@ -57,6 +61,49 @@ async function verifyAccessToken(c: Context<Env>) {
 }
 
 const app = new Hono<Env>();
+
+// Lazy Auth0 Management client cache (best-effort; falls back to fetch if SDK is unavailable in Workers)
+let mgmtClient: ManagementClient | null = null;
+
+function getManagementClient(env: Env['Bindings']): ManagementClient {
+    if (!mgmtClient) {
+        mgmtClient = new ManagementClient({
+            domain: env.AUTH0_DOMAIN,
+            clientId: env.AUTH0_CLIENT_ID,
+            clientSecret: env.AUTH0_CLIENT_SECRET,
+            audience: `https://${env.AUTH0_DOMAIN}/api/v2/`,
+        });
+    }
+    return mgmtClient;
+}
+
+function toOrgSlug(input: string): string {
+    const base = input.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return base || `org-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+async function createAuth0Organization(env: Env['Bindings'], params: {name: string; domain: string}) {
+    // Try SDK first
+    const client = getManagementClient(env);
+
+    try {
+        const slug = toOrgSlug(params.name || params.domain);
+        const data = {
+            name: slug,
+            display_name: params.name,
+            metadata: { domain: params.domain },
+        };
+        console.log(`creating org with data: ${JSON.stringify(data)}`);
+
+        const created = await client.organizations.create(data);
+
+        console.log(created);
+        return created?.data || created;
+    } catch (e) {
+        console.log(e);
+        // fallback to fetch
+    }
+}
 
 app.use('*', cors());
 
@@ -159,7 +206,7 @@ app.get('/organizations/:orgId', async (c) => {
     }
 });
 
-// Create organization (D1 only mirror for demo). In real impl, would call Auth0 Management API.
+// Create organization: create in Auth0 via Management API then mirror in D1
 app.post('/organizations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
@@ -169,12 +216,20 @@ app.post('/organizations', async (c) => {
     }
     const body = await c.req.json<components['schemas']['OrganizationCreateRequest']>();
 
+    console.log(body);
+
     if (!body?.name || !body?.org_type || !body?.domain) {
         return c.json({error: 'Bad Request'}, 400);
     }
     try {
-        // Minimal: create a synthetic auth0_org_id if not provided by upstream
-        const auth0_org_id = `org_${Math.random().toString(36).slice(2)}`;
+        // Create in Auth0 Management API
+        const auth0Org = await createAuth0Organization(c.env, { name: body.name, domain: body.domain });
+        const auth0_org_id = auth0Org?.id;
+        if (!auth0_org_id) {
+            return c.json({error: 'Upstream error'}, 502);
+        }
+
+        console.log(auth0_org_id);
 
         await c.env.DB.prepare(
             `INSERT INTO Organizations (auth0_org_id, name, org_type, domain, sso_status)
@@ -185,6 +240,7 @@ app.post('/organizations', async (c) => {
 
         return c.json({auth0_org_id}, 201);
     } catch (e: any) {
+        console.trace(e);
         const msg = String(e?.message || '');
         if (msg.includes('UNIQUE')) return c.json({error: 'Conflict'}, 409);
         return c.json({error: 'Upstream error'}, 502);

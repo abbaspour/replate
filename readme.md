@@ -136,8 +136,7 @@ Replate Admin is a member of the Replate workforce who can run business operatio
 
 Use cases:
 
-1. **Invite** an organization for self-service SSO; Admin does this by calling Auth0 API for self-service
-   SSO.
+1. **Invite** an organization for self-service SSO; Admin does this by calling Auth0 API for self-service  SSO.
 2. See the **status of invitations** 
 3. See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and
    fetched by calling the Auth0 management API.

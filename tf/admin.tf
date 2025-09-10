@@ -196,3 +196,45 @@ resource "local_file" "admin_auth_config_json" {
 }
 EOT
 }
+
+# M2M client for Admin API to call Auth0 Management API (CRUD Organizations)
+resource "auth0_client" "admin_api_m2m" {
+  name                = "Admin API Management M2M"
+  app_type            = "non_interactive"
+  grant_types         = ["client_credentials"]
+  oidc_conformant     = true
+}
+resource "auth0_client_credentials" "admin_api_m2m-credentials" {
+  client_id = auth0_client.admin_api_m2m.client_id
+  authentication_method = "client_secret_post"
+}
+
+# Data source to get the client secret
+data "auth0_client" "admin_api_m2m" {
+  client_id = auth0_client.admin_api_m2m.client_id
+}
+
+
+# Grant Management API scopes to the M2M client
+resource "auth0_client_grant" "admin_api_m2m_mgmt_grant" {
+  client_id    = auth0_client.admin_api_m2m.id
+  audience     = "https://${var.auth0_domain}/api/v2/"
+  subject_type = "client"
+  scopes = [
+    "read:organizations",
+    "create:organizations",
+    "update:organizations",
+    "delete:organizations"
+  ]
+}
+
+# Create .dev.vars file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
+resource "local_file" "admin_api-dot-dev" {
+  filename = "${path.module}/../admin/api/.env"
+  file_permission = "600"
+  content  = <<-EOT
+AUTH0_DOMAIN=${var.auth0_domain}
+AUTH0_CLIENT_ID=${auth0_client.admin_api_m2m.client_id}
+AUTH0_CLIENT_SECRET=${data.auth0_client.admin_api_m2m.client_secret}
+EOT
+}

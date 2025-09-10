@@ -29,3 +29,10 @@ resource "auth0_connection_clients" "UPA-clients" {
     auth0_client.donor-cli.client_id,
   ]
 }
+
+resource "auth0_self_service_profile" "ss-sso-profile" {
+  name = "Replate Self-Service Single Sign On Onboarding"
+  branding {
+    logo_url = "https://donor.replate.dev/images/logo.png"
+  }
+}
