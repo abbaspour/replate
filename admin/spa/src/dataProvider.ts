@@ -46,7 +46,7 @@ export const dataProvider: DataProvider = {
       if (q) query.set('q', q);
       if (org_type) query.set('org_type', org_type);
       if (status) query.set('status', status);
-      const data = await apiFetch(`/organizations/invitations?${query.toString()}`);
+      const data = await apiFetch(`/sso-invitations?${query.toString()}`);
       return { data: data.map((i: any) => ({ id: i.invitation_id, ...i })), total: data.length };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -90,7 +90,7 @@ export const dataProvider: DataProvider = {
       return { data: { id, ...params.data, ...data } };
     }
     if (resource === 'invitations') {
-      const data = await apiFetch(`/organizations/invitations`, { method: 'POST', body: JSON.stringify(params.data) });
+      const data = await apiFetch(`/sso-invitations`, { method: 'POST', body: JSON.stringify(params.data) });
       return { data: { id: data.invitation_id, ...data } };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -99,6 +99,10 @@ export const dataProvider: DataProvider = {
   delete: async (resource, params) => {
     if (resource === 'organizations') {
       await apiFetch(`/organizations/${encodeURIComponent(params.id as string)}`, { method: 'DELETE' });
+      return { data: { id: params.id } } as DeleteResult;
+    }
+    if (resource === 'invitations') {
+      await apiFetch(`/sso-invitations/${encodeURIComponent(params.id as string)}`, { method: 'DELETE' });
       return { data: { id: params.id } } as DeleteResult;
     }
     throw new Error(`Unsupported resource: ${resource}`);

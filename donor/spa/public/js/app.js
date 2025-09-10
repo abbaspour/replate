@@ -8,9 +8,11 @@ const login = async (targetUrl) => {
   try {
     console.log("Logging in", targetUrl);
 
+    const config = await (await fetchAuthConfig()).json();
     const options = {
       authorizationParams: {
-        redirect_uri: window.location.origin
+        redirect_uri: config.redirectUri || window.location.origin,
+        audience: config.audience
       }
     };
 
@@ -54,7 +56,11 @@ const configureClient = async () => {
 
   auth0Client = await auth0.createAuth0Client({
     domain: config.domain,
-    clientId: config.clientId
+    clientId: config.clientId,
+    authorizationParams: {
+      audience: config.audience,
+      redirect_uri: config.redirectUri || window.location.origin
+    }
   });
 };
 

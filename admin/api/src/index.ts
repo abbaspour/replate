@@ -24,12 +24,11 @@ export type Env = {
 };
 
 // Helper: scope check
-function requirePermissions(c: Context<Env>, required: string[]/*, tokenScopes?: string*/) {
+function requirePermissions(c: Context<Env>, required: string[]) {
     const token  = c.get('token');
     const permissions = token?.permissions;
     if (!permissions || !Array.isArray(permissions)) return false;
     const permissionArray : [string] = permissions as [string];
-    //const set = new Set((tokenScopes ?? '').split(' ').filter(Boolean));
     return required.every((s) => permissionArray.includes(s));
 }
 
@@ -62,7 +61,6 @@ async function verifyAccessToken(c: Context<Env>) {
 
 const app = new Hono<Env>();
 
-// Lazy Auth0 Management client cache (best-effort; falls back to fetch if SDK is unavailable in Workers)
 let mgmtClient: ManagementClient | null = null;
 
 function getManagementClient(env: Env['Bindings']): ManagementClient {
@@ -83,7 +81,6 @@ function toOrgSlug(input: string): string {
 }
 
 async function createAuth0Organization(env: Env['Bindings'], params: {name: string; domain: string}) {
-    // Try SDK first
     const client = getManagementClient(env);
 
     try {
@@ -101,7 +98,6 @@ async function createAuth0Organization(env: Env['Bindings'], params: {name: stri
         return created?.data || created;
     } catch (e) {
         console.log(e);
-        // fallback to fetch
     }
 }
 
@@ -122,7 +118,7 @@ app.get('/organizations', async (c) => {
     const offset = (parseInt(page) - 1) * parseInt(per_page);
 
     let sql = `SELECT auth0_org_id, name, org_type, domain, sso_status
-               FROM Organizations`;
+               FROM Organizations WHERE TRUE`;
     const params: any[] = [];
     if (org_type) {
         sql += ' AND org_type = ?';
@@ -251,7 +247,6 @@ app.post('/organizations', async (c) => {
 app.patch('/organizations/:orgId', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    //const token: any = c.get('token');
     if (!requirePermissions(c, ['update:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
@@ -314,8 +309,7 @@ app.patch('/organizations/:orgId', async (c) => {
 app.delete('/organizations/:orgId', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    //const token: any = c.get('token');
-    if (!requirePermissions(c, ['update:organizations']/*, token.scope*/)) {
+    if (!requirePermissions(c, ['update:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const orgId = c.req.param('orgId');
@@ -327,59 +321,38 @@ app.delete('/organizations/:orgId', async (c) => {
     }
 });
 
-// Invitations endpoints (stubbed for demo; no external Auth0 calls)
-app.get('/organizations/invitations', async (c) => {
+// SSO Invitations endpoints (demo/stub)
+app.get('/sso-invitations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    //const token: any = c.get('token');
-    if (!requirePermissions(c, ['read:org_invitations']/*, token.scope*/)) {
+    if (!requirePermissions(c, ['read:sso_invitations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
-    // Minimal: return empty list or demo row joined from Organizations
-    const rs = await c.env.DB.prepare(
-        'SELECT auth0_org_id, name, org_type, domain, sso_status FROM Organizations WHERE sso_status = ? ORDER BY name',
-    )
-        .bind('invited')
-        .all();
-    const now = new Date().toISOString();
-    const data = (rs.results || []).map((r: any) => ({
-        invitation_id: `inv_${r.auth0_org_id}`,
-        auth0_org_id: r.auth0_org_id,
-        name: r.name,
-        org_type: r.org_type,
-        domain: r.domain,
-        sso_status: r.sso_status,
-        sent_at: now,
-    }));
-    return c.json(data);
+    // For demo purposes, return joined data from Organizations and a hypothetical invitations table if present.
+    // Since schema may not exist, return an empty list.
+    return c.json([]);
 });
 
-app.post('/organizations/invitations', async (c) => {
+app.post('/sso-invitations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    //const token: any = c.get('token');
-    if (!requirePermissions(c, ['create:org_invitations', 'update:organizations'])) {
+    if (!requirePermissions(c, ['create:sso_invitations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
-    const body = await c.req.json<components['schemas']['InvitationCreateRequest']>();
-    if (!body?.name || !body?.domain || !body?.org_type || !body?.admin_email) {
-        return c.json({error: 'Bad Request'}, 400);
-    }
-    try {
-        const auth0_org_id = `org_${Math.random().toString(36).slice(2)}`;
-        await c.env.DB.prepare(
-            `INSERT INTO Organizations (auth0_org_id, name, org_type, domain, sso_status)
-             VALUES (?, ?, ?, ?, 'invited')`,
-        )
-            .bind(auth0_org_id, body.name, body.org_type, body.domain)
-            .run();
+    // Parse request (org_id/name/domain/admin_email...) and return a stubbed response
+    const body = await c.req.json<any>().catch(() => ({}));
+    const id = 'inv_' + Math.random().toString(36).slice(2, 10);
+    return c.json({ invitation_id: id, link: 'https://id.replate.dev/invitations/' + id, ...body }, 201);
+});
 
-        return c.json({invitation_id: `inv_${auth0_org_id}`, auth0_org_id, status: 'invited'});
-    } catch (e: any) {
-        const msg = String(e?.message || '');
-        if (msg.includes('UNIQUE')) return c.json({error: 'Conflict'}, 409);
-        return c.json({error: 'Upstream error'}, 502);
+app.delete('/sso-invitations/:invId', async (c) => {
+    const unauth = await verifyAccessToken(c);
+    if (unauth) return unauth;
+    if (!requirePermissions(c, ['delete:sso_invitations'])) {
+        return c.json({error: 'Forbidden'}, 403);
     }
+    // Stub: pretend revoked/archived
+    return c.json({ archived: true });
 });
 
 // noinspection JSUnusedGlobalSymbols

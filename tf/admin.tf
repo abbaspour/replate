@@ -149,17 +149,12 @@ resource "auth0_client" "admin_spa" {
   # OIDC conformant
   oidc_conformant = true
 
-  # Refresh token settings
-/*  refresh_token {
-    rotation_type   = "rotating"
-    expiration_type = "expiring"
-    token_lifetime  = 2592000 # 30 days
-  }
-*/
+  /*
   default_organization {
     organization_id = auth0_organization.replate-org.id
     flows = ["client_credentials"]
   }
+  */
 
   organization_usage = "require"
   organization_require_behavior = "post_login_prompt"
@@ -188,7 +183,7 @@ resource "auth0_organization_connection" "replate_org-connection" {
   assign_membership_on_login = true
 }
 
-# Generate auth config file for donor SPA
+# Generate auth config file for Admin SPA
 resource "local_file" "admin_auth_config_json" {
   filename = "${path.module}/../admin/spa/public/auth_config.json"
   content  = <<-EOT
