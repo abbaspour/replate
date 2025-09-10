@@ -32,12 +32,16 @@ resource "auth0_resource_server_scopes" "admin_api_scopes" {
     description = "create:organizations"
   }
   scopes {
-    name        = "read:org_invitations"
-    description = "read:org_invitations"
+    name        = "read:sso_invitations"
+    description = "read:sso_invitations"
   }
   scopes {
-    name        = "create:org_invitations"
-    description = "create:org_invitations"
+    name        = "create:sso_invitations"
+    description = "create:sso_invitations"
+  }
+  scopes {
+    name        = "delete:sso_invitations"
+    description = "delete:sso_invitations"
   }
 }
 
@@ -170,8 +174,9 @@ resource "auth0_client_grant" "admin_spa_grant" {
     "read:organizations",
     "update:organizations",
     "create:organizations",
-    "read:org_invitations",
-    "create:org_invitations"
+    "read:sso_invitations",
+    "create:sso_invitations",
+    "delete:sso_invitations"
   ]
 }
 
@@ -224,7 +229,9 @@ resource "auth0_client_grant" "admin_api_m2m_mgmt_grant" {
     "read:organizations",
     "create:organizations",
     "update:organizations",
-    "delete:organizations"
+    "delete:organizations",
+    "create:sso_access_tickets",
+    "delete:sso_access_tickets"
   ]
 }
 
