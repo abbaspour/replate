@@ -336,7 +336,7 @@ Captures self-service SSO Invitations for an organization
   - `auth0_connection_name` (Text) 
   - `domain_verification` (Single Select: `Off`, `Optional`, `Required`) 
   - `accept_idp_init_saml` (boolean default false) 
-  - `ttl` (number time to live of invitation link from the creation time in second) 
+  - `ttl` (number time to live of invitation link from the creation time in second. default is 432000 seconds = 5 days) 
   - `created_at` (Created Time)
 - **Associations**:
   - Linked to one record in `Organizations` (the organization this invitation is issued for).

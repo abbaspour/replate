@@ -2,6 +2,7 @@
 -- Generated on: 2025-09-03
 
 -- Drop tables in reverse order of dependency to avoid foreign key constraint errors
+DROP TABLE IF EXISTS SsoInvitations;
 DROP TABLE IF EXISTS Suggestions;
 DROP TABLE IF EXISTS PickupJobs;
 DROP TABLE IF EXISTS PickupSchedules;
@@ -174,3 +175,25 @@ CREATE TRIGGER update_pickupjobs_updated_at
 BEGIN
     UPDATE PickupJobs SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
+
+-------------------------------------------------
+-- Table: SsoInvitations
+-- Captures self-service SSO Invitations for an organization
+-------------------------------------------------
+CREATE TABLE SsoInvitations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    organization_id INTEGER NOT NULL,
+    issuer_user_id INTEGER,
+    display_name TEXT,
+    link TEXT NOT NULL,
+    auth0_ticket_id TEXT,
+    auth0_connection_name TEXT,
+    domain_verification TEXT CHECK(domain_verification IN ('Off','Optional','Required')),
+    accept_idp_init_saml INTEGER NOT NULL DEFAULT 0,
+    ttl INTEGER NOT NULL, -- seconds
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES Organizations(id),
+    FOREIGN KEY (issuer_user_id) REFERENCES Users(id)
+);
+CREATE INDEX idx_ssoinv_org_id ON SsoInvitations(organization_id);
+CREATE INDEX idx_ssoinv_created_at ON SsoInvitations(created_at);

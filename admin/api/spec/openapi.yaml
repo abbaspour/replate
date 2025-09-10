@@ -11,7 +11,15 @@ servers:
     - url: https://api.admin.dev.local
       description: Local/dev
 security:
-    - oauth2: [read:organizations, update:organizations, create:organizations, read:org_invitations, create:org_invitations]
+    - oauth2:
+          [
+              read:organizations,
+              update:organizations,
+              create:organizations,
+              read:sso_invitations,
+              create:sso_invitations,
+              delete:sso_invitations,
+          ]
 paths:
     /organizations:
         get:
@@ -124,11 +132,11 @@ paths:
                             $ref: '#/components/schemas/OrganizationUpdateRequest'
             responses:
                 '200':
-                    description: Updated organization
+                    description: Update result
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Organization'
+                                $ref: '#/components/schemas/UpdatedResult'
                 '400': {$ref: '#/components/responses/BadRequest'}
                 '401': {$ref: '#/components/responses/Unauthorized'}
                 '403': {$ref: '#/components/responses/Forbidden'}
@@ -158,19 +166,19 @@ paths:
                 '403': {$ref: '#/components/responses/Forbidden'}
                 '404': {$ref: '#/components/responses/NotFound'}
                 '5XX': {$ref: '#/components/responses/ServerError'}
-    /organizations/invitations:
+    /sso-invitations:
         get:
-            summary: List organization invitations
+            summary: List SSO invitations
             description: Lists invitations and statuses, joining Auth0 invitations with D1 org mirror.
             operationId: listInvitations
             security:
-                - oauth2: [read:org_invitations]
+                - oauth2: [read:sso_invitations]
             parameters:
                 - in: query
                   name: status
                   schema:
                       type: string
-                      enum: [invited, configured, active]
+                      enum: [invited, configured, active, expired]
                   description: Filter by invitation/SSO status
                 - in: query
                   name: org_type
@@ -195,11 +203,11 @@ paths:
                 '403': {$ref: '#/components/responses/Forbidden'}
                 '502': {$ref: '#/components/responses/UpstreamError'}
         post:
-            summary: Create organization invitation
-            description: Creates or finds the organization in Auth0, sends invitation, and mirrors org in D1 with sso_status=invited.
+            summary: Create SSO invitation
+            description: Initiates a self-service SSO invitation and mirrors org in D1 with sso_status=invited.
             operationId: createInvitation
             security:
-                - oauth2: [create:org_invitations, update:organizations]
+                - oauth2: [create:sso_invitations, update:organizations]
             requestBody:
                 required: true
                 content:
@@ -218,6 +226,33 @@ paths:
                 '403': {$ref: '#/components/responses/Forbidden'}
                 '409': {$ref: '#/components/responses/Conflict'}
                 '502': {$ref: '#/components/responses/UpstreamError'}
+    /sso-invitations/{invId}:
+        delete:
+            summary: Delete SSO invitation
+            description: Deletes an invitation and revokes it from Auth0.
+            operationId: deleteInvitation
+            security:
+                - oauth2: [delete:sso_invitations]
+            parameters:
+                - in: path
+                  name: invId
+                  required: true
+                  schema:
+                      type: string
+                  description: Invitation ID
+            responses:
+                '200':
+                    description: Archived
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    archived:
+                                        type: boolean
+                                        example: true
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
 components:
     securitySchemes:
         oauth2:
@@ -230,8 +265,9 @@ components:
                         read:organizations: Read organizations
                         update:organizations: Update organizations
                         create:organizations: Create organizations
-                        read:org_invitations: Read organization invitations
-                        create:org_invitations: Create organization invitations
+                        read:sso_invitations: Read SSO invitations
+                        create:sso_invitations: Create SSO invitations
+                        delete:sso_invitations: Delete SSO invitations
     parameters:
         OrgIdPathParam:
             in: path
@@ -289,7 +325,7 @@ components:
             enum: [supplier, community, logistics]
         SsoStatus:
             type: string
-            enum: [not_started, invited, configured, active]
+            enum: [not_started, invited, configured, active, expired]
         OrganizationSummary:
             type: object
             properties:
@@ -363,20 +399,25 @@ components:
                         vehicle_types:
                             type: array
                             items: {type: string}
+        UpdatedResult:
+            type: object
+            properties:
+                updated:
+                    type: integer
+                    minimum: 0
         InvitationCreateRequest:
             type: object
-            required: [org_type, name, domain, admin_email]
+            required: [org_id, accept_idp_init_saml, ttl, domain_verification]
             properties:
-                org_type:
-                    $ref: '#/components/schemas/OrgType'
-                name:
+                org_id:
                     type: string
-                domain:
-                    type: string
-                    format: hostname
-                admin_email:
-                    type: string
-                    format: email
+                accept_idp_init_saml:
+                    type: boolean
+                ttl:
+                    type: number
+                    description: Time to live (seconds) from creation time
+                domain_verification:
+                    type: boolean
         InvitationCreateResponse:
             type: object
             properties:
@@ -384,9 +425,9 @@ components:
                     type: string
                 auth0_org_id:
                     type: string
-                status:
+                link:
                     type: string
-                    enum: [invited]
+                    format: uri
         InvitationSummary:
             type: object
             properties:
@@ -401,9 +442,12 @@ components:
                 domain:
                     type: string
                     format: hostname
+                link:
+                    type: string
+                    format: uri
                 sso_status:
                     $ref: '#/components/schemas/SsoStatus'
-                sent_at:
+                created_at:
                     type: string
                     format: date-time
         Error:

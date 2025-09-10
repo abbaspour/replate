@@ -56,7 +56,7 @@ export interface paths {
         patch: operations['updateOrganization'];
         trace?: never;
     };
-    '/organizations/invitations': {
+    '/sso-invitations': {
         parameters: {
             query?: never;
             header?: never;
@@ -64,17 +64,37 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List organization invitations
+         * List SSO invitations
          * @description Lists invitations and statuses, joining Auth0 invitations with D1 org mirror.
          */
         get: operations['listInvitations'];
         put?: never;
         /**
-         * Create organization invitation
-         * @description Creates or finds the organization in Auth0, sends invitation, and mirrors org in D1 with sso_status=invited.
+         * Create SSO invitation
+         * @description Initiates a self-service SSO invitation and mirrors org in D1 with sso_status=invited.
          */
         post: operations['createInvitation'];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/sso-invitations/{invId}': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete SSO invitation
+         * @description Deletes an invitation and revokes it from Auth0.
+         */
+        delete: operations['deleteInvitation'];
         options?: never;
         head?: never;
         patch?: never;
@@ -87,7 +107,7 @@ export interface components {
         /** @enum {string} */
         OrgType: 'supplier' | 'community' | 'logistics';
         /** @enum {string} */
-        SsoStatus: 'not_started' | 'invited' | 'configured' | 'active';
+        SsoStatus: 'not_started' | 'invited' | 'configured' | 'active' | 'expired';
         OrganizationSummary: {
             auth0_org_id?: string;
             name?: string;
@@ -124,19 +144,21 @@ export interface components {
                 vehicle_types?: string[];
             };
         };
+        UpdatedResult: {
+            updated?: number;
+        };
         InvitationCreateRequest: {
-            org_type: components['schemas']['OrgType'];
-            name: string;
-            /** Format: hostname */
-            domain: string;
-            /** Format: email */
-            admin_email: string;
+            org_id: string;
+            accept_idp_init_saml: boolean;
+            /** @description Time to live (seconds) from creation time */
+            ttl: number;
+            domain_verification: boolean;
         };
         InvitationCreateResponse: {
             invitation_id?: string;
             auth0_org_id?: string;
-            /** @enum {string} */
-            status?: 'invited';
+            /** Format: uri */
+            link?: string;
         };
         InvitationSummary: {
             invitation_id?: string;
@@ -145,9 +167,11 @@ export interface components {
             org_type?: components['schemas']['OrgType'];
             /** Format: hostname */
             domain?: string;
+            /** Format: uri */
+            link?: string;
             sso_status?: components['schemas']['SsoStatus'];
             /** Format: date-time */
-            sent_at?: string;
+            created_at?: string;
         };
         Error: {
             error?: string;
@@ -367,13 +391,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Updated organization */
+            /** @description Update result */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['Organization'];
+                    'application/json': components['schemas']['UpdatedResult'];
                 };
             };
             400: components['responses']['BadRequest'];
@@ -388,7 +412,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter by invitation/SSO status */
-                status?: 'invited' | 'configured' | 'active';
+                status?: 'invited' | 'configured' | 'active' | 'expired';
                 /** @description Filter by organization type */
                 org_type?: components['schemas']['OrgType'];
                 /** @description Search by organization name or domain */
@@ -441,6 +465,34 @@ export interface operations {
             403: components['responses']['Forbidden'];
             409: components['responses']['Conflict'];
             502: components['responses']['UpstreamError'];
+        };
+    };
+    deleteInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Invitation ID */
+                invId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Archived */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        /** @example true */
+                        archived?: boolean;
+                    };
+                };
+            };
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
         };
     };
 }

@@ -2,7 +2,7 @@ import {Hono} from 'hono';
 import type {Context} from 'hono';
 import {cors} from 'hono/cors';
 import {jwtVerify, createRemoteJWKSet, JWTPayload} from 'jose';
-import { ManagementClient } from 'auth0';
+import {ManagementClient} from 'auth0';
 
 // Types generated from OpenAPI (kept minimal here)
 import type {components} from './api-types';
@@ -25,10 +25,10 @@ export type Env = {
 
 // Helper: scope check
 function requirePermissions(c: Context<Env>, required: string[]) {
-    const token  = c.get('token');
+    const token = c.get('token');
     const permissions = token?.permissions;
     if (!permissions || !Array.isArray(permissions)) return false;
-    const permissionArray : [string] = permissions as [string];
+    const permissionArray: [string] = permissions as [string];
     return required.every((s) => permissionArray.includes(s));
 }
 
@@ -76,7 +76,10 @@ function getManagementClient(env: Env['Bindings']): ManagementClient {
 }
 
 function toOrgSlug(input: string): string {
-    const base = input.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const base = input
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
     return base || `org-${Math.random().toString(36).slice(2, 8)}`;
 }
 
@@ -88,7 +91,7 @@ async function createAuth0Organization(env: Env['Bindings'], params: {name: stri
         const data = {
             name: slug,
             display_name: params.name,
-            metadata: { domain: params.domain },
+            metadata: {domain: params.domain},
         };
         console.log(`creating org with data: ${JSON.stringify(data)}`);
 
@@ -110,7 +113,7 @@ app.get('/health', (c) => c.json({ok: true}));
 app.get('/organizations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    if (!requirePermissions(c, ['read:organizations']/*, token.scope*/)) {
+    if (!requirePermissions(c, ['read:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
 
@@ -206,8 +209,7 @@ app.get('/organizations/:orgId', async (c) => {
 app.post('/organizations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
-    //const token: any = c.get('token');
-    if (!requirePermissions(c, ['create:organizations']/*, token.scope*/)) {
+    if (!requirePermissions(c, ['create:organizations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
     const body = await c.req.json<components['schemas']['OrganizationCreateRequest']>();
@@ -219,7 +221,7 @@ app.post('/organizations', async (c) => {
     }
     try {
         // Create in Auth0 Management API
-        const auth0Org = await createAuth0Organization(c.env, { name: body.name, domain: body.domain });
+        const auth0Org = await createAuth0Organization(c.env, {name: body.name, domain: body.domain});
         const auth0_org_id = auth0Org?.id;
         if (!auth0_org_id) {
             return c.json({error: 'Upstream error'}, 502);
@@ -321,16 +323,62 @@ app.delete('/organizations/:orgId', async (c) => {
     }
 });
 
-// SSO Invitations endpoints (demo/stub)
+// SSO Invitations endpoints (SQL-backed)
 app.get('/sso-invitations', async (c) => {
     const unauth = await verifyAccessToken(c);
     if (unauth) return unauth;
     if (!requirePermissions(c, ['read:sso_invitations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
-    // For demo purposes, return joined data from Organizations and a hypothetical invitations table if present.
-    // Since schema may not exist, return an empty list.
-    return c.json([]);
+
+    const { status, org_type, q } = c.req.query();
+
+    // Compute status from ttl and created_at; join org info
+    let sql = `
+      SELECT 
+        s.id AS invitation_id,
+        o.auth0_org_id AS auth0_org_id,
+        o.name AS name,
+        o.org_type AS org_type,
+        o.domain AS domain,
+        s.link AS link,
+        s.created_at AS created_at,
+        CASE WHEN (strftime('%s','now') > (strftime('%s', s.created_at) + s.ttl)) THEN 'expired' ELSE 'invited' END AS sso_status
+      FROM SsoInvitations s
+      JOIN Organizations o ON o.id = s.organization_id
+      WHERE 1=1`;
+    const params: any[] = [];
+
+    if (org_type) {
+      sql += ' AND o.org_type = ?';
+      params.push(org_type);
+    }
+    if (q) {
+      sql += ' AND (o.name LIKE ? OR o.domain LIKE ?)';
+      params.push(`%${q}%`, `%${q}%`);
+    }
+    if (status) {
+      if (status === 'expired') {
+        sql += " AND (strftime('%s','now') > (strftime('%s', s.created_at) + s.ttl))";
+      } else if (status === 'invited' || status === 'configured' || status === 'active') {
+        // For now, SsoInvitations table only reflects 'invited' vs 'expired'. Other states would come from org.sso_status
+        if (status === 'invited') {
+          sql += " AND (strftime('%s','now') <= (strftime('%s', s.created_at) + s.ttl))";
+        } else {
+          sql += ' AND o.sso_status = ?';
+          params.push(status);
+        }
+      }
+    }
+
+    sql += ' ORDER BY s.created_at DESC';
+
+    try {
+      const rs = await c.env.DB.prepare(sql).bind(...params).all<components["schemas"]["InvitationSummary"]>();
+      return c.json(rs.results || []);
+    } catch (e) {
+      return c.json({error: 'Server error'}, 500);
+    }
 });
 
 app.post('/sso-invitations', async (c) => {
@@ -339,10 +387,55 @@ app.post('/sso-invitations', async (c) => {
     if (!requirePermissions(c, ['create:sso_invitations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
-    // Parse request (org_id/name/domain/admin_email...) and return a stubbed response
-    const body = await c.req.json<any>().catch(() => ({}));
-    const id = 'inv_' + Math.random().toString(36).slice(2, 10);
-    return c.json({ invitation_id: id, link: 'https://id.replate.dev/invitations/' + id, ...body }, 201);
+    const body = await c.req.json<components['schemas']['InvitationCreateRequest']>().catch(() => undefined);
+    if (!body || !body.org_id || typeof body.ttl !== 'number') {
+      return c.json({error: 'Bad Request'}, 400);
+    }
+
+    try {
+      // Lookup organization
+      const org = await c.env.DB.prepare('SELECT id, auth0_org_id, name FROM Organizations WHERE auth0_org_id = ?').bind(body.org_id).first<{id:number, auth0_org_id:string, name:string}>();
+      if (!org) return c.json({error: 'Not Found'}, 404);
+
+      // Optional: resolve issuer user id from token sub
+      const token: any = c.get('token');
+      const sub = token?.sub as string | undefined;
+      let issuerUserId: number | null = null;
+      if (sub) {
+        const issuer = await c.env.DB.prepare('SELECT id FROM Users WHERE auth0_user_id = ?').bind(sub).first<{id:number}>();
+        if (issuer?.id) issuerUserId = issuer.id;
+      }
+
+      const domainVerification = body.domain_verification ? 'Required' : 'Off';
+
+      // In a full implementation, call Auth0 Management API to create the link; for now, synthesize values
+      const auth0TicketId = 'tkt_' + Math.random().toString(36).slice(2, 10);
+      const link = `https://id.replate.dev/invitations/${auth0TicketId}`;
+
+      const insert = await c.env.DB.prepare(
+        `INSERT INTO SsoInvitations (organization_id, issuer_user_id, display_name, link, auth0_ticket_id, auth0_connection_name, domain_verification, accept_idp_init_saml, ttl)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        org.id,
+        issuerUserId,
+        org.name,
+        link,
+        auth0TicketId,
+        null,
+        domainVerification,
+        body.accept_idp_init_saml ? 1 : 0,
+        body.ttl
+      ).run();
+
+      // Update org sso_status to invited
+      await c.env.DB.prepare('UPDATE Organizations SET sso_status = "invited" WHERE id = ?').bind(org.id).run();
+
+      // Return created resource
+      const invitation_id = (insert as any)?.lastInsertRowId ?? undefined;
+      return c.json({ invitation_id: String(invitation_id), auth0_org_id: org.auth0_org_id, link }, 201);
+    } catch (e: any) {
+      return c.json({error: 'Upstream error'}, 502);
+    }
 });
 
 app.delete('/sso-invitations/:invId', async (c) => {
@@ -351,8 +444,14 @@ app.delete('/sso-invitations/:invId', async (c) => {
     if (!requirePermissions(c, ['delete:sso_invitations'])) {
         return c.json({error: 'Forbidden'}, 403);
     }
-    // Stub: pretend revoked/archived
-    return c.json({ archived: true });
+
+    const invId = c.req.param('invId');
+    try {
+      const res = await c.env.DB.prepare('DELETE FROM SsoInvitations WHERE id = ?').bind(invId).run();
+      return c.json({ archived: true });
+    } catch (e) {
+      return c.json({error: 'Server error'}, 500);
+    }
 });
 
 // noinspection JSUnusedGlobalSymbols
