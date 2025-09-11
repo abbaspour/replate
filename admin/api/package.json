@@ -11,13 +11,14 @@
     },
     "dependencies": {
         "hono": "^4.5.7",
-        "jose": "^5.9.3"
+        "jose": "^5.9.3",
+        "auth0": "^4.29.0"
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20250909.0",
         "openapi-typescript": "^7.9.1",
         "typescript": "^5.9.2",
         "prettier": "^3.6.2",
-        "wrangler": "^4.34.0"
+        "wrangler": "^4.35.0"
     }
 }

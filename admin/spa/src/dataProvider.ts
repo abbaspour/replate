@@ -1,7 +1,7 @@
 import {DataProvider, DeleteResult} from 'react-admin';
 import { getAccessToken } from './auth';
 
-const API_BASE = 'https://api.admin.replate.dev';
+const API_BASE = 'https://api.admin.replate.dev';   // TODO: /api
 
 async function apiFetch(path: string, options: RequestInit = {}) {
   const token = await getAccessToken();
@@ -41,12 +41,12 @@ export const dataProvider: DataProvider = {
       return { data: data.map((o: any) => ({ id: o.auth0_org_id, ...o })), total: data.length };
     }
     if (resource === 'invitations') {
-      const query = new URLSearchParams();
-      const { q, org_type, status } = params.filter || {};
-      if (q) query.set('q', q);
-      if (org_type) query.set('org_type', org_type);
-      if (status) query.set('status', status);
-      const data = await apiFetch(`/organizations/invitations?${query.toString()}`);
+      // Expect orgId via params.filter.orgId (preferred) or params.meta.orgId
+      const orgId = (params as any).filter?.orgId ?? (params as any).meta?.orgId;
+      if (!orgId) {
+        throw new Error('invitations.getList requires filter.orgId');
+      }
+      const data = await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations`);
       return { data: data.map((i: any) => ({ id: i.invitation_id, ...i })), total: data.length };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -54,7 +54,11 @@ export const dataProvider: DataProvider = {
 
   getOne: async (resource, params) => {
     if (resource === 'organizations') {
-      const data = await apiFetch(`/organizations/${encodeURIComponent(params.id as string)}`);
+      const id = params.id as string | undefined;
+      if (!id) {
+        throw new Error('dataProvider.getOne: missing id for organizations');
+      }
+      const data = await apiFetch(`/organizations/${encodeURIComponent(id)}`);
       return { data: { id: data.auth0_org_id, ...data } };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -90,7 +94,11 @@ export const dataProvider: DataProvider = {
       return { data: { id, ...params.data, ...data } };
     }
     if (resource === 'invitations') {
-      const data = await apiFetch(`/organizations/invitations`, { method: 'POST', body: JSON.stringify(params.data) });
+      const orgId = (params as any).meta?.orgId;
+      if (!orgId) {
+        throw new Error('invitations.create requires meta.orgId');
+      }
+      const data = await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations`, { method: 'POST', body: JSON.stringify(params.data) });
       return { data: { id: data.invitation_id, ...data } };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -99,6 +107,14 @@ export const dataProvider: DataProvider = {
   delete: async (resource, params) => {
     if (resource === 'organizations') {
       await apiFetch(`/organizations/${encodeURIComponent(params.id as string)}`, { method: 'DELETE' });
+      return { data: { id: params.id } } as DeleteResult;
+    }
+    if (resource === 'invitations') {
+      const orgId = (params as any).meta?.orgId;
+      if (!orgId) {
+        throw new Error('invitations.delete requires meta.orgId');
+      }
+      await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations/${encodeURIComponent(params.id as string)}`, { method: 'DELETE' });
       return { data: { id: params.id } } as DeleteResult;
     }
     throw new Error(`Unsupported resource: ${resource}`);

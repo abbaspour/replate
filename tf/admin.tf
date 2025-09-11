@@ -32,12 +32,16 @@ resource "auth0_resource_server_scopes" "admin_api_scopes" {
     description = "create:organizations"
   }
   scopes {
-    name        = "read:org_invitations"
-    description = "read:org_invitations"
+    name        = "read:sso_invitations"
+    description = "read:sso_invitations"
   }
   scopes {
-    name        = "create:org_invitations"
-    description = "create:org_invitations"
+    name        = "create:sso_invitations"
+    description = "create:sso_invitations"
+  }
+  scopes {
+    name        = "delete:sso_invitations"
+    description = "delete:sso_invitations"
   }
 }
 
@@ -145,17 +149,12 @@ resource "auth0_client" "admin_spa" {
   # OIDC conformant
   oidc_conformant = true
 
-  # Refresh token settings
-/*  refresh_token {
-    rotation_type   = "rotating"
-    expiration_type = "expiring"
-    token_lifetime  = 2592000 # 30 days
-  }
-*/
+  /*
   default_organization {
     organization_id = auth0_organization.replate-org.id
     flows = ["client_credentials"]
   }
+  */
 
   organization_usage = "require"
   organization_require_behavior = "post_login_prompt"
@@ -170,8 +169,9 @@ resource "auth0_client_grant" "admin_spa_grant" {
     "read:organizations",
     "update:organizations",
     "create:organizations",
-    "read:org_invitations",
-    "create:org_invitations"
+    "read:sso_invitations",
+    "create:sso_invitations",
+    "delete:sso_invitations"
   ]
 }
 
@@ -183,7 +183,7 @@ resource "auth0_organization_connection" "replate_org-connection" {
   assign_membership_on_login = true
 }
 
-# Generate auth config file for donor SPA
+# Generate auth config file for Admin SPA
 resource "local_file" "admin_auth_config_json" {
   filename = "${path.module}/../admin/spa/public/auth_config.json"
   content  = <<-EOT
@@ -194,5 +194,50 @@ resource "local_file" "admin_auth_config_json" {
   "redirectUri": "https://admin.${var.top_level_domain}/callback",
   "organization": "${auth0_organization.replate-org.id}"
 }
+EOT
+}
+
+# M2M client for Admin API to call Auth0 Management API (CRUD Organizations)
+resource "auth0_client" "admin_api_m2m" {
+  name                = "Admin API Management M2M"
+  app_type            = "non_interactive"
+  grant_types         = ["client_credentials"]
+  oidc_conformant     = true
+}
+resource "auth0_client_credentials" "admin_api_m2m-credentials" {
+  client_id = auth0_client.admin_api_m2m.client_id
+  authentication_method = "client_secret_post"
+}
+
+# Data source to get the client secret
+data "auth0_client" "admin_api_m2m" {
+  client_id = auth0_client.admin_api_m2m.client_id
+}
+
+
+# Grant Management API scopes to the M2M client
+resource "auth0_client_grant" "admin_api_m2m_mgmt_grant" {
+  client_id    = auth0_client.admin_api_m2m.id
+  audience     = "https://${var.auth0_domain}/api/v2/"
+  subject_type = "client"
+  scopes = [
+    "read:organizations",
+    "create:organizations",
+    "update:organizations",
+    "delete:organizations",
+    "create:sso_access_tickets",
+    "delete:sso_access_tickets"
+  ]
+}
+
+# Create .dev.vars file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
+resource "local_file" "admin_api-dot-dev" {
+  filename = "${path.module}/../admin/api/.env"
+  file_permission = "600"
+  content  = <<-EOT
+AUTH0_DOMAIN=${var.auth0_domain}
+AUTH0_CLIENT_ID=${auth0_client.admin_api_m2m.client_id}
+AUTH0_CLIENT_SECRET=${data.auth0_client.admin_api_m2m.client_secret}
+SELF_SERVICE_SSO_PROFILE_ID=${auth0_self_service_profile.ss-sso-profile.id}
 EOT
 }

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
     title: Replate Admin API
-    version: '1.0.0'
+    version: "1.0.0"
     description: |
         Admin API for Replate workforce administrators. Orchestrates Auth0 Organizations, invitations, and mirrors
         organizations in Cloudflare D1. Tokens are issued to workforce admins and include scopes as noted.
@@ -11,7 +11,15 @@ servers:
     - url: https://api.admin.dev.local
       description: Local/dev
 security:
-    - oauth2: [read:organizations, update:organizations, create:organizations, read:org_invitations, create:org_invitations]
+    - oauth2:
+          [
+              read:organizations,
+              update:organizations,
+              create:organizations,
+              read:sso_invitations,
+              create:sso_invitations,
+              delete:sso_invitations,
+          ]
 paths:
     /organizations:
         get:
@@ -24,12 +32,12 @@ paths:
                 - in: query
                   name: org_type
                   schema:
-                      $ref: '#/components/schemas/OrgType'
+                      $ref: "#/components/schemas/OrgType"
                   description: Filter by organization type
                 - in: query
                   name: sso_status
                   schema:
-                      $ref: '#/components/schemas/SsoStatus'
+                      $ref: "#/components/schemas/SsoStatus"
                   description: Filter by SSO status
                 - in: query
                   name: q
@@ -50,17 +58,17 @@ paths:
                       maximum: 100
                   description: Page size (default 20)
             responses:
-                '200':
+                "200":
                     description: A list of organizations
                     content:
                         application/json:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/OrganizationSummary'
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '5XX': {$ref: '#/components/responses/ServerError'}
+                                    $ref: "#/components/schemas/OrganizationSummary"
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "5XX": {$ref: "#/components/responses/ServerError"}
         post:
             summary: Create organization
             description: Creates an organization in Auth0 and mirrors it in D1 (no invitation is sent).
@@ -72,9 +80,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/OrganizationCreateRequest'
+                            $ref: "#/components/schemas/OrganizationCreateRequest"
             responses:
-                '201':
+                "201":
                     description: Created
                     content:
                         application/json:
@@ -83,11 +91,11 @@ paths:
                                 properties:
                                     auth0_org_id:
                                         type: string
-                '400': {$ref: '#/components/responses/BadRequest'}
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '409': {$ref: '#/components/responses/Conflict'}
-                '502': {$ref: '#/components/responses/UpstreamError'}
+                "400": {$ref: "#/components/responses/BadRequest"}
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "409": {$ref: "#/components/responses/Conflict"}
+                "502": {$ref: "#/components/responses/UpstreamError"}
     /organizations/{orgId}:
         get:
             summary: Get organization
@@ -96,18 +104,18 @@ paths:
             security:
                 - oauth2: [read:organizations]
             parameters:
-                - $ref: '#/components/parameters/OrgIdPathParam'
+                - $ref: "#/components/parameters/OrgIdPathParam"
             responses:
-                '200':
+                "200":
                     description: Organization details
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Organization'
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '404': {$ref: '#/components/responses/NotFound'}
-                '5XX': {$ref: '#/components/responses/ServerError'}
+                                $ref: "#/components/schemas/Organization"
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "404": {$ref: "#/components/responses/NotFound"}
+                "5XX": {$ref: "#/components/responses/ServerError"}
         patch:
             summary: Update organization
             description: Updates Replate-managed organization metadata in D1 and optionally Auth0 org name/domain.
@@ -115,26 +123,26 @@ paths:
             security:
                 - oauth2: [update:organizations]
             parameters:
-                - $ref: '#/components/parameters/OrgIdPathParam'
+                - $ref: "#/components/parameters/OrgIdPathParam"
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/OrganizationUpdateRequest'
+                            $ref: "#/components/schemas/OrganizationUpdateRequest"
             responses:
-                '200':
-                    description: Updated organization
+                "200":
+                    description: Update result
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Organization'
-                '400': {$ref: '#/components/responses/BadRequest'}
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '404': {$ref: '#/components/responses/NotFound'}
-                '409': {$ref: '#/components/responses/Conflict'}
-                '502': {$ref: '#/components/responses/UpstreamError'}
+                                $ref: "#/components/schemas/UpdatedResult"
+                "400": {$ref: "#/components/responses/BadRequest"}
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "404": {$ref: "#/components/responses/NotFound"}
+                "409": {$ref: "#/components/responses/Conflict"}
+                "502": {$ref: "#/components/responses/UpstreamError"}
         delete:
             summary: Archive organization
             description: Soft-deletes organization rows in D1 and removes remaining Auth0 org if applicable.
@@ -142,9 +150,9 @@ paths:
             security:
                 - oauth2: [update:organizations]
             parameters:
-                - $ref: '#/components/parameters/OrgIdPathParam'
+                - $ref: "#/components/parameters/OrgIdPathParam"
             responses:
-                '200':
+                "200":
                     description: Archived
                     content:
                         application/json:
@@ -154,28 +162,29 @@ paths:
                                     archived:
                                         type: boolean
                                         example: true
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '404': {$ref: '#/components/responses/NotFound'}
-                '5XX': {$ref: '#/components/responses/ServerError'}
-    /organizations/invitations:
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "404": {$ref: "#/components/responses/NotFound"}
+                "5XX": {$ref: "#/components/responses/ServerError"}
+    /organizations/{orgId}/sso-invitations:
         get:
-            summary: List organization invitations
-            description: Lists invitations and statuses, joining Auth0 invitations with D1 org mirror.
+            summary: List SSO invitations for organization
+            description: Lists invitations and statuses for a specific organization.
             operationId: listInvitations
             security:
-                - oauth2: [read:org_invitations]
+                - oauth2: [read:sso_invitations]
             parameters:
+                - $ref: "#/components/parameters/OrgIdPathParam"
                 - in: query
                   name: status
                   schema:
                       type: string
-                      enum: [invited, configured, active]
+                      enum: [invited, configured, active, expired]
                   description: Filter by invitation/SSO status
                 - in: query
                   name: org_type
                   schema:
-                      $ref: '#/components/schemas/OrgType'
+                      $ref: "#/components/schemas/OrgType"
                   description: Filter by organization type
                 - in: query
                   name: q
@@ -183,41 +192,71 @@ paths:
                       type: string
                   description: Search by organization name or domain
             responses:
-                '200':
+                "200":
                     description: A list of invitations
                     content:
                         application/json:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/InvitationSummary'
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '502': {$ref: '#/components/responses/UpstreamError'}
+                                    $ref: "#/components/schemas/InvitationSummary"
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "502": {$ref: "#/components/responses/UpstreamError"}
         post:
-            summary: Create organization invitation
-            description: Creates or finds the organization in Auth0, sends invitation, and mirrors org in D1 with sso_status=invited.
+            summary: Create SSO invitation for organization
+            description: Initiates a self-service SSO invitation for the specified organization.
             operationId: createInvitation
             security:
-                - oauth2: [create:org_invitations, update:organizations]
+                - oauth2: [create:sso_invitations, update:organizations]
+            parameters:
+                - $ref: "#/components/parameters/OrgIdPathParam"
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/InvitationCreateRequest'
+                            $ref: "#/components/schemas/InvitationCreateRequest"
             responses:
-                '201':
+                "201":
                     description: Invitation created
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/InvitationCreateResponse'
-                '400': {$ref: '#/components/responses/BadRequest'}
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '409': {$ref: '#/components/responses/Conflict'}
-                '502': {$ref: '#/components/responses/UpstreamError'}
+                                $ref: "#/components/schemas/InvitationCreateResponse"
+                "400": {$ref: "#/components/responses/BadRequest"}
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
+                "409": {$ref: "#/components/responses/Conflict"}
+                "502": {$ref: "#/components/responses/UpstreamError"}
+    /organizations/{orgId}/sso-invitations/{invId}:
+        delete:
+            summary: Delete SSO invitation for organization
+            description: Deletes an invitation and revokes it from Auth0.
+            operationId: deleteInvitation
+            security:
+                - oauth2: [delete:sso_invitations]
+            parameters:
+                - $ref: "#/components/parameters/OrgIdPathParam"
+                - in: path
+                  name: invId
+                  required: true
+                  schema:
+                      type: string
+                  description: Invitation ID
+            responses:
+                "200":
+                    description: Archived
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    archived:
+                                        type: boolean
+                                        example: true
+                "401": {$ref: "#/components/responses/Unauthorized"}
+                "403": {$ref: "#/components/responses/Forbidden"}
 components:
     securitySchemes:
         oauth2:
@@ -230,8 +269,9 @@ components:
                         read:organizations: Read organizations
                         update:organizations: Update organizations
                         create:organizations: Create organizations
-                        read:org_invitations: Read organization invitations
-                        create:org_invitations: Create organization invitations
+                        read:sso_invitations: Read SSO invitations
+                        create:sso_invitations: Create SSO invitations
+                        delete:sso_invitations: Delete SSO invitations
     parameters:
         OrgIdPathParam:
             in: path
@@ -246,50 +286,50 @@ components:
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
         Unauthorized:
             description: Authentication required
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
         Forbidden:
             description: Insufficient scope or not allowed
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
         NotFound:
             description: Resource not found
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
         Conflict:
             description: Conflict (e.g., duplicate domain)
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
         UpstreamError:
             description: Upstream dependency (Auth0 Management API) unavailable
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
         ServerError:
             description: Server error
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/Error'
+                        $ref: "#/components/schemas/Error"
     schemas:
         OrgType:
             type: string
             enum: [supplier, community, logistics]
         SsoStatus:
             type: string
-            enum: [not_started, invited, configured, active]
+            enum: [not_started, invited, configured, active, expired]
         OrganizationSummary:
             type: object
             properties:
@@ -298,15 +338,15 @@ components:
                 name:
                     type: string
                 org_type:
-                    $ref: '#/components/schemas/OrgType'
+                    $ref: "#/components/schemas/OrgType"
                 domain:
                     type: string
                     format: hostname
                 sso_status:
-                    $ref: '#/components/schemas/SsoStatus'
+                    $ref: "#/components/schemas/SsoStatus"
         Organization:
             allOf:
-                - $ref: '#/components/schemas/OrganizationSummary'
+                - $ref: "#/components/schemas/OrganizationSummary"
                 - type: object
                   properties:
                       pickup_address:
@@ -337,7 +377,7 @@ components:
                 name:
                     type: string
                 org_type:
-                    $ref: '#/components/schemas/OrgType'
+                    $ref: "#/components/schemas/OrgType"
                 domain:
                     type: string
                     format: hostname
@@ -353,7 +393,7 @@ components:
                     type: object
                     properties:
                         org_type:
-                            $ref: '#/components/schemas/OrgType'
+                            $ref: "#/components/schemas/OrgType"
                         pickup_address:
                             type: string
                         delivery_address:
@@ -363,20 +403,23 @@ components:
                         vehicle_types:
                             type: array
                             items: {type: string}
+        UpdatedResult:
+            type: object
+            properties:
+                updated:
+                    type: integer
+                    minimum: 0
         InvitationCreateRequest:
             type: object
-            required: [org_type, name, domain, admin_email]
+            required: [accept_idp_init_saml, ttl, domain_verification]
             properties:
-                org_type:
-                    $ref: '#/components/schemas/OrgType'
-                name:
-                    type: string
-                domain:
-                    type: string
-                    format: hostname
-                admin_email:
-                    type: string
-                    format: email
+                accept_idp_init_saml:
+                    type: boolean
+                ttl:
+                    type: number
+                    description: Time to live (seconds) from creation time
+                domain_verification:
+                    type: boolean
         InvitationCreateResponse:
             type: object
             properties:
@@ -384,9 +427,9 @@ components:
                     type: string
                 auth0_org_id:
                     type: string
-                status:
+                link:
                     type: string
-                    enum: [invited]
+                    format: uri
         InvitationSummary:
             type: object
             properties:
@@ -397,13 +440,16 @@ components:
                 name:
                     type: string
                 org_type:
-                    $ref: '#/components/schemas/OrgType'
+                    $ref: "#/components/schemas/OrgType"
                 domain:
                     type: string
                     format: hostname
+                link:
+                    type: string
+                    format: uri
                 sso_status:
-                    $ref: '#/components/schemas/SsoStatus'
-                sent_at:
+                    $ref: "#/components/schemas/SsoStatus"
+                created_at:
                     type: string
                     format: date-time
         Error:

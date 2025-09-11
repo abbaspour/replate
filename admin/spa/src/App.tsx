@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Admin, Resource, List, Datagrid, TextField, Show, SimpleShowLayout, Edit, SimpleForm, TextInput, Create, SelectInput, TopToolbar, CreateButton, ShowButton, EditButton, Filter, useNotify } from 'react-admin';
+import { Admin, Resource, List, Datagrid, TextField, Show, SimpleShowLayout, Edit, SimpleForm, TextInput, Create, SelectInput, CreateButton, ShowButton, EditButton } from 'react-admin';
 import { dataProvider } from './dataProvider';
 import { ensureAuthenticated } from './auth';
 import { authProvider } from './authProvider';
@@ -41,6 +41,9 @@ const OrganizationsShow = (props: any) => (
       <TextField source="domain" />
       <TextField source="sso_status" />
     </SimpleShowLayout>
+    <div style={{ marginTop: 16 }}>
+      <InvitationsSection />
+    </div>
   </Show>
 );
 
@@ -78,30 +81,65 @@ const OrganizationsCreate = (props: any) => (
   </Create>
 );
 
-const InvitationsList = (props: any) => (
-  <List {...props}>
-    <Datagrid>
-      <TextField source="id" />
-      <TextField source="name" />
-      <TextField source="org_type" />
-      <TextField source="domain" />
-      <TextField source="sso_status" />
-    </Datagrid>
-  </List>
-);
+import {  useRecordContext } from 'react-admin';
+
+const InvitationsSection = () => {
+  const record = useRecordContext<any>();
+  const orgId = record?.id;
+  if (!orgId) return null;
+  return (
+    <div>
+      <h3>SSO Invitations</h3>
+      <List resource="invitations" filter={{ orgId }} perPage={25} actions={false} disableSyncWithLocation>
+        <Datagrid bulkActionButtons={false}>
+          <TextField source="id" label="invitation_id" />
+          <TextField source="link" />
+          <TextField source="sso_status" />
+          <TextField source="created_at" />
+        </Datagrid>
+      </List>
+      <div style={{ marginTop: 8 }}>
+        <CreateButton
+          resource="invitations"
+          label="Create Invitation"
+          to={`/invitations/create?orgId=${encodeURIComponent(orgId)}`}
+          state={{ meta: { orgId } }}
+        />
+      </div>
+    </div>
+  );
+};
+
+import { BooleanInput, NumberInput, useRedirect, useCreate } from 'react-admin';
+
+import { useLocation } from 'react-router-dom';
+const InvitationCreateForm = (props: any) => {
+  const record = useRecordContext<any>();
+  const [create] = useCreate();
+  const redirect = useRedirect();
+  const location = useLocation() as any;
+  const passedOrgId = location?.state?.meta?.orgId;
+  const searchParams = new URLSearchParams(location?.search || '');
+  const queryOrgId = searchParams.get('orgId');
+  const orgId = (props as any).orgId || record?.id || passedOrgId || queryOrgId;
+
+  const onSubmit = async (values: any) => {
+    await create('invitations', { data: values, meta: { orgId } });
+    redirect(`/organizations/${orgId}/show`);
+  };
+
+  return (
+    <SimpleForm onSubmit={onSubmit} defaultValues={{ ttl: 432000, domain_verification: false, accept_idp_init_saml: false }}>
+      <BooleanInput source="domain_verification" label="Require domain verification" />
+      <NumberInput source="ttl" label="TTL (seconds)" />
+      <BooleanInput source="accept_idp_init_saml" label="Accept IdP-initiated SAML" />
+    </SimpleForm>
+  );
+};
 
 const InvitationsCreate = (props: any) => (
   <Create {...props}>
-    <SimpleForm>
-      <SelectInput source="org_type" required choices={[
-        { id: 'supplier', name: 'Supplier' },
-        { id: 'community', name: 'Community' },
-        { id: 'logistics', name: 'Logistics' },
-      ]} />
-      <TextInput source="name" required />
-      <TextInput source="domain" required />
-      <TextInput source="admin_email" required />
-    </SimpleForm>
+    <InvitationCreateForm {...props} />
   </Create>
 );
 
@@ -120,7 +158,7 @@ const App = () => {
   return (
     <Admin dataProvider={dataProvider} authProvider={authProvider}>
       <Resource name="organizations" list={OrganizationsList} show={OrganizationsShow} edit={OrganizationsEdit} create={OrganizationsCreate} />
-      <Resource name="invitations" list={InvitationsList} create={InvitationsCreate} />
+      <Resource name="invitations" create={InvitationsCreate} />
     </Admin>
   );
 };
