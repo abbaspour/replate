@@ -41,12 +41,12 @@ export const dataProvider: DataProvider = {
       return { data: data.map((o: any) => ({ id: o.auth0_org_id, ...o })), total: data.length };
     }
     if (resource === 'invitations') {
-      const query = new URLSearchParams();
-      const { q, org_type, status } = params.filter || {};
-      if (q) query.set('q', q);
-      if (org_type) query.set('org_type', org_type);
-      if (status) query.set('status', status);
-      const data = await apiFetch(`/sso-invitations?${query.toString()}`);
+      // Expect orgId via params.filter.orgId (preferred) or params.meta.orgId
+      const orgId = (params as any).filter?.orgId ?? (params as any).meta?.orgId;
+      if (!orgId) {
+        throw new Error('invitations.getList requires filter.orgId');
+      }
+      const data = await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations`);
       return { data: data.map((i: any) => ({ id: i.invitation_id, ...i })), total: data.length };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -90,7 +90,11 @@ export const dataProvider: DataProvider = {
       return { data: { id, ...params.data, ...data } };
     }
     if (resource === 'invitations') {
-      const data = await apiFetch(`/sso-invitations`, { method: 'POST', body: JSON.stringify(params.data) });
+      const orgId = (params as any).meta?.orgId;
+      if (!orgId) {
+        throw new Error('invitations.create requires meta.orgId');
+      }
+      const data = await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations`, { method: 'POST', body: JSON.stringify(params.data) });
       return { data: { id: data.invitation_id, ...data } };
     }
     throw new Error(`Unsupported resource: ${resource}`);
@@ -102,7 +106,11 @@ export const dataProvider: DataProvider = {
       return { data: { id: params.id } } as DeleteResult;
     }
     if (resource === 'invitations') {
-      await apiFetch(`/sso-invitations/${encodeURIComponent(params.id as string)}`, { method: 'DELETE' });
+      const orgId = (params as any).meta?.orgId;
+      if (!orgId) {
+        throw new Error('invitations.delete requires meta.orgId');
+      }
+      await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations/${encodeURIComponent(params.id as string)}`, { method: 'DELETE' });
       return { data: { id: params.id } } as DeleteResult;
     }
     throw new Error(`Unsupported resource: ${resource}`);
