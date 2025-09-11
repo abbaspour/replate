@@ -96,7 +96,7 @@ window.onload = async () => {
     if (isRouteLink(e.target)) {
       const url = e.target.getAttribute("href");
 
-      if (showContexntFromUrl(url)) {
+      if (showContentFromUrl(url)) {
         e.preventDefault();
         window.history.pushState({ url }, {}, url);
       }

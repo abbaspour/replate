@@ -31,8 +31,8 @@ resource "auth0_resource_server_scope" "create_payment_intent" {
 
 # donor SPA client
 resource "auth0_client" "donor" {
-  name            = "Donor"
-  description     = "Donor SPA client"
+  name            = "Donor SPA"
+  description     = "Donor SPA client for donor.replate.dev"
   app_type        = "spa"
   oidc_conformant = true
   is_first_party  = true
@@ -42,6 +42,14 @@ resource "auth0_client" "donor" {
   ]
 
   allowed_logout_urls = [
+    "https://donor.${var.top_level_domain}"
+  ]
+
+  allowed_origins = [
+    "https://donor.${var.top_level_domain}"
+  ]
+
+  web_origins = [
     "https://donor.${var.top_level_domain}"
   ]
 
@@ -88,7 +96,7 @@ resource "local_file" "donor_auth_config_json" {
   "domain": "${local.auth0_custom_domain}",
   "clientId": "${auth0_client.donor.client_id}",
   "audience": "${auth0_resource_server.donor_api.identifier}",
-  "redirectUri": "https://donor.${var.top_level_domain}/callback"
+  "redirectUri": "https://donor.${var.top_level_domain}"
 }
 EOT
 }

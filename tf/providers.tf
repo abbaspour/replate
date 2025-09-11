@@ -3,7 +3,7 @@ terraform {
   required_providers {
     auth0 = {
       source  = "auth0/auth0"
-      version = ">= 1.28"
+      version = ">= 1.29"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
