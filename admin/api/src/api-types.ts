@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/organizations": {
+    '/organizations': {
         parameters: {
             query?: never;
             header?: never;
@@ -15,20 +15,20 @@ export interface paths {
          * List organizations
          * @description Lists organizations known to Replate from D1.
          */
-        get: operations["listOrganizations"];
+        get: operations['listOrganizations'];
         put?: never;
         /**
          * Create organization
          * @description Creates an organization in Auth0 and mirrors it in D1 (no invitation is sent).
          */
-        post: operations["createOrganization"];
+        post: operations['createOrganization'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/organizations/{orgId}": {
+    '/organizations/{orgId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -39,24 +39,24 @@ export interface paths {
          * Get organization
          * @description Retrieves details for a specific organization from D1.
          */
-        get: operations["getOrganization"];
+        get: operations['getOrganization'];
         put?: never;
         post?: never;
         /**
          * Archive organization
          * @description Soft-deletes organization rows in D1 and removes remaining Auth0 org if applicable.
          */
-        delete: operations["archiveOrganization"];
+        delete: operations['archiveOrganization'];
         options?: never;
         head?: never;
         /**
          * Update organization
          * @description Updates Replate-managed organization metadata in D1 and optionally Auth0 org name/domain.
          */
-        patch: operations["updateOrganization"];
+        patch: operations['updateOrganization'];
         trace?: never;
     };
-    "/organizations/{orgId}/sso-invitations": {
+    '/organizations/invitations': {
         parameters: {
             query?: never;
             header?: never;
@@ -64,37 +64,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List SSO invitations for organization
-         * @description Lists invitations and statuses for a specific organization.
+         * List organization invitations
+         * @description Lists invitations and statuses, joining Auth0 invitations with D1 org mirror.
          */
-        get: operations["listInvitations"];
+        get: operations['listInvitations'];
         put?: never;
         /**
-         * Create SSO invitation for organization
-         * @description Initiates a self-service SSO invitation for the specified organization.
+         * Create organization invitation
+         * @description Creates or finds the organization in Auth0, sends invitation, and mirrors org in D1 with sso_status=invited.
          */
-        post: operations["createInvitation"];
+        post: operations['createInvitation'];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/organizations/{orgId}/sso-invitations/{invId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete SSO invitation for organization
-         * @description Deletes an invitation and revokes it from Auth0.
-         */
-        delete: operations["deleteInvitation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -105,18 +85,18 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        OrgType: "supplier" | "community" | "logistics";
+        OrgType: 'supplier' | 'community' | 'logistics';
         /** @enum {string} */
-        SsoStatus: "not_started" | "invited" | "configured" | "active" | "expired";
+        SsoStatus: 'not_started' | 'invited' | 'configured' | 'active';
         OrganizationSummary: {
             auth0_org_id?: string;
             name?: string;
-            org_type?: components["schemas"]["OrgType"];
+            org_type?: components['schemas']['OrgType'];
             /** Format: hostname */
             domain?: string;
-            sso_status?: components["schemas"]["SsoStatus"];
+            sso_status?: components['schemas']['SsoStatus'];
         };
-        Organization: components["schemas"]["OrganizationSummary"] & {
+        Organization: components['schemas']['OrganizationSummary'] & {
             pickup_address?: string | null;
             /** @description JSON string for suppliers */
             pickup_schedule?: string | null;
@@ -128,7 +108,7 @@ export interface components {
         };
         OrganizationCreateRequest: {
             name: string;
-            org_type: components["schemas"]["OrgType"];
+            org_type: components['schemas']['OrgType'];
             /** Format: hostname */
             domain: string;
         };
@@ -137,40 +117,37 @@ export interface components {
             /** Format: hostname */
             domain?: string;
             metadata?: {
-                org_type?: components["schemas"]["OrgType"];
+                org_type?: components['schemas']['OrgType'];
                 pickup_address?: string;
                 delivery_address?: string;
                 coverage_regions?: string;
                 vehicle_types?: string[];
             };
         };
-        UpdatedResult: {
-            updated?: number;
-        };
         InvitationCreateRequest: {
-            accept_idp_init_saml: boolean;
-            /** @description Time to live (seconds) from creation time */
-            ttl: number;
-            domain_verification: boolean;
+            org_type: components['schemas']['OrgType'];
+            name: string;
+            /** Format: hostname */
+            domain: string;
+            /** Format: email */
+            admin_email: string;
         };
         InvitationCreateResponse: {
             invitation_id?: string;
             auth0_org_id?: string;
-            /** Format: uri */
-            link?: string;
+            /** @enum {string} */
+            status?: 'invited';
         };
         InvitationSummary: {
             invitation_id?: string;
             auth0_org_id?: string;
             name?: string;
-            org_type?: components["schemas"]["OrgType"];
+            org_type?: components['schemas']['OrgType'];
             /** Format: hostname */
             domain?: string;
-            /** Format: uri */
-            link?: string;
-            sso_status?: components["schemas"]["SsoStatus"];
+            sso_status?: components['schemas']['SsoStatus'];
             /** Format: date-time */
-            created_at?: string;
+            sent_at?: string;
         };
         Error: {
             error?: string;
@@ -184,7 +161,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Authentication required */
@@ -193,7 +170,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Insufficient scope or not allowed */
@@ -202,7 +179,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Resource not found */
@@ -211,7 +188,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Conflict (e.g., duplicate domain) */
@@ -220,7 +197,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Upstream dependency (Auth0 Management API) unavailable */
@@ -229,7 +206,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Server error */
@@ -238,7 +215,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
     };
@@ -256,9 +233,9 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter by organization type */
-                org_type?: components["schemas"]["OrgType"];
+                org_type?: components['schemas']['OrgType'];
                 /** @description Filter by SSO status */
-                sso_status?: components["schemas"]["SsoStatus"];
+                sso_status?: components['schemas']['SsoStatus'];
                 /** @description Search by name or domain */
                 q?: string;
                 /** @description Page number (1-based) */
@@ -278,12 +255,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganizationSummary"][];
+                    'application/json': components['schemas']['OrganizationSummary'][];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     createOrganization: {
@@ -295,7 +272,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OrganizationCreateRequest"];
+                'application/json': components['schemas']['OrganizationCreateRequest'];
             };
         };
         responses: {
@@ -305,16 +282,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         auth0_org_id?: string;
                     };
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-            502: components["responses"]["UpstreamError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            409: components['responses']['Conflict'];
+            502: components['responses']['UpstreamError'];
         };
     };
     getOrganization: {
@@ -323,7 +300,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Auth0 organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
+                orgId: components['parameters']['OrgIdPathParam'];
             };
             cookie?: never;
         };
@@ -335,13 +312,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organization"];
+                    'application/json': components['schemas']['Organization'];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     archiveOrganization: {
@@ -350,7 +327,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Auth0 organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
+                orgId: components['parameters']['OrgIdPathParam'];
             };
             cookie?: never;
         };
@@ -362,16 +339,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @example true */
                         archived?: boolean;
                     };
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     updateOrganization: {
@@ -380,48 +357,45 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Auth0 organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
+                orgId: components['parameters']['OrgIdPathParam'];
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OrganizationUpdateRequest"];
+                'application/json': components['schemas']['OrganizationUpdateRequest'];
             };
         };
         responses: {
-            /** @description Update result */
+            /** @description Updated organization */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UpdatedResult"];
+                    'application/json': components['schemas']['Organization'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
-            502: components["responses"]["UpstreamError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            409: components['responses']['Conflict'];
+            502: components['responses']['UpstreamError'];
         };
     };
     listInvitations: {
         parameters: {
             query?: {
                 /** @description Filter by invitation/SSO status */
-                status?: "invited" | "configured" | "active" | "expired";
+                status?: 'invited' | 'configured' | 'active';
                 /** @description Filter by organization type */
-                org_type?: components["schemas"]["OrgType"];
+                org_type?: components['schemas']['OrgType'];
                 /** @description Search by organization name or domain */
                 q?: string;
             };
             header?: never;
-            path: {
-                /** @description Auth0 organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -432,27 +406,24 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InvitationSummary"][];
+                    'application/json': components['schemas']['InvitationSummary'][];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            502: components["responses"]["UpstreamError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            502: components['responses']['UpstreamError'];
         };
     };
     createInvitation: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                /** @description Auth0 organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["InvitationCreateRequest"];
+                'application/json': components['schemas']['InvitationCreateRequest'];
             };
         };
         responses: {
@@ -462,44 +433,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InvitationCreateResponse"];
+                    'application/json': components['schemas']['InvitationCreateResponse'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            409: components["responses"]["Conflict"];
-            502: components["responses"]["UpstreamError"];
-        };
-    };
-    deleteInvitation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Auth0 organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
-                /** @description Invitation ID */
-                invId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Archived */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example true */
-                        archived?: boolean;
-                    };
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            409: components['responses']['Conflict'];
+            502: components['responses']['UpstreamError'];
         };
     };
 }
