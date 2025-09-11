@@ -20,6 +20,7 @@ export type Env = {
         AUTH0_CLIENT_ID: string;
         AUTH0_CLIENT_SECRET: string;
         AUTH0_DOMAIN: string; // e.g., replate-prd.au.auth0.com or id.replate.dev
+        SELF_SERVICE_SSO_PROFILE_ID: string; // Auth0 Self-Service Profile ID
     };
 };
 
@@ -81,6 +82,14 @@ function toOrgSlug(input: string): string {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
     return base || `org-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function toOrgConnectionName(input: string): string {
+    const base = input
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    return `org-${base}-cnx`;
 }
 
 async function createAuth0Organization(env: Env["Bindings"], params: {name: string; domain: string}) {
@@ -414,9 +423,34 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
 
         const domainVerification = body.domain_verification ? "Required" : "Off";
 
-        // In a full implementation, call Auth0 Management API to create the link; for now, synthesize values
-        const auth0TicketId = "tkt_" + Math.random().toString(36).slice(2, 10);
-        const link = `https://id.replate.dev/invitations/${auth0TicketId}`;
+        const auth0ConnectionName = toOrgConnectionName(org.name);
+
+        // Create Self-Service SSO ticket via Auth0 Management API
+        const client = getManagementClient(c.env);
+        const ssoRes = await client.selfServiceProfiles.createSsoTicket(
+            { id: c.env.SELF_SERVICE_SSO_PROFILE_ID },
+            {
+                enabled_organizations: [
+                    {
+                        organization_id: org.auth0_org_id,
+                        assign_membership_on_login: true,
+                        show_as_button: true,
+                    },
+                ],
+                ttl_sec: body.ttl,
+                domain_aliases_config: {
+                    domain_verification: body.domain_verification ? "required" : "none",
+                },
+                connection_config: {
+                    name: auth0ConnectionName,
+                    is_domain_connection: false,
+                    display_name: org.name,
+                    // TODO: idpinitiated
+                }
+            },
+        );
+        const link = (ssoRes as any)?.data?.ticket ?? (ssoRes as any)?.ticket;
+        const auth0TicketId: string | null = null;
 
         const insert = await c.env.DB.prepare(
             `INSERT INTO SsoInvitations (organization_id, issuer_user_id, display_name, link, auth0_ticket_id, auth0_connection_name, domain_verification, accept_idp_init_saml, ttl)
@@ -428,7 +462,7 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
                 org.name,
                 link,
                 auth0TicketId,
-                null,
+                auth0ConnectionName,
                 domainVerification,
                 body.accept_idp_init_saml ? 1 : 0,
                 body.ttl,
@@ -442,6 +476,7 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
         const invitation_id = (insert as any)?.lastInsertRowId ?? undefined;
         return c.json({invitation_id: String(invitation_id), auth0_org_id: org.auth0_org_id, link}, 201);
     } catch (e: any) {
+        console.log(e);
         return c.json({error: "Upstream error"}, 502);
     }
 });

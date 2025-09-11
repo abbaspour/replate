@@ -238,5 +238,6 @@ resource "local_file" "admin_api-dot-dev" {
 AUTH0_DOMAIN=${var.auth0_domain}
 AUTH0_CLIENT_ID=${auth0_client.admin_api_m2m.client_id}
 AUTH0_CLIENT_SECRET=${data.auth0_client.admin_api_m2m.client_secret}
+SELF_SERVICE_SSO_PROFILE_ID=${auth0_self_service_profile.ss-sso-profile.id}
 EOT
 }

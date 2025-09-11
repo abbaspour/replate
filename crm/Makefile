@@ -60,11 +60,11 @@ d1-info:
 
 d1-users:
 	@echo "Listing all users from D1 database..."
-	wrangler d1 execute $(D1_DB_NAME) --command="SELECT id, name, email, donor, org_role, consumer_lifecycle_stage FROM User ORDER BY id;" --remote
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT * FROM Users ORDER BY id;" --remote
 
-d1-companies:
-	@echo "Listing all companies from D1 database..."
-	wrangler d1 execute $(D1_DB_NAME) --command="SELECT id, name, org_type, sso_status FROM Company ORDER BY org_type, id;" --remote
+d1-orgs:
+	@echo "Listing all companies from D1 Orgs..."
+	wrangler d1 execute $(D1_DB_NAME) --command="SELECT * FROM Organizations ORDER BY org_type, id;" --remote
 
 d1-donations:
 	@echo "Listing all donations from D1 database..."
