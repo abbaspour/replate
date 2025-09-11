@@ -11,6 +11,12 @@ resource "auth0_tenant" "tenant" {
   ]
 }
 
+resource "auth0_prompt" "profile" {
+  universal_login_experience     = "new"
+  identifier_first               = true
+  webauthn_platform_first_factor = false
+}
+
 data "auth0_connection" "Username-Password-Authentication" {
   name = "Username-Password-Authentication"
 }

@@ -21,6 +21,7 @@ export type Env = {
         AUTH0_CLIENT_SECRET: string;
         AUTH0_DOMAIN: string; // e.g., replate-prd.au.auth0.com or id.replate.dev
         SELF_SERVICE_SSO_PROFILE_ID: string; // Auth0 Self-Service Profile ID
+        BUSINESS_SPA_CLIENT_ID: string; // business spa app client_id
     };
 };
 
@@ -436,6 +437,9 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
                         assign_membership_on_login: true,
                         show_as_button: true,
                     },
+                ],
+                enabled_clients: [
+                    c.env.BUSINESS_SPA_CLIENT_ID
                 ],
                 ttl_sec: body.ttl,
                 domain_aliases_config: {
