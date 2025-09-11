@@ -54,7 +54,11 @@ export const dataProvider: DataProvider = {
 
   getOne: async (resource, params) => {
     if (resource === 'organizations') {
-      const data = await apiFetch(`/organizations/${encodeURIComponent(params.id as string)}`);
+      const id = params.id as string | undefined;
+      if (!id) {
+        throw new Error('dataProvider.getOne: missing id for organizations');
+      }
+      const data = await apiFetch(`/organizations/${encodeURIComponent(id)}`);
       return { data: { id: data.auth0_org_id, ...data } };
     }
     throw new Error(`Unsupported resource: ${resource}`);

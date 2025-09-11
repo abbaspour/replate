@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Admin, Resource, List, Datagrid, TextField, Show, SimpleShowLayout, Edit, SimpleForm, TextInput, Create, SelectInput, TopToolbar, CreateButton, ShowButton, EditButton, Filter, useNotify } from 'react-admin';
+import { Admin, Resource, List, Datagrid, TextField, Show, SimpleShowLayout, Edit, SimpleForm, TextInput, Create, SelectInput, CreateButton, ShowButton, EditButton } from 'react-admin';
 import { dataProvider } from './dataProvider';
 import { ensureAuthenticated } from './auth';
 import { authProvider } from './authProvider';
@@ -81,18 +81,7 @@ const OrganizationsCreate = (props: any) => (
   </Create>
 );
 
-import { useListContext, useRefresh, useRecordContext } from 'react-admin';
-
-const InvitationsList = (props: any) => (
-  <List {...props}>
-    <Datagrid>
-      <TextField source="id" label="invitation_id" />
-      <TextField source="link" />
-      <TextField source="sso_status" />
-      <TextField source="created_at" />
-    </Datagrid>
-  </List>
-);
+import {  useRecordContext } from 'react-admin';
 
 const InvitationsSection = () => {
   const record = useRecordContext<any>();
@@ -110,13 +99,18 @@ const InvitationsSection = () => {
         </Datagrid>
       </List>
       <div style={{ marginTop: 8 }}>
-        <CreateButton resource="invitations" label="Create Invitation" state={{ meta: { orgId } }} />
+        <CreateButton
+          resource="invitations"
+          label="Create Invitation"
+          to={`/invitations/create?orgId=${encodeURIComponent(orgId)}`}
+          state={{ meta: { orgId } }}
+        />
       </div>
     </div>
   );
 };
 
-import { BooleanInput, NumberInput, useRedirect, useCreate, Toolbar, SaveButton } from 'react-admin';
+import { BooleanInput, NumberInput, useRedirect, useCreate } from 'react-admin';
 
 import { useLocation } from 'react-router-dom';
 const InvitationCreateForm = (props: any) => {
@@ -125,7 +119,9 @@ const InvitationCreateForm = (props: any) => {
   const redirect = useRedirect();
   const location = useLocation() as any;
   const passedOrgId = location?.state?.meta?.orgId;
-  const orgId = (props as any).orgId || record?.id || passedOrgId;
+  const searchParams = new URLSearchParams(location?.search || '');
+  const queryOrgId = searchParams.get('orgId');
+  const orgId = (props as any).orgId || record?.id || passedOrgId || queryOrgId;
 
   const onSubmit = async (values: any) => {
     await create('invitations', { data: values, meta: { orgId } });
