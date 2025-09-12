@@ -156,7 +156,7 @@ const App = () => {
   if (!ready) return <div>Loading...</div>;
 
   return (
-    <Admin dataProvider={dataProvider} authProvider={authProvider}>
+    <Admin dataProvider={dataProvider} authProvider={authProvider} disableTelemetry>
       <Resource name="organizations" list={OrganizationsList} show={OrganizationsShow} edit={OrganizationsEdit} create={OrganizationsCreate} />
       <Resource name="invitations" create={InvitationsCreate} />
     </Admin>

@@ -104,10 +104,8 @@ The following are business subdomains under top-level domain name `replate.dev`:
   dropdown to log in to Consumer App or Business App.
     - If the user is already logged in (detected by Auth0 SDK), the top right of the website shows a button to go to the
       app and log out.
-- **donor.** SPA app that is for consumer persona (Donor)
-    - **api.donor.** are consumer APIs used by **donor** app; protected by CORS and Auth0 issued bearer access_token
-- **business.** SPA app that is for business user personas (see Actors section for details)
-    - **api.business.** are business APIs used by **app** subdomain; protected by CORS and Auth0 issued bearer access_token
+- **donor.** SPA app and API that is for consumer persona (Donor)
+- **business.** SPA app and API that is for business user personas (see Actors section for details)
 - **id.** Auth0-managed custom domain name pointing to production tenant `replate-prd.au.auth0.com`. 
 - **api.id.** Webhook that receives events from Auth0. Authenticate with a static bearer token and deployed as a
   Cloudflare worker.
@@ -366,7 +364,7 @@ The full contract is defined in `consumer/api/spec/openapi.yaml`. All developmen
 
 ### Business API
 
-The full contract is defined in `business/api/spec/openapi.yaml`. All development must adhere to this contract.
+The full contract is defined in `business/api/spec/openapi.yaml`. All development must adhere to this contract. API's base path is `/api/`
 
 - **`GET /organizations/{orgId}`**: Retrieves details for a specific organization.
     - **Permissions**: Requires a token with `read:organization` permission. User must be a member of `{orgId}`.
@@ -392,7 +390,7 @@ The full contract is defined in `business/api/spec/openapi.yaml`. All developmen
 
 ### Admin API
 
-The full contract is defined in `admin/api/spec/openapi.yaml`. All development must adhere to this contract.
+The full contract is defined in `admin/api/spec/openapi.yaml`. All development must adhere to this contract. API's base path is `/api/`
 
 These endpoints support workforce Admin operations described earlier (inviting organizations for self‑service SSO, checking invitation status, and listing organizations). Admin API runs as a Cloudflare Worker using Hono and typically calls Cloudflare D1 for CRM and Auth0 Management API.
 
