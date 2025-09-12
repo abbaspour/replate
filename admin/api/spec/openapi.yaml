@@ -19,6 +19,8 @@ security:
               read:sso_invitations,
               create:sso_invitations,
               delete:sso_invitations,
+              read:users,
+              update:users,
           ]
 paths:
     /organizations:
@@ -257,6 +259,103 @@ paths:
                                         example: true
                 "401": {$ref: "#/components/responses/Unauthorized"}
                 "403": {$ref: "#/components/responses/Forbidden"}
+    /users:
+        get:
+            summary: List users
+            description: Lists users with optional filters and pagination.
+            operationId: listUsers
+            security:
+                - oauth2: [read:users]
+            parameters:
+                - in: query
+                  name: q
+                  schema:
+                      type: string
+                  description: Search by email or name
+                - in: query
+                  name: org_id
+                  schema:
+                      type: string
+                  description: Filter by organization's Auth0 ID
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                      minimum: 1
+                  description: Page number (1-based)
+                - in: query
+                  name: per_page
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                  description: Page size (default 25)
+            responses:
+                "200":
+                    description: A list of users
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/User"
+                "401": { $ref: "#/components/responses/Unauthorized" }
+                "403": { $ref: "#/components/responses/Forbidden" }
+                "5XX": { $ref: "#/components/responses/ServerError" }
+    /users/{id}:
+        get:
+            summary: Get user
+            description: Retrieve a single user by D1 id.
+            operationId: getUser
+            security:
+                - oauth2: [read:users]
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: User
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/User"
+                "401": { $ref: "#/components/responses/Unauthorized" }
+                "403": { $ref: "#/components/responses/Forbidden" }
+                "404": { $ref: "#/components/responses/NotFound" }
+                "5XX": { $ref: "#/components/responses/ServerError" }
+        patch:
+            summary: Update user
+            description: Update user attributes managed by Replate.
+            operationId: updateUser
+            security:
+                - oauth2: [update:users]
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UserUpdateRequest"
+            responses:
+                "200":
+                    description: Update result
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UpdatedResult"
+                "400": { $ref: "#/components/responses/BadRequest" }
+                "401": { $ref: "#/components/responses/Unauthorized" }
+                "403": { $ref: "#/components/responses/Forbidden" }
+                "404": { $ref: "#/components/responses/NotFound" }
+                "5XX": { $ref: "#/components/responses/ServerError" }
 components:
     securitySchemes:
         oauth2:
@@ -272,6 +371,8 @@ components:
                         read:sso_invitations: Read SSO invitations
                         create:sso_invitations: Create SSO invitations
                         delete:sso_invitations: Delete SSO invitations
+                        read:users: Read users
+                        update:users: Update users
     parameters:
         OrgIdPathParam:
             in: path
@@ -452,6 +553,59 @@ components:
                 created_at:
                     type: string
                     format: date-time
+        User:
+            type: object
+            properties:
+                id:
+                    type: integer
+                auth0_user_id:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                email_verified:
+                    type: boolean
+                name:
+                    type: string
+                picture:
+                    type: string
+                donor:
+                    type: boolean
+                org_role:
+                    type: string
+                    enum: [admin, member, driver]
+                org_status:
+                    type: string
+                    enum: [invited, active, suspended]
+                consumer_lifecycle_stage:
+                    type: string
+                    enum: [visitor, registered, donor_first_time, donor_repeat, advocate]
+                org_id:
+                    type: string
+                org_name:
+                    type: string
+        UserUpdateRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                picture:
+                    type: string
+                email_verified:
+                    type: boolean
+                donor:
+                    type: boolean
+                org_role:
+                    type: string
+                    enum: [admin, member, driver]
+                org_status:
+                    type: string
+                    enum: [invited, active, suspended]
+                consumer_lifecycle_stage:
+                    type: string
+                    enum: [visitor, registered, donor_first_time, donor_repeat, advocate]
+                org_id:
+                    type: string
         Error:
             type: object
             properties:

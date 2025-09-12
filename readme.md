@@ -443,6 +443,19 @@ Admin API is backed by two systems:
   - Permissions: `update:organizations`.
   - Response: `{ "archived": true }`
 
+- **`GET /users`**: List users with optional filters and pagination.
+  - Query Params: `q` (search email/name), `org_id` (filter by organization's Auth0 ID), `page`, `per_page`.
+  - Implementation: Joins D1 `Users` with `Organizations` to include `org_id` and `org_name`.
+  - Permissions: Requires `read:users`.
+  - Response: `[{ "id": 12, "auth0_user_id": "auth0|abc", "email": "admin@replate.dev", "email_verified": true, "name": "Admin", "donor": false, "org_role": "admin", "org_status": "active", "consumer_lifecycle_stage": "registered", "org_id": "org_abc123", "org_name": "Acme" }]`
+- **`GET /users/{id}`**: Retrieve a user by D1 `id`.
+  - Permissions: `read:users`.
+  - Response: `{ "id": 12, "auth0_user_id": "auth0|abc", "email": "...", "org_id": "org_abc123", "org_name": "Acme", ... }`
+- **`PATCH /users/{id}`**: Update user attributes managed by Replate.
+  - Request Body (partial fields allowed): `{ "name": "New Name", "email_verified": true, "donor": false, "org_role": "member", "org_status": "active", "consumer_lifecycle_stage": "registered", "org_id": "org_abc123" }`
+  - Implementation: Updates columns in D1 `Users` and reassigns `organization_id` if `org_id` corresponds to an existing organization.
+  - Permissions: Requires `update:users`.
+
 Notes and Constraints:
 - Authentication: Only workforce Admins (Okta-managed) obtain tokens to call Admin API. Tokens include appropriate scopes noted above.
 - SSO invitation flows vary by IdP; this API focuses on orchestrating Auth0 Organization Invitations and capturing status (`not_started`, `invited`, `configured`, `active`).

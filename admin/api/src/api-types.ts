@@ -100,6 +100,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List users
+         * @description Lists users with optional filters and pagination.
+         */
+        get: operations["listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user
+         * @description Retrieve a single user by D1 id.
+         */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update user
+         * @description Update user attributes managed by Replate.
+         */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -171,6 +215,37 @@ export interface components {
             sso_status?: components["schemas"]["SsoStatus"];
             /** Format: date-time */
             created_at?: string;
+        };
+        User: {
+            id?: number;
+            auth0_user_id?: string;
+            /** Format: email */
+            email?: string;
+            email_verified?: boolean;
+            name?: string;
+            picture?: string;
+            donor?: boolean;
+            /** @enum {string} */
+            org_role?: "admin" | "member" | "driver";
+            /** @enum {string} */
+            org_status?: "invited" | "active" | "suspended";
+            /** @enum {string} */
+            consumer_lifecycle_stage?: "visitor" | "registered" | "donor_first_time" | "donor_repeat" | "advocate";
+            org_id?: string;
+            org_name?: string;
+        };
+        UserUpdateRequest: {
+            name?: string;
+            picture?: string;
+            email_verified?: boolean;
+            donor?: boolean;
+            /** @enum {string} */
+            org_role?: "admin" | "member" | "driver";
+            /** @enum {string} */
+            org_status?: "invited" | "active" | "suspended";
+            /** @enum {string} */
+            consumer_lifecycle_stage?: "visitor" | "registered" | "donor_first_time" | "donor_repeat" | "advocate";
+            org_id?: string;
         };
         Error: {
             error?: string;
@@ -500,6 +575,95 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: {
+                /** @description Search by email or name */
+                q?: string;
+                /** @description Filter by organization's Auth0 ID */
+                org_id?: string;
+                /** @description Page number (1-based) */
+                page?: number;
+                /** @description Page size (default 25) */
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A list of users */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            "5XX": components["responses"]["ServerError"];
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            "5XX": components["responses"]["ServerError"];
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Update result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdatedResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            "5XX": components["responses"]["ServerError"];
         };
     };
 }
