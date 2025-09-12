@@ -43,6 +43,23 @@ resource "auth0_resource_server_scopes" "admin_api_scopes" {
     name        = "delete:sso_invitations"
     description = "delete:sso_invitations"
   }
+  // -- users --
+  scopes {
+    name        = "read:users"
+    description = "read:users"
+  }
+  scopes {
+    name        = "create:users"
+    description = "create:users"
+  }
+  scopes {
+    name        = "update:users"
+    description = "update:users"
+  }
+  scopes {
+    name        = "delete:users"
+    description = "delete:users"
+  }
 }
 
 

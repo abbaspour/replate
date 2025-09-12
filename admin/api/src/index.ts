@@ -501,5 +501,158 @@ app.delete("/organizations/:orgId/sso-invitations/:invId", async (c) => {
     }
 });
 
+// Users management endpoints
+app.get('/users', async (c) => {
+    const unauth = await verifyAccessToken(c);
+    if (unauth) return unauth;
+    if (!requirePermissions(c, ['read:users'])) {
+        return c.json({ error: 'Forbidden' }, 403);
+    }
+
+    const { q, org_id, page = '1', per_page = '25' } = c.req.query();
+    const offset = (parseInt(page) - 1) * parseInt(per_page);
+
+    let sql = `
+      SELECT 
+        u.id AS id,
+        u.auth0_user_id AS auth0_user_id,
+        u.email AS email,
+        u.email_verified AS email_verified,
+        u.name AS name,
+        u.picture AS picture,
+        u.donor AS donor,
+        u.org_role AS org_role,
+        u.org_status AS org_status,
+        u.consumer_lifecycle_stage AS consumer_lifecycle_stage,
+        o.auth0_org_id AS org_id,
+        o.name AS org_name
+      FROM Users u
+      LEFT JOIN Organizations o ON o.id = u.organization_id
+      WHERE 1=1`;
+    const params: any[] = [];
+    if (q) {
+        sql += ' AND (u.email LIKE ? OR u.name LIKE ?)';
+        params.push(`%${q}%`, `%${q}%`);
+    }
+    if (org_id) {
+        sql += ' AND o.auth0_org_id = ?';
+        params.push(org_id);
+    }
+    sql += ' ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(per_page), offset);
+
+    try {
+        const rs = await c.env.DB.prepare(sql).bind(...params).all<any>();
+        const rows = rs.results || [];
+        // Normalize booleans from integers
+        const data = rows.map((r: any) => ({
+            id: r.id,
+            auth0_user_id: r.auth0_user_id,
+            email: r.email,
+            email_verified: !!r.email_verified,
+            name: r.name,
+            picture: r.picture,
+            donor: !!r.donor,
+            org_role: r.org_role,
+            org_status: r.org_status,
+            consumer_lifecycle_stage: r.consumer_lifecycle_stage,
+            org_id: r.org_id,
+            org_name: r.org_name,
+        }));
+        return c.json(data);
+    } catch (e) {
+        return c.json({ error: 'Server error' }, 500);
+    }
+});
+
+app.get('/users/:id', async (c) => {
+    const unauth = await verifyAccessToken(c);
+    if (unauth) return unauth;
+    if (!requirePermissions(c, ['read:users'])) {
+        return c.json({ error: 'Forbidden' }, 403);
+    }
+    const id = c.req.param('id');
+    try {
+        const rs = await c.env.DB.prepare(`
+          SELECT 
+            u.id AS id,
+            u.auth0_user_id AS auth0_user_id,
+            u.email AS email,
+            u.email_verified AS email_verified,
+            u.name AS name,
+            u.picture AS picture,
+            u.donor AS donor,
+            u.org_role AS org_role,
+            u.org_status AS org_status,
+            u.consumer_lifecycle_stage AS consumer_lifecycle_stage,
+            o.auth0_org_id AS org_id,
+            o.name AS org_name
+          FROM Users u
+          LEFT JOIN Organizations o ON o.id = u.organization_id
+          WHERE u.id = ?
+        `).bind(id).first<any>();
+        if (!rs) return c.json({ error: 'Not Found' }, 404);
+        const data = {
+            id: rs.id,
+            auth0_user_id: rs.auth0_user_id,
+            email: rs.email,
+            email_verified: !!rs.email_verified,
+            name: rs.name,
+            picture: rs.picture,
+            donor: !!rs.donor,
+            org_role: rs.org_role,
+            org_status: rs.org_status,
+            consumer_lifecycle_stage: rs.consumer_lifecycle_stage,
+            org_id: rs.org_id,
+            org_name: rs.org_name,
+        };
+        return c.json(data);
+    } catch (e) {
+        return c.json({ error: 'Server error' }, 500);
+    }
+});
+
+app.patch('/users/:id', async (c) => {
+    const unauth = await verifyAccessToken(c);
+    if (unauth) return unauth;
+    if (!requirePermissions(c, ['update:users'])) {
+        return c.json({ error: 'Forbidden' }, 403);
+    }
+    const id = c.req.param('id');
+    const body = await c.req.json<any>().catch(() => ({}));
+
+    try {
+        const exists = await c.env.DB.prepare('SELECT id FROM Users WHERE id = ?').bind(id).first<any>();
+        if (!exists) return c.json({ error: 'Not Found' }, 404);
+
+        const fields: string[] = [];
+        const params: any[] = [];
+
+        if (body.org_role !== undefined) { fields.push('org_role = ?'); params.push(body.org_role); }
+        if (body.org_status !== undefined) { fields.push('org_status = ?'); params.push(body.org_status); }
+        if (body.donor !== undefined) { fields.push('donor = ?'); params.push(body.donor ? 1 : 0); }
+        if (body.consumer_lifecycle_stage !== undefined) { fields.push('consumer_lifecycle_stage = ?'); params.push(body.consumer_lifecycle_stage); }
+        if (body.email_verified !== undefined) { fields.push('email_verified = ?'); params.push(body.email_verified ? 1 : 0); }
+        if (body.name !== undefined) { fields.push('name = ?'); params.push(body.name); }
+        if (body.picture !== undefined) { fields.push('picture = ?'); params.push(body.picture); }
+        // Reassign organization by Auth0 org id if provided
+        if (body.org_id !== undefined) {
+            const org = await c.env.DB.prepare('SELECT id FROM Organizations WHERE auth0_org_id = ?').bind(body.org_id).first<{id: number}>();
+            const orgIdVal = org?.id ?? null;
+            fields.push('organization_id = ?');
+            params.push(orgIdVal);
+        }
+
+        if (!fields.length) return c.json({ updated: 0 });
+
+        params.push(id);
+        const sql = `UPDATE Users SET ${fields.join(', ')} WHERE id = ?`;
+        await c.env.DB.prepare(sql).bind(...params).run();
+        return c.json({ updated: 1 });
+    } catch (e) {
+        return c.json({ error: 'Server error' }, 500);
+    }
+});
+
 // noinspection JSUnusedGlobalSymbols
 export default app;

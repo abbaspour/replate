@@ -49,6 +49,18 @@ export const dataProvider: DataProvider = {
       const data = await apiFetch(`/organizations/${encodeURIComponent(orgId)}/sso-invitations`);
       return { data: data.map((i: any) => ({ id: i.invitation_id, ...i })), total: data.length };
     }
+    if (resource === 'users') {
+      const { page, perPage } = params.pagination ?? { page: 1, perPage: 25 };
+      const q = params.filter?.q;
+      const org_id = params.filter?.org_id;
+      const query = new URLSearchParams();
+      query.set('page', String(page));
+      query.set('per_page', String(perPage));
+      if (q) query.set('q', q);
+      if (org_id) query.set('org_id', org_id);
+      const data = await apiFetch(`/users?${query.toString()}`);
+      return { data: data.map((u: any) => ({ id: u.id, ...u })), total: data.length };
+    }
     throw new Error(`Unsupported resource: ${resource}`);
   },
 
@@ -60,6 +72,12 @@ export const dataProvider: DataProvider = {
       }
       const data = await apiFetch(`/organizations/${encodeURIComponent(id)}`);
       return { data: { id: data.auth0_org_id, ...data } };
+    }
+    if (resource === 'users') {
+      const id = params.id as string | number | undefined;
+      if (id === undefined || id === null) throw new Error('users.getOne requires id');
+      const data = await apiFetch(`/users/${encodeURIComponent(String(id))}`);
+      return { data: { id: data.id, ...data } };
     }
     throw new Error(`Unsupported resource: ${resource}`);
   },
@@ -77,6 +95,16 @@ export const dataProvider: DataProvider = {
       const payload = { ...params.data };
       delete (payload as any).id;
       const data = await apiFetch(`/organizations/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return { data: { id, ...data } };
+    }
+    if (resource === 'users') {
+      const id = params.id as number | string;
+      const payload = { ...params.data };
+      delete (payload as any).id;
+      const data = await apiFetch(`/users/${encodeURIComponent(String(id))}`, {
         method: 'PATCH',
         body: JSON.stringify(payload),
       });

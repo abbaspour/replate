@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Admin, Resource, List, Datagrid, TextField, Show, SimpleShowLayout, Edit, SimpleForm, TextInput, Create, SelectInput, CreateButton, ShowButton, EditButton } from 'react-admin';
+import { Admin, Resource, List, Datagrid, TextField, Show, SimpleShowLayout, Edit, SimpleForm, TextInput, Create, SelectInput, CreateButton, ShowButton, EditButton, BooleanField } from 'react-admin';
 import { dataProvider } from './dataProvider';
 import { ensureAuthenticated } from './auth';
 import { authProvider } from './authProvider';
@@ -143,6 +143,73 @@ const InvitationsCreate = (props: any) => (
   </Create>
 );
 
+const UsersFilters = [
+  <TextInput key="q" label="Search" source="q" alwaysOn />,
+  <TextInput key="org_id" label="Org (auth0_org_id)" source="org_id" />,
+];
+
+const UsersList = (props: any) => (
+  <List {...props} filters={UsersFilters as any} perPage={25}>
+    <Datagrid rowClick="show">
+      <TextField source="email" />
+      <TextField source="name" />
+      <BooleanField source="email_verified" />
+      <BooleanField source="donor" />
+      <TextField source="org_role" />
+      <TextField source="org_status" />
+      <TextField source="org_name" label="Organization" />
+      <ShowButton />
+      <EditButton />
+    </Datagrid>
+  </List>
+);
+
+const UsersShow = (props: any) => (
+  <Show {...props}>
+    <SimpleShowLayout>
+      <TextField source="id" />
+      <TextField source="auth0_user_id" />
+      <TextField source="email" />
+      <BooleanField source="email_verified" />
+      <TextField source="name" />
+      <TextField source="org_role" />
+      <TextField source="org_status" />
+      <BooleanField source="donor" />
+      <TextField source="consumer_lifecycle_stage" />
+      <TextField source="org_id" />
+      <TextField source="org_name" />
+    </SimpleShowLayout>
+  </Show>
+);
+
+const UsersEdit = (props: any) => (
+  <Edit {...props}>
+    <SimpleForm>
+      <TextInput source="name" />
+      <BooleanInput source="email_verified" />
+      <BooleanInput source="donor" />
+      <SelectInput source="org_role" choices={[
+        { id: 'admin', name: 'Admin' },
+        { id: 'member', name: 'Member' },
+        { id: 'driver', name: 'Driver' },
+      ]} />
+      <SelectInput source="org_status" choices={[
+        { id: 'invited', name: 'Invited' },
+        { id: 'active', name: 'Active' },
+        { id: 'suspended', name: 'Suspended' },
+      ]} />
+      <SelectInput source="consumer_lifecycle_stage" choices={[
+        { id: 'visitor', name: 'Visitor' },
+        { id: 'registered', name: 'Registered' },
+        { id: 'donor_first_time', name: 'Donor (first time)' },
+        { id: 'donor_repeat', name: 'Donor (repeat)' },
+        { id: 'advocate', name: 'Advocate' },
+      ]} />
+      <TextInput source="org_id" label="Organization (auth0_org_id)" />
+    </SimpleForm>
+  </Edit>
+);
+
 const App = () => {
   const [ready, setReady] = useState(false);
 
@@ -158,6 +225,7 @@ const App = () => {
   return (
     <Admin dataProvider={dataProvider} authProvider={authProvider} disableTelemetry>
       <Resource name="organizations" list={OrganizationsList} show={OrganizationsShow} edit={OrganizationsEdit} create={OrganizationsCreate} />
+      <Resource name="users" list={UsersList} show={UsersShow} edit={UsersEdit} />
       <Resource name="invitations" create={InvitationsCreate} />
     </Admin>
   );
