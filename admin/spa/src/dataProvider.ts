@@ -1,7 +1,7 @@
 import {DataProvider, DeleteResult} from 'react-admin';
 import { getAccessToken } from './auth';
 
-const API_BASE = 'https://api.admin.replate.dev';   // TODO: /api
+const API_BASE = 'https://admin.replate.dev/api';
 
 async function apiFetch(path: string, options: RequestInit = {}) {
   const token = await getAccessToken();

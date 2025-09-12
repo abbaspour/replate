@@ -61,7 +61,7 @@ async function verifyAccessToken(c: Context<Env>) {
     }
 }
 
-const app = new Hono<Env>();
+const app = new Hono<Env>().basePath('/api');
 
 let mgmtClient: ManagementClient | null = null;
 

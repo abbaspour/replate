@@ -3,7 +3,7 @@ compatibility_date = "2025-09-03"
 preview_urls = false
 
 routes = [
-    { pattern = "donor.replate.dev", custom_domain = true }
+    { pattern = "donor.replate.dev/*", zone_name = "replate.dev" }
 ]
 
 [assets]
