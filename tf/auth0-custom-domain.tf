@@ -1,16 +1,17 @@
 locals {
   auth0_custom_domain = "${var.auth0_subdomain}.${var.top_level_domain}"
 }
+
 // -- cloudflare worker --
-resource "cloudflare_dns_record" "cf-worker-fetch_verification_record" {
+/*resource "cloudflare_dns_record" "cf-worker-fetch_verification_record" {
   zone_id = data.cloudflare_zone.replate-dev.zone_id
   type = "CNAME"
   name = local.auth0_custom_domain
   ttl     = 300
   content = "replate-prd-cd-cxtx7g73zqykcr6v.edge.tenants.au.auth0.com"
 }
+*/
 
-/*
 locals {
   worker_name = "replate-auth0-custom-domain-fetch"
   worker_path = "${path.module}/../auth0/custom-domain"
@@ -31,13 +32,11 @@ resource "cloudflare_workers_script" "auth0_custom_domain_fetch" {
       name = "AUTH0_EDGE_LOCATION"
       type = "plain_text"
       text = auth0_custom_domain_verification.cf-worker-fetch_verification.origin_domain_name
-      namespace_id = ""
     },
     {
       name = "CNAME_API_KEY"
       type = "secret_text"
       text = auth0_custom_domain_verification.cf-worker-fetch_verification.cname_api_key
-      namespace_id = ""
     }
   ]
 
@@ -59,9 +58,11 @@ resource "auth0_custom_domain" "cf-worker-fetch" {
   domain = "${var.auth0_subdomain}.${var.top_level_domain}"
   type   = "self_managed_certs"
   custom_client_ip_header = "cf-connecting-ip"
+  /*
   domain_metadata = {
     server = "cloudflare-worker-fetch"
   }
+  */
 }
 
 resource "auth0_custom_domain_verification" "cf-worker-fetch_verification" {
@@ -73,7 +74,7 @@ resource "auth0_custom_domain_verification" "cf-worker-fetch_verification" {
 }
 
 resource "cloudflare_dns_record" "cf-worker-fetch_verification_record" {
-  zone_id = data.cloudflare_zone.main_domain.zone_id # var.cloudflare_zone_id
+  zone_id = data.cloudflare_zone.replate-dev.zone_id # var.cloudflare_zone_id
   type = upper(auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].name)
   name = auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].domain
   ttl     = 300
@@ -89,15 +90,15 @@ CNAME_API_KEY=${auth0_custom_domain_verification.cf-worker-fetch_verification.cn
 AUTH0_EDGE_LOCATION=${auth0_custom_domain_verification.cf-worker-fetch_verification.origin_domain_name}
 EOT
 }
-*/
+
 
 # Configure custom domain for the worker
-/*resource "cloudflare_workers_custom_domain" "auth0_custom_domain_fetch" {
+resource "cloudflare_workers_custom_domain" "auth0_custom_domain_fetch" {
   account_id  = var.cloudflare_account_id
-  zone_id     = var.cloudflare_zone_id
+  zone_id     = data.cloudflare_zone.replate-dev.zone_id
   hostname    = "${var.auth0_subdomain}.${var.top_level_domain}"
   service     = local.worker_name
-  environment = ""
+  environment = "production"
 }
-*/
+
 
