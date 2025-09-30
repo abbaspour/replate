@@ -31,7 +31,7 @@ resource "auth0_resource_server_scope" "create_payment_intent" {
 
 # donor SPA client
 resource "auth0_client" "donor" {
-  name            = "Donor SPA"
+  name            = "Replate Donor"
   description     = "Donor SPA client for donor.replate.dev"
   app_type        = "spa"
   oidc_conformant = true

@@ -26,7 +26,29 @@ data "auth0_client" "default-app" {
   name = "Default App"
 }
 
+resource "auth0_connection" "Username-Password-Authentication" {
+  name     = "Username-Password-Authentication"
+  strategy = "auth0"
 
+  options {
+    brute_force_protection = false
+    attributes {
+      email {
+        signup {
+          status = "required"
+          verification {
+            active = true
+          }
+        }
+        identifier {
+          active = true
+        }
+        profile_required = true
+        verification_method = "otp"
+      }
+    }
+  }
+}
 data "auth0_connection" "google-oauth2" {
   name = "google-oauth2"
 }
