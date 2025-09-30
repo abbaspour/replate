@@ -113,6 +113,71 @@ resource "auth0_action" "donor_post_login" {
   }
 }
 
+# M2M update and search/read users
+resource "auth0_client" "m2m_client_update_read_users" {
+  name  = "m2m client with users read, update"
+  app_type = "non_interactive"
+  grant_types = [
+    "client_credentials"
+  ]
+}
+
+data "auth0_client" "m2m_client_update_read_users" {
+  name = auth0_client.m2m_client_update_read_users.name
+  client_id = auth0_client.m2m_client_update_read_users.client_id
+}
+
+resource "auth0_client_grant" "m2m_client_update_read_users_scopes" {
+  client_id = auth0_client.m2m_client_update_read_users.client_id
+  audience = data.auth0_resource_server.api_v2.identifier
+  scopes = ["update:users", "read:users"]
+  subject_type = "client"
+}
+
+resource "auth0_action" "silent_account_linking" {
+  name    = "Silent Account Linking"
+  runtime = "node22"
+  deploy  = true
+  # to build code run
+  code    = file("${path.module}/../auth0/actions/dist/silent-account-linking.js")
+
+  supported_triggers {
+    id      = "post-login"
+    version = "v3"
+  }
+
+  dependencies {
+    name    = "auth0"
+    version = "4.1.0"
+  }
+
+  secrets {
+    name  = "clientId"
+    value = auth0_client.m2m_client_update_read_users.client_id
+  }
+
+  secrets {
+    name  = "clientSecret"
+    value = data.auth0_client.m2m_client_update_read_users.client_secret
+  }
+
+  secrets {
+    name  = "domain"
+    value = var.auth0_domain
+  }
+}
+
+/*
+resource "auth0_trigger_actions" "silent_linking_trigger" {
+  trigger = "post-login"
+
+  actions {
+    id           = auth0_action.silent_account_linking.id
+    display_name = auth0_action.silent_account_linking.name
+  }
+}
+*/
+
 resource "auth0_trigger_action" "donor_post_login_binding" {
   trigger      = "post-login"
   action_id    = auth0_action.donor_post_login.id

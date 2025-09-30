@@ -18,6 +18,10 @@ resource "auth0_prompt" "profile" {
   webauthn_platform_first_factor = false
 }
 
+data "auth0_resource_server" "api_v2" {
+  identifier = "https://${var.auth0_domain}/api/v2/"
+}
+
 data "auth0_connection" "Username-Password-Authentication" {
   name = "Username-Password-Authentication"
 }
