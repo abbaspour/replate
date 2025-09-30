@@ -134,11 +134,27 @@ resource "auth0_client_grant" "m2m_client_update_read_users_scopes" {
   subject_type = "client"
 }
 
+# Build Auth0 Actions (TypeScript -> dist/*.js) before using them
+resource "null_resource" "build_auth0_actions" {
+  # Re-run when sources change
+  triggers = {
+    makefile_hash  = filesha1("${path.module}/../auth0/actions/Makefile")
+    pkg_hash       = filesha1("${path.module}/../auth0/actions/package.json")
+    tsconfig_hash  = filesha1("${path.module}/../auth0/actions/tsconfig.json")
+    sal_ts_hash    = filesha1("${path.module}/../auth0/actions/silent-account-linking.ts")
+  }
+
+  provisioner "local-exec" {
+    command = "make -C ${path.module}/../auth0/actions"
+  }
+}
+
 resource "auth0_action" "silent_account_linking" {
   name    = "Silent Account Linking"
   runtime = "node22"
   deploy  = true
-  # to build code run
+  # Ensure dist file is built before reading
+  depends_on = [null_resource.build_auth0_actions]
   code    = file("${path.module}/../auth0/actions/dist/silent-account-linking.js")
 
   supported_triggers {

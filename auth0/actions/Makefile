@@ -1,4 +1,6 @@
-all: build
+all: dist/silent-account-linking.js
 
-build:
+dist/%.js: %.ts
 	npm run build
+
+
