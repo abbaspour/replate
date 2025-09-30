@@ -3,6 +3,7 @@ resource "auth0_tenant" "tenant" {
   flags {
     enable_client_connections = false
   }
+  sandbox_version = "22"
 
   # Configure supported languages
   enabled_locales = [
@@ -26,6 +27,10 @@ data "auth0_client" "default-app" {
 }
 
 
+data "auth0_connection" "google-oauth2" {
+  name = "google-oauth2"
+}
+
 resource "auth0_connection_clients" "UPA-clients" {
   connection_id = data.auth0_connection.Username-Password-Authentication.id
   enabled_clients = [
@@ -33,6 +38,15 @@ resource "auth0_connection_clients" "UPA-clients" {
     var.auth0_tf_client_id,
     data.auth0_client.default-app.client_id,
     auth0_client.donor-cli.client_id,
+  ]
+}
+
+resource "auth0_connection_clients" "GS-clients" {
+  connection_id = data.auth0_connection.google-oauth2.id
+  enabled_clients = [
+    auth0_client.donor.client_id,
+    var.auth0_tf_client_id,
+    data.auth0_client.default-app.client_id
   ]
 }
 

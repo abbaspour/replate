@@ -81,6 +81,7 @@ variable "okta_base_url" {
   default = "okta.com"
 }
 
+## AoB
 variable "default-password" {
   type = string
   sensitive = true
