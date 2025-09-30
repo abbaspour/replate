@@ -3,7 +3,7 @@ terraform {
   required_providers {
     auth0 = {
       source  = "auth0/auth0"
-      version = ">= 1.29"
+      version = ">= 1.30"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -12,6 +12,10 @@ terraform {
     okta = {
       source  = "okta/okta"
       version = ">= 6.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.2"
     }
   }
 }
@@ -26,17 +30,11 @@ provider "auth0" {
 provider "cloudflare" {
   email   = var.cloudflare_email
   api_key = var.cloudflare_api_key
-  #api_token = var.cloudflare_api_token
 }
 
 provider "okta" {
   org_name    = var.okta_org_name
   base_url    = var.okta_base_url
   api_token = var.okta_tf_api_token
-/*
-  client_id   = var.okta_tf_client_id
-  private_key = file("converted-tf-private-key.pem")
-  scopes      = ["okta.apps.manage", "okta.users.manage", "okta.groups.manage"]
-*/
 }
 
