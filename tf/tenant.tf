@@ -53,9 +53,6 @@ resource "auth0_connection" "Username-Password-Authentication" {
     }
   }
 }
-data "auth0_connection" "google-oauth2" {
-  name = "google-oauth2"
-}
 
 resource "auth0_connection_clients" "UPA-clients" {
   connection_id = data.auth0_connection.Username-Password-Authentication.id
@@ -64,15 +61,6 @@ resource "auth0_connection_clients" "UPA-clients" {
     var.auth0_tf_client_id,
     data.auth0_client.default-app.client_id,
     auth0_client.donor-cli.client_id,
-  ]
-}
-
-resource "auth0_connection_clients" "GS-clients" {
-  connection_id = data.auth0_connection.google-oauth2.id
-  enabled_clients = [
-    auth0_client.donor.client_id,
-    var.auth0_tf_client_id,
-    data.auth0_client.default-app.client_id
   ]
 }
 

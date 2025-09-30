@@ -194,10 +194,18 @@ resource "auth0_trigger_actions" "silent_linking_trigger" {
 }
 */
 
-resource "auth0_trigger_action" "donor_post_login_binding" {
+resource "auth0_trigger_actions" "donor_post_login_binding" {
   trigger      = "post-login"
-  action_id    = auth0_action.donor_post_login.id
-  display_name = "Set Donor Claim"
+
+  actions {
+    id    = auth0_action.donor_post_login.id
+    display_name = "Set Donor Claim"
+  }
+
+  actions {
+    id    = auth0_action.silent_account_linking.id
+    display_name = "Silent Account Linking"
+  }
 }
 
 # sample users
@@ -206,3 +214,38 @@ resource "auth0_user" "user1" {
   email = "user1@atko.email"
   password = "user1@atko.email"
 }
+
+## LinkedIn social
+resource "auth0_connection" "linkedin" {
+  name     = "linkedin"
+  strategy = "linkedin"
+
+  options {
+    client_id = var.linkedin_client_id
+    client_secret = var.linkedin_client_secret
+    strategy_version = 3
+    scopes = ["email", "profile"]
+    set_user_root_attributes = "on_each_login"
+  }
+}
+
+## Google Social
+data "auth0_connection" "google-oauth2" {
+  name = "google-oauth2"
+}
+
+
+resource "auth0_connection_clients" "GS-clients" {
+  connection_id = data.auth0_connection.google-oauth2.id
+  enabled_clients = [
+    auth0_client.donor.client_id,
+  ]
+}
+
+resource "auth0_connection_clients" "LinkedIn-clients" {
+  connection_id = auth0_connection.linkedin.id
+  enabled_clients = [
+    auth0_client.donor.client_id,
+  ]
+}
+
