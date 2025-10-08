@@ -31,7 +31,7 @@ resource "auth0_resource_server_scope" "create_payment_intent" {
 
 # donor SPA client
 resource "auth0_client" "donor" {
-  name            = "Replate Donor"
+  name            = "Donor Website"
   description     = "Donor SPA client for donor.replate.dev"
   app_type        = "spa"
   oidc_conformant = true
@@ -100,18 +100,10 @@ resource "local_file" "donor_auth_config_json" {
     "domain": local.auth0_custom_domain,
     "clientId": auth0_client.donor.client_id,
     "audience": auth0_resource_server.donor_api.identifier,
-    //"redirectUri": "https://donor.${var.top_level_domain}"
-    "redirectUri": "http://localhost:8787"
+    "redirectUri": "https://donor.${var.top_level_domain}"
+    # "redirectUri": "http://localhost:8787"
   })
-/*  content  = <<-EOT
-{
-  "domain": "${local.auth0_custom_domain}",
-  "clientId": "${auth0_client.donor.client_id}",
-  "audience": "${auth0_resource_server.donor_api.identifier}",
-  "redirectUri": "https://donor.${var.top_level_domain}"
 }
-EOT
-*/}
 
 resource "auth0_action" "donor_post_login" {
   name    = "Donor Post Login Action"
@@ -250,7 +242,7 @@ data "auth0_connection" "google-oauth2" {
 resource "auth0_connection_clients" "GS-clients" {
   connection_id = data.auth0_connection.google-oauth2.id
   enabled_clients = [
-    auth0_client.donor.client_id,
+    //auth0_client.donor.client_id,
   ]
 }
 
