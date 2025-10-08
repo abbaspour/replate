@@ -49,6 +49,9 @@
                         <li class="nav-item">
                             <a href="/" class="nav-link route-link">Home</a>
                         </li>
+                        <li class="nav-item auth-visible hidden">
+                            <a href="/donate" class="nav-link route-link">Donate</a>
+                        </li>
                     </ul>
                     <ul class="navbar-nav d-none d-md-block">
                         <!-- Login button: show if NOT authenticated -->
@@ -171,7 +174,59 @@
                     This is a website to collect inputs and donations for Replate charity project
                 </p>
             </div>
+        </div>
 
+        <div class="page hidden" id="content-donate">
+            <div class="container">
+                <h2 class="mb-4">Make a Donation</h2>
+                <p class="text-muted">Please provide your details to complete your donation.</p>
+
+                <div id="donation-thankyou" class="alert alert-success hidden" role="alert" aria-live="polite">
+                    Thank you for your donation! Redirecting you to the home page...
+                </div>
+
+                <form id="donation-form" novalidate>
+                    <div class="form-group">
+                        <label for="donorName">Full Name</label>
+                        <input type="text" class="form-control" id="donorName" name="name" required aria-required="true" />
+                        <div class="invalid-feedback">Please enter your name.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="donorAddress">Address</label>
+                        <textarea class="form-control" id="donorAddress" name="address" rows="2" required aria-required="true"></textarea>
+                        <div class="invalid-feedback">Please enter your address.</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label for="cardNumber">Credit Card Number</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]{13,19}" class="form-control" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" required aria-required="true" />
+                            <small class="form-text text-muted">Numbers only; demo form does not process cards.</small>
+                            <div class="invalid-feedback">Please enter a valid card number (13-19 digits).</div>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="cvv">CVV</label>
+                            <input type="text" inputmode="numeric" pattern="[0-9]{3,4}" class="form-control" id="cvv" name="cvv" placeholder="123" required aria-required="true" />
+                            <div class="invalid-feedback">Please enter a valid CVV (3-4 digits).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Donation Amount (USD)</label>
+                        <input type="number" min="1" step="0.5" class="form-control" id="amount" name="amount" required aria-required="true" />
+                        <div class="invalid-feedback">Please enter an amount of at least $1.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notes (optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Add an optional message"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Donation</button>
+                </form>
+            </div>
         </div>
 
         <div class="page" id="content-profile">

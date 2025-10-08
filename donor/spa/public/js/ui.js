@@ -3,6 +3,11 @@ const router = {
   "/": () => showContent("content-home"),
   "/profile": () =>
     requireAuth(() => showContent("content-profile"), "/profile"),
+  "/donate": () =>
+    requireAuth(() => {
+      showContent("content-donate");
+      initDonateForm();
+    }, "/donate"),
   "/login": () => login()
 };
 
@@ -86,6 +91,74 @@ const updateUI = async () => {
   }
 
   console.log("UI updated");
+};
+
+// Initialize donation form interactions and submission handler
+const initDonateForm = () => {
+  const form = document.getElementById("donation-form");
+  const thankyou = document.getElementById("donation-thankyou");
+  if (!form || form.dataset.bound === "true") return;
+  form.dataset.bound = "true";
+
+  const setValidity = (el) => {
+    if (!el) return;
+    if (!el.checkValidity()) {
+      el.classList.add("is-invalid");
+      el.classList.remove("is-valid");
+    } else {
+      el.classList.remove("is-invalid");
+      el.classList.add("is-valid");
+    }
+  };
+
+  ["donorName", "donorAddress", "cardNumber", "cvv", "amount"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", () => setValidity(el));
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Basic HTML5 validity check
+    let valid = true;
+    ["donorName", "donorAddress", "cardNumber", "cvv", "amount"].forEach((id) => {
+      const el = document.getElementById(id);
+      setValidity(el);
+      if (el && !el.checkValidity()) valid = false;
+    });
+
+    if (!valid) {
+      form.classList.add("was-validated");
+      return;
+    }
+
+    // For demo, we do not send data to a backend. Log the payload and show thank-you.
+    const data = Object.fromEntries(new FormData(form).entries());
+    console.log("[Donate] Submission:", data);
+
+    form.classList.add("hidden");
+    if (thankyou) thankyou.classList.remove("hidden");
+
+    // Redirect home after 3 seconds
+    setTimeout(() => {
+      const url = "/";
+      window.history.pushState({ url }, {}, url);
+      showContentFromUrl(url);
+      // Reset the form for next time
+      form.reset();
+      form.classList.remove("was-validated");
+      ["donorName", "donorAddress", "cardNumber", "cvv", "amount"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("is-invalid", "is-valid");
+        }
+      });
+      form.classList.remove("hidden");
+      if (thankyou) thankyou.classList.add("hidden");
+    }, 3000);
+  });
 };
 
 window.onpopstate = (e) => {
