@@ -31,26 +31,31 @@ resource "auth0_resource_server_scope" "create_payment_intent" {
 
 # donor SPA client
 resource "auth0_client" "donor" {
-  name            = "Replate Donor"
+  name            = "Donor Website"
   description     = "Donor SPA client for donor.replate.dev"
   app_type        = "spa"
   oidc_conformant = true
   is_first_party  = true
 
   callbacks = [
-    "https://donor.${var.top_level_domain}"
+    "https://donor.${var.top_level_domain}",
+    "http://localhost:8787"
   ]
 
   allowed_logout_urls = [
-    "https://donor.${var.top_level_domain}"
+    "https://donor.${var.top_level_domain}",
+    "http://localhost:8787"
   ]
 
+  /*
   allowed_origins = [
     "https://donor.${var.top_level_domain}"
   ]
+  */
 
   web_origins = [
-    "https://donor.${var.top_level_domain}"
+    "https://donor.${var.top_level_domain}",
+    "http://localhost:8787"
   ]
 
   jwt_configuration {
@@ -91,14 +96,13 @@ resource "auth0_client" "donor-cli" {
 # Generate auth config file for donor SPA
 resource "local_file" "donor_auth_config_json" {
   filename = "${path.module}/../donor/spa/public/auth_config.json"
-  content  = <<-EOT
-{
-  "domain": "${local.auth0_custom_domain}",
-  "clientId": "${auth0_client.donor.client_id}",
-  "audience": "${auth0_resource_server.donor_api.identifier}",
-  "redirectUri": "https://donor.${var.top_level_domain}"
-}
-EOT
+  content = jsonencode({
+    "domain": local.auth0_custom_domain,
+    "clientId": auth0_client.donor.client_id,
+    "audience": auth0_resource_server.donor_api.identifier,
+    "redirectUri": "https://donor.${var.top_level_domain}"
+    # "redirectUri": "http://localhost:8787"
+  })
 }
 
 resource "auth0_action" "donor_post_login" {
@@ -238,7 +242,7 @@ data "auth0_connection" "google-oauth2" {
 resource "auth0_connection_clients" "GS-clients" {
   connection_id = data.auth0_connection.google-oauth2.id
   enabled_clients = [
-    auth0_client.donor.client_id,
+    //auth0_client.donor.client_id,
   ]
 }
 
