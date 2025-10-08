@@ -9,3 +9,11 @@ label {
 .navbar {
   min-height: 115px;
 }
+
+.logo {
+    background-image: url("/images/logo.png");
+    width: 2rem;
+    height: 2.25rem;
+    background-repeat: no-repeat;
+    background-size: cover;
+}

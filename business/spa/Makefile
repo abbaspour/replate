@@ -4,10 +4,10 @@ build:
 	@echo "Static SPA - nothing to build"
 
 deploy: build
-	wrangler deploy
+	npx wrangler deploy
 
 dev:
-	wrangler dev
+	npx wrangler dev
 
 .PHONY: build deploy dev
 
