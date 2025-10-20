@@ -13,7 +13,6 @@ skinparam DefaultTextAlignment center
 ' Actors in Business domain
 actor "Supplier Admin" as SupplierAdmin
 actor "Supplier Member" as SupplierMember
-actor "Logistics Member" as LogisticsMember
 actor "Logistics Admin" as LogisticsAdmin
 actor Driver
 actor "Community Admin" as CommunityAdmin
@@ -21,8 +20,7 @@ actor "Community Member" as CommunityMember
 
 CommunityAdmin --|> CommunityMember
 SupplierAdmin --|> SupplierMember
-LogisticsAdmin --|> LogisticsMember
-LogisticsMember --|> Driver
+LogisticsAdmin --|> Driver
 
 rectangle "Business SPA + API\n(business.replate.dev / business.api)" as System {
   usecase "Login via SSO (HRD)" as UCLogin
@@ -61,10 +59,8 @@ CommunityMember -- UCLogin
 
 ' Jobs
 SupplierMember -- UCViewJobs
-LogisticsMember -- UCViewJobs
 Driver -- UCDriverView
 
-' SupplierAdmin -- UCCreateJob
 SupplierMember -- UCCreateJob
 
 ' Schedules (Pickup schedules for Suppliers)

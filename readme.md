@@ -169,15 +169,6 @@ Logistics Admin is a member of the logistics organisation in Auth0
    workforce IDP.
 2. **Update the details** of the logistics company.
 
-#### Logistics Member
-
-Logistics Member is a member of a logistics organisation in Auth0.
-
-1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD (Home Realm Discovery), such as when email is matched for the company domain, like `member@logistics.com`, the user is redirected
-   to the logistic's IdP at `idp.logistics.com`
-2. Can **view and update pick-up schedule**.
-3. Can **request ad-hoc pick up**.
-
 #### Driver
 
 Driver is a member of the logistics organisation in Auth0
