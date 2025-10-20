@@ -1,19 +1,19 @@
 all: deploy
 
-build:
-	@echo "Static SPA - nothing to build"
-
-deploy: build
-	npx wrangler deploy
+deploy:
+	npm run deploy
 
 dev:
-	npx wrangler dev
+	npm run dev
+
+build:
+	npm run build
 
 .PHONY: build deploy dev
 
 help:
 	@echo "Available targets:"
 	@echo "  all (default) - Build and deploy the project"
-	@echo "  build         - Build the project (noop)"
+	@echo "  build         - Build the project with esbuild"
 	@echo "  dev           - Start local dev server (wrangler dev)"
-	@echo "  deploy        - Publish to Cloudflare Workers"
+	@echo "  deploy        - Build and publish to Cloudflare Workers"

@@ -100,3 +100,160 @@ resource "local_file" "business_auth_config_json" {
 EOT
 }
 
+// -- Roles
+resource "auth0_role" "supplier-admin" {
+  name = "Supplier Admin"
+}
+
+resource "auth0_role" "supplier-member" {
+  name = "Supplier Member"
+}
+
+resource "auth0_role" "logistics-admin" {
+  name = "Logistics Admin"
+}
+
+resource "auth0_role" "logistics-driver" {
+  name = "Logistics Driver"
+}
+
+resource "auth0_role" "community-admin" {
+  name = "Community Admin"
+}
+
+resource "auth0_role" "community-member" {
+  name = "Community Member"
+}
+
+
+
+
+# --- Role Permissions for Business API ---
+# Using latest syntax per Terraform Auth0 provider (auth0_role_permissions)
+# Each block manages the full permission set for the role.
+
+resource "auth0_role_permissions" "supplier-admin-perms" {
+  role_id = auth0_role.supplier-admin.id
+
+  permissions {
+    name                       = "read:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "create:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+}
+
+resource "auth0_role_permissions" "supplier-member-perms" {
+  role_id = auth0_role.supplier-member.id
+
+  permissions {
+    name                       = "read:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "create:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+}
+
+resource "auth0_role_permissions" "logistics-admin-perms" {
+  role_id = auth0_role.logistics-admin.id
+
+  permissions {
+    name                       = "read:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+}
+
+resource "auth0_role_permissions" "logistics-driver-perms" {
+  role_id = auth0_role.logistics-driver.id
+
+  permissions {
+    name                       = "read:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:pickups"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+}
+
+resource "auth0_role_permissions" "community-admin-perms" {
+  role_id = auth0_role.community-admin.id
+
+  permissions {
+    name                       = "read:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+}
+
+resource "auth0_role_permissions" "community-member-perms" {
+  role_id = auth0_role.community-member.id
+
+  permissions {
+    name                       = "read:organization"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "read:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+  permissions {
+    name                       = "update:schedules"
+    resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+}
