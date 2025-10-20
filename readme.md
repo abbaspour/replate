@@ -146,7 +146,7 @@ Use cases:
 
 Supplier Admin is a member of the supplier organisation in Auth0.
 
-1. **log in** to admin website.
+1. **log in** to business website.
 2. **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their
    workforce IDP.
 3. **Update the address** of the supplier's pick-up location
@@ -388,17 +388,17 @@ The full contract is defined in `business/api/spec/openapi.yaml`. All developmen
     - **Implementation**: Lists records from the PickupJob table, filtering by the Organization record associated with the
       caller’s auth0_org_id claim.
 - **`POST /jobs`**: Creates a new ad-hoc pickup job.
-    - **Permissions**: Requires a token with create:pickups permission.
+    - **Permissions**: Requires a token with `create:pickups` permission.
     - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier
       organization from the caller’s org.
 - **`GET /schedules`**: Fetches the pickup schedules for the user's organization.
-    - **Permissions**: Requires a token with read:schedules permission.
+    - **Permissions**: Requires a token with `read:schedules` permission.
     - **Implementation**: Lists records from the PickupSchedule table, filtering by the Organization record associated with
       the caller's auth0_org_id.
 - **`POST /schedules`**: Creates a new recurring pickup schedule.
-    - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
+    - **Permissions**: Requires a token with `update:schedules` permission. 
 - **`PATCH /schedules/{scheduleId}`**: Updates an existing pickup schedule.
-    - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
+    - **Permissions**: Requires a token with `update:schedules` permission. 
 
 ### Admin API
 
