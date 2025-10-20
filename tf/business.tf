@@ -15,19 +15,48 @@ resource "auth0_resource_server" "business_api" {
 }
 
 # Define scopes for donor API
-/*
-resource "auth0_resource_server_scope" "read_donations" {
-  resource_server_identifier = auth0_resource_server.donor_api.identifier
-  scope                      = "read:donations"
-  description                = "Read donation history"
-}
 
-resource "auth0_resource_server_scope" "create_payment_intent" {
-  resource_server_identifier = auth0_resource_server.donor_api.identifier
-  scope                      = "create:payment_intent"
-  description                = "Create payment intent for donations"
+resource "auth0_resource_server_scopes" business-api-scopes {
+  resource_server_identifier = auth0_resource_server.business_api.identifier
+
+  // -- pickups --
+  scopes {
+    name = "read:pickups"
+    description = "read:pickups"
+  }
+
+  scopes {
+    name = "create:pickups"
+    description = "create:pickups"
+  }
+
+  scopes {
+    name = "update:pickups"
+    description = "update:pickups"
+  }
+
+  // -- schedules --
+  scopes {
+    name = "read:schedules"
+    description = "read:schedules"
+  }
+
+  scopes {
+    name = "update:schedules"
+    description = "update:schedules"
+  }
+
+  // -- organization --
+  scopes {
+    name = "read:organization"
+    description = "read:organization"
+  }
+
+  scopes {
+    name = "update:organization"
+    description = "update:organization"
+  }
 }
-*/
 
 # donor SPA client
 resource "auth0_client" "business" {
