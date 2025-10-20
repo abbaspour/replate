@@ -20,7 +20,6 @@ actor "Community Member" as CommunityMember
 
 CommunityAdmin --|> CommunityMember
 SupplierAdmin --|> SupplierMember
-LogisticsAdmin --|> Driver
 
 rectangle "Business SPA + API\n(business.replate.dev / business.api)" as System {
   usecase "Login via SSO (HRD)" as UCLogin

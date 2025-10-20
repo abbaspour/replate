@@ -382,6 +382,8 @@ The full contract is defined in `business/api/spec/openapi.yaml`. All developmen
     - **Permissions**: Requires a token with `create:pickups` permission.
     - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier
       organization from the caller’s org.
+- **`PATCH /jobs/{id}`**: marks a job as in-progress or completed.
+    - **Permissions**: transitions restricted by `https://replate.dev/org_role === driver` and scope `update:pickups`
 - **`GET /schedules`**: Fetches the pickup schedules for the user's organization.
     - **Permissions**: Requires a token with `read:schedules` permission.
     - **Implementation**: Lists records from the PickupSchedule table, filtering by the Organization record associated with
@@ -390,6 +392,8 @@ The full contract is defined in `business/api/spec/openapi.yaml`. All developmen
     - **Permissions**: Requires a token with `update:schedules` permission. 
 - **`PATCH /schedules/{scheduleId}`**: Updates an existing pickup schedule.
     - **Permissions**: Requires a token with `update:schedules` permission. 
+- **`GET /delivery-schedules`**: Get list of delivery schedules for this community
+- **`PATCH /delivery-schedules/{id}`**: update delivery schedules for this community
 
 ### Admin API
 
@@ -646,7 +650,7 @@ Look & Feel (shared)
 - Business SPA
   - Audience: `business.api`
   - Required claims: `org_id` present; `https://replate.dev/org_role` in `admin|member|driver`
-  - Scopes (as needed by pages): `read:organization update:organization read:pickups create:pickups read:schedules update:schedules`
+  - Scopes (as needed by pages): `read:organization update:organization read:pickups create:pickups read:schedules update:schedules update:pickups`
 - Admin SPA
   - Audience: `admin.api`
   - Scopes: `read:organizations update:organizations create:organizations read:sso_invitations create:sso_invitations delete:sso_invitations`
