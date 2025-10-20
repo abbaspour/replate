@@ -142,6 +142,8 @@ Use cases:
 ### Business Use Cases
 ![Business Use Case Diagram](./business/diagrams/business-use-cases.png)
 
+Note: Admin personas inherit the capabilities of their corresponding Member personas (e.g., Supplier Admin inherits Supplier Member; Community Admin inherits Community Member).
+
 #### Supplier Admin
 
 Supplier Admin is a member of the supplier organisation in Auth0.
@@ -160,6 +162,7 @@ Supplier Member is a member of a supplier organisation in Auth0.
    to the supplier's IdP at `idp.supplier.com`
 2. Can **view and update pick-up schedule**.
 3. Can **request ad-hoc pick up**.
+4. Can **view the list of pickup jobs** for their organization (GET /jobs).
 
 #### Logistics Admin
 
@@ -577,7 +580,7 @@ Look & Feel (shared)
   - Dashboard: summary of active jobs, schedules.
   - JobsList: GET /jobs filtered by org_id and role; Driver sees "My Jobs" with status updates (PATCH job status endpoints may exist later).
   - JobNew: POST /jobs to create ad-hoc job (Supplier role only: admin/member).
-  - SchedulesList: GET /schedules; Admin can edit.
+  - SchedulesList: GET /schedules; Admin and Supplier Member can create/update pickup schedules (POST /schedules, PATCH /schedules/{id}).
   - ScheduleNew/Edit: POST /schedules and PATCH /schedules/{id}.
   - OrganizationDetails: GET /organizations/{orgId} and PATCH for admins to update metadata (addresses, etc.).
   - CallbackPage, ProtectedRoute, OrgSwitcher (optional if user is in multiple orgs; pass organization hint).
