@@ -55,32 +55,23 @@ note right of System
 end note
 
 ' Login applies to all personas
-' SupplierAdmin -- UCLogin
 SupplierMember -- UCLogin
-' LogisticsMember -- UCLogin
-' LogisticsAdmin -- UCLogin
 Driver -- UCLogin
-' CommunityAdmin -- UCLogin
 CommunityMember -- UCLogin
 
 ' Jobs
-' SupplierAdmin -- UCViewJobs
 SupplierMember -- UCViewJobs
 LogisticsMember -- UCViewJobs
-' LogisticsAdmin -- UCViewJobs
 Driver -- UCDriverView
 
 ' SupplierAdmin -- UCCreateJob
 SupplierMember -- UCCreateJob
 
 ' Schedules (Pickup schedules for Suppliers)
-' SupplierAdmin -- UCViewSchedules
 SupplierMember -- UCViewSchedules
-' SupplierAdmin -- UCManageSchedules
 SupplierMember -- UCManageSchedules
 
 ' Delivery schedules for Communities
-' CommunityAdmin -- UCManageDeliverySchedules
 CommunityMember -- UCManageDeliverySchedules
 
 ' Organization details
@@ -98,8 +89,5 @@ Driver -- UCCompleted
 SupplierAdmin -- UCAcceptSSO
 LogisticsAdmin -- UCAcceptSSO
 CommunityAdmin -- UCAcceptSSO
-
-' Logistics-specific maintenance
-' LogisticsAdmin -- UCUpdateLogistics
 
 @enduml
