@@ -1,0 +1,105 @@
+@startuml
+left to right direction
+skinparam usecase {
+  BackgroundColor #EEF7EE
+  BorderColor #2E7D32
+  ArrowColor #1565C0
+}
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam DefaultTextAlignment center
+
+' Actors in Business domain
+actor "Supplier Admin" as SupplierAdmin
+actor "Supplier Member" as SupplierMember
+actor "Logistics Member" as LogisticsMember
+actor "Logistics Admin" as LogisticsAdmin
+actor Driver
+actor "Community Admin" as CommunityAdmin
+actor "Community Member" as CommunityMember
+
+CommunityAdmin --|> CommunityMember
+SupplierAdmin --|> SupplierMember
+LogisticsAdmin --|> LogisticsMember
+LogisticsMember --|> Driver
+
+rectangle "Business SPA + API\n(business.replate.dev / business.api)" as System {
+  usecase "Login via SSO (HRD)" as UCLogin
+
+  usecase "View Jobs\nGET /jobs" as UCViewJobs
+  usecase "Create Ad-hoc Pickup Job\nPOST /jobs" as UCCreateJob
+
+  usecase "View Pickup Schedules\nGET /schedules" as UCViewSchedules
+  usecase "Create/Update Pickup Schedule\nPOST /schedules, PATCH /schedules/{id}" as UCManageSchedules
+
+  usecase "View/Update Delivery Schedule\n(Community)" as UCManageDeliverySchedules
+
+  usecase "Update Organization Details\nGET/PATCH /organizations/{orgId}" as UCUpdateOrg
+
+  usecase "View My Deliveries" as UCDriverView
+  usecase "Mark Delivery In Progress" as UCInProgress
+  usecase "Mark Delivery Completed" as UCCompleted
+
+  usecase "Accept Self-service SSO Invitation\n(via Auth0 link)" as UCAcceptSSO
+'  usecase "Update Logistics Company Details" as UCUpdateLogistics
+}
+
+' Auth and access rules (claims/scopes)
+note right of System
+  Audience: business.api
+  Requires claim: org_id present
+  Role claim: https://replate.dev/org_role in {admin, member, driver}
+  Scopes as needed: read:organization, update:organization,
+  read:pickups, create:pickups, read:schedules, update:schedules
+end note
+
+' Login applies to all personas
+' SupplierAdmin -- UCLogin
+SupplierMember -- UCLogin
+' LogisticsMember -- UCLogin
+' LogisticsAdmin -- UCLogin
+Driver -- UCLogin
+' CommunityAdmin -- UCLogin
+CommunityMember -- UCLogin
+
+' Jobs
+' SupplierAdmin -- UCViewJobs
+SupplierMember -- UCViewJobs
+LogisticsMember -- UCViewJobs
+' LogisticsAdmin -- UCViewJobs
+Driver -- UCDriverView
+
+' SupplierAdmin -- UCCreateJob
+SupplierMember -- UCCreateJob
+
+' Schedules (Pickup schedules for Suppliers)
+' SupplierAdmin -- UCViewSchedules
+SupplierMember -- UCViewSchedules
+' SupplierAdmin -- UCManageSchedules
+SupplierMember -- UCManageSchedules
+
+' Delivery schedules for Communities
+' CommunityAdmin -- UCManageDeliverySchedules
+CommunityMember -- UCManageDeliverySchedules
+
+' Organization details
+SupplierAdmin -- UCUpdateOrg
+LogisticsAdmin -- UCUpdateOrg
+CommunityAdmin -- UCUpdateOrg
+
+' Driver workflow
+UCDriverView --> UCInProgress : update status
+UCDriverView --> UCCompleted : update status
+Driver -- UCInProgress
+Driver -- UCCompleted
+
+' Self-service SSO invitation acceptance
+SupplierAdmin -- UCAcceptSSO
+LogisticsAdmin -- UCAcceptSSO
+CommunityAdmin -- UCAcceptSSO
+
+' Logistics-specific maintenance
+' LogisticsAdmin -- UCUpdateLogistics
+
+@enduml

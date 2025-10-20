@@ -139,7 +139,10 @@ Use cases:
 3. See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and
    fetched by calling the Auth0 management API.
 
-### Supplier Admin
+### Business Use Cases
+![Business Use Case Diagram](./business/diagrams/business-use-cases.png)
+
+#### Supplier Admin
 
 Supplier Admin is a member of the supplier organisation in Auth0.
 
@@ -148,7 +151,7 @@ Supplier Admin is a member of the supplier organisation in Auth0.
    workforce IDP.
 3. **Update the address** of the supplier's pick-up location
 
-### Supplier Member
+#### Supplier Member
 
 Supplier Member is a member of a supplier organisation in Auth0.
 
@@ -158,7 +161,7 @@ Supplier Member is a member of a supplier organisation in Auth0.
 2. Can **view and update pick-up schedule**.
 3. Can **request ad-hoc pick up**.
 
-### Logistics Admin
+#### Logistics Admin
 
 Logistics Admin is a member of the logistics organisation in Auth0
 
@@ -166,7 +169,16 @@ Logistics Admin is a member of the logistics organisation in Auth0
    workforce IDP.
 2. **Update the details** of the logistics company.
 
-### Driver
+#### Logistics Member
+
+Logistics Member is a member of a logistics organisation in Auth0.
+
+1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD (Home Realm Discovery), such as when email is matched for the company domain, like `member@logistics.com`, the user is redirected
+   to the logistic's IdP at `idp.logistics.com`
+2. Can **view and update pick-up schedule**.
+3. Can **request ad-hoc pick up**.
+
+#### Driver
 
 Driver is a member of the logistics organisation in Auth0
 
@@ -175,7 +187,7 @@ Driver is a member of the logistics organisation in Auth0
 3. Mark delivery **in progress**.
 4. Mark delivery as **completed**.
 
-### Community Admin
+#### Community Admin
 
 Community Admin is a member of a community organisation in Auth0
 
@@ -184,7 +196,7 @@ Community Admin is a member of a community organisation in Auth0
    workforce IDP.
 3. **Update the address** of the community's delivery location
 
-### Community Member
+#### Community Member
 
 Community Member is a member of a community organisation in Auth0
 
