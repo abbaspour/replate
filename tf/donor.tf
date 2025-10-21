@@ -47,11 +47,11 @@ resource "auth0_client" "donor" {
     "http://localhost:8787"
   ]
 
-  /*
+
   allowed_origins = [
     "https://donor.${var.top_level_domain}"
   ]
-  */
+
 
   web_origins = [
     "https://donor.${var.top_level_domain}",

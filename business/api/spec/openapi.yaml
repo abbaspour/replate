@@ -1,0 +1,644 @@
+openapi: 3.1.0
+info:
+  title: Replate Business API
+  version: "1.0.0"
+  description: |
+    Business API for Replate Organizations (Suppliers, Communities, Logistics).
+    Exposes organization metadata, pickup jobs, pickup schedules, and community delivery schedules
+    to authenticated business users. All endpoints require an Auth0 access token (audience `business.api`).
+servers:
+  - url: https://business.replate.dev/api
+    description: Production
+  - url: https://business.dev.local/api
+    description: Local/dev
+security:
+  - oauth2:
+      [
+        read:organization,
+        update:organization,
+        read:pickups,
+        create:pickups,
+        update:pickups,
+        read:schedules,
+        update:schedules,
+      ]
+
+paths:
+  /organizations/{orgId}:
+    get:
+      tags: [Organizations]
+      summary: Get organization details
+      description: Retrieves details for a specific organization. Caller must be a member of the organization.
+      operationId: getOrganization
+      security:
+        - oauth2: [read:organization]
+      parameters:
+        - $ref: '#/components/parameters/OrgIdPathParam'
+      responses:
+        '200':
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+    patch:
+      tags: [Organizations]
+      summary: Update organization metadata
+      description: |
+        Updates organization details managed by Replate (e.g., addresses and schedules in D1).
+        Only Admins of the organization may update. Auth0 org name/domain updates are not part of this API.
+      operationId: updateOrganization
+      security:
+        - oauth2: [update:organization]
+      parameters:
+        - $ref: '#/components/parameters/OrgIdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationUpdateRequest'
+      responses:
+        '200':
+          description: Updated organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+  /jobs:
+    get:
+      tags: [Jobs]
+      summary: List pickup jobs for caller's organization
+      description: |
+        Lists pickup jobs filtered by the caller's organization (from `org_id` claim). Drivers may see only their assigned jobs.
+      operationId: listJobs
+      security:
+        - oauth2: [read:pickups]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/JobStatus'
+          description: Optional filter by job status
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: A list of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Jobs]
+      summary: Create ad-hoc pickup job
+      description: Creates a new ad-hoc pickup job (no schedule_id). Supplier Admin/Member roles only.
+      operationId: createJob
+      security:
+        - oauth2: [create:pickups]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobCreateRequest'
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+  /jobs/{id}:
+    patch:
+      tags: [Jobs]
+      summary: Update job status (driver)
+      description: |
+        Marks a job as in-progress or completed. Restricted to tokens with scope `update:pickups` and role `driver`.
+      operationId: updateJobStatus
+      security:
+        - oauth2: [update:pickups]
+      parameters:
+        - $ref: '#/components/parameters/JobIdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobUpdateRequest'
+      responses:
+        '200':
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+  /schedules:
+    get:
+      tags: [Pickup Schedules]
+      summary: List pickup schedules
+      description: Fetches pickup schedules for the caller's supplier organization.
+      operationId: listPickupSchedules
+      security:
+        - oauth2: [read:schedules]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: A list of pickup schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PickupSchedule'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Pickup Schedules]
+      summary: Create pickup schedule
+      description: Creates a new recurring pickup schedule for the caller's supplier organization.
+      operationId: createPickupSchedule
+      security:
+        - oauth2: [update:schedules]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PickupScheduleCreateRequest'
+      responses:
+        '201':
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PickupSchedule'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+  /schedules/{scheduleId}:
+    patch:
+      tags: [Pickup Schedules]
+      summary: Update pickup schedule
+      description: Updates an existing pickup schedule.
+      operationId: updatePickupSchedule
+      security:
+        - oauth2: [update:schedules]
+      parameters:
+        - $ref: '#/components/parameters/ScheduleIdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PickupScheduleUpdateRequest'
+      responses:
+        '200':
+          description: Updated schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PickupSchedule'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+  /delivery-schedules:
+    get:
+      tags: [Delivery Schedules]
+      summary: List delivery schedules (community)
+      description: Returns delivery schedules associated with the caller's community organization.
+      operationId: listDeliverySchedules
+      security:
+        - oauth2: [read:schedules]
+      responses:
+        '200':
+          description: A list of delivery schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliverySchedule'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+  /delivery-schedules/{id}:
+    patch:
+      tags: [Delivery Schedules]
+      summary: Update delivery schedule (community)
+      description: Updates a delivery schedule for the caller's community organization.
+      operationId: updateDeliverySchedule
+      security:
+        - oauth2: [update:schedules]
+      parameters:
+        - $ref: '#/components/parameters/DeliveryScheduleIdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryScheduleUpdateRequest'
+      responses:
+        '200':
+          description: Updated delivery schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliverySchedule'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '5XX': { $ref: '#/components/responses/ServerError' }
+
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://id.replate.dev/authorize
+          tokenUrl: https://id.replate.dev/oauth/token
+          scopes:
+            read:organization: Read organization details
+            update:organization: Update organization details
+            read:pickups: Read pickup jobs
+            create:pickups: Create pickup jobs
+            update:pickups: Update pickup jobs
+            read:schedules: Read pickup/delivery schedules
+            update:schedules: Update pickup/delivery schedules
+  parameters:
+    OrgIdPathParam:
+      in: path
+      name: orgId
+      required: true
+      description: Auth0 Organization ID (e.g., org_abc123)
+      schema:
+        type: string
+    JobIdPathParam:
+      in: path
+      name: id
+      required: true
+      description: Pickup Job numeric identifier
+      schema:
+        type: integer
+        minimum: 1
+    ScheduleIdPathParam:
+      in: path
+      name: scheduleId
+      required: true
+      description: Pickup Schedule numeric identifier
+      schema:
+        type: integer
+        minimum: 1
+    DeliveryScheduleIdPathParam:
+      in: path
+      name: id
+      required: true
+      description: Delivery Schedule numeric identifier
+      schema:
+        type: integer
+        minimum: 1
+    PageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+      description: Page number (1-based)
+    PerPageParam:
+      in: query
+      name: per_page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Page size (default 20)
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required: [error]
+    OrgType:
+      type: string
+      enum: [supplier, community, logistics]
+    Organization:
+      type: object
+      properties:
+        auth0_org_id:
+          type: string
+          example: org_abc123
+        org_type:
+          $ref: '#/components/schemas/OrgType'
+        name:
+          type: string
+        domain:
+          type: string
+          description: Primary domain used for HRD
+          example: example.com
+        pickup_address:
+          type: string
+          nullable: true
+        delivery_address:
+          type: string
+          nullable: true
+        coverage_regions:
+          type: string
+          nullable: true
+          description: Free-form regions list or JSON
+        vehicle_types:
+          type: array
+          items:
+            type: string
+          nullable: true
+        pickup_schedule:
+          type: object
+          nullable: true
+          additionalProperties: true
+        delivery_schedule:
+          type: object
+          nullable: true
+          additionalProperties: true
+      required: [auth0_org_id, org_type, name]
+    OrganizationUpdateRequest:
+      type: object
+      properties:
+        metadata:
+          type: object
+          properties:
+            pickup_address:
+              type: string
+            delivery_address:
+              type: string
+            coverage_regions:
+              type: string
+            vehicle_types:
+              type: array
+              items:
+                type: string
+            pickup_schedule:
+              type: object
+              additionalProperties: true
+            delivery_schedule:
+              type: object
+              additionalProperties: true
+          additionalProperties: false
+      additionalProperties: false
+    JobStatus:
+      type: string
+      enum:
+        - New
+        - Triage
+        - Logistics Assigned
+        - In Transit
+        - Delivered
+        - Canceled
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        schedule_id:
+          type: integer
+          nullable: true
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        pickup_window_start:
+          type: string
+          format: date-time
+        pickup_window_end:
+          type: string
+          format: date-time
+        food_category:
+          type: array
+          items: { type: string }
+        estimated_weight_kg:
+          type: number
+          format: float
+        packaging:
+          type: string
+          nullable: true
+        handling_notes:
+          type: string
+          nullable: true
+        supplier_org_id:
+          type: string
+          description: Auth0 org ID for supplier
+        community_org_id:
+          type: string
+          nullable: true
+          description: Auth0 org ID for destination community
+        logistics_org_id:
+          type: string
+          nullable: true
+          description: Auth0 org ID for logistics partner
+        driver_user_id:
+          type: string
+          nullable: true
+          description: D1 user id for assigned driver
+      required:
+        [id, status, pickup_window_start, pickup_window_end, food_category, estimated_weight_kg, supplier_org_id]
+    JobCreateRequest:
+      type: object
+      properties:
+        pickup_window_start:
+          type: string
+          format: date-time
+        pickup_window_end:
+          type: string
+          format: date-time
+        food_category:
+          type: array
+          items: { type: string }
+        estimated_weight_kg:
+          type: number
+        packaging:
+          type: string
+        handling_notes:
+          type: string
+        community_org_id:
+          type: string
+          description: Optional destination community Auth0 org id
+      required: [pickup_window_start, pickup_window_end, food_category, estimated_weight_kg]
+      additionalProperties: false
+    JobUpdateRequest:
+      type: object
+      description: Only driver-triggered status transitions are supported here
+      properties:
+        status:
+          type: string
+          enum: ['In Transit', 'Delivered']
+      required: [status]
+      additionalProperties: false
+    PickupSchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        supplier_id:
+          type: string
+          description: Auth0 org ID for supplier
+        default_community_id:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        cron_expression:
+          type: string
+          example: 0 19 * * 1-5
+        pickup_time_of_day:
+          type: string
+          description: Time of day (HH:mm)
+          example: '19:00'
+        pickup_duration_minutes:
+          type: integer
+        default_food_category:
+          type: array
+          items: { type: string }
+        default_estimated_weight_kg:
+          type: number
+      required:
+        [id, supplier_id, is_active, cron_expression, pickup_time_of_day, pickup_duration_minutes]
+    PickupScheduleCreateRequest:
+      type: object
+      properties:
+        default_community_id:
+          type: string
+        is_active:
+          type: boolean
+          default: true
+        cron_expression:
+          type: string
+        pickup_time_of_day:
+          type: string
+          example: '19:00'
+        pickup_duration_minutes:
+          type: integer
+          minimum: 5
+        default_food_category:
+          type: array
+          items: { type: string }
+        default_estimated_weight_kg:
+          type: number
+      required:
+        [cron_expression, pickup_time_of_day, pickup_duration_minutes]
+      additionalProperties: false
+    PickupScheduleUpdateRequest:
+      type: object
+      properties:
+        default_community_id:
+          type: string
+        is_active:
+          type: boolean
+        cron_expression:
+          type: string
+        pickup_time_of_day:
+          type: string
+        pickup_duration_minutes:
+          type: integer
+        default_food_category:
+          type: array
+          items: { type: string }
+        default_estimated_weight_kg:
+          type: number
+      additionalProperties: false
+    DeliverySchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 301
+        community_id:
+          type: string
+          description: Auth0 org ID for community
+        is_active:
+          type: boolean
+        cron_expression:
+          type: string
+          example: 0 10 * * 1
+        delivery_time_of_day:
+          type: string
+          example: '10:00'
+      required: [id, community_id, is_active, cron_expression, delivery_time_of_day]
+    DeliveryScheduleUpdateRequest:
+      type: object
+      properties:
+        is_active:
+          type: boolean
+        cron_expression:
+          type: string
+        delivery_time_of_day:
+          type: string
+      additionalProperties: false

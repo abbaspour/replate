@@ -139,16 +139,21 @@ Use cases:
 3. See a list of suppliers, community, or logistics organisations. These are modelled as organisations in Auth0 and
    fetched by calling the Auth0 management API.
 
-### Supplier Admin
+### Business Use Cases
+![Business Use Case Diagram](./business/diagrams/business-use-cases.png)
+
+Note: Admin personas inherit the capabilities of their corresponding Member personas (e.g., Supplier Admin inherits Supplier Member; Community Admin inherits Community Member).
+
+#### Supplier Admin
 
 Supplier Admin is a member of the supplier organisation in Auth0.
 
-1. **log in** to admin website.
+1. **log in** to business website.
 2. **Accepts self-service SSO invitation** from Replate Admin and completes the self-service setup against their
    workforce IDP.
 3. **Update the address** of the supplier's pick-up location
 
-### Supplier Member
+#### Supplier Member
 
 Supplier Member is a member of a supplier organisation in Auth0.
 
@@ -157,8 +162,9 @@ Supplier Member is a member of a supplier organisation in Auth0.
    to the supplier's IdP at `idp.supplier.com`
 2. Can **view and update pick-up schedule**.
 3. Can **request ad-hoc pick up**.
+4. Can **view the list of pickup jobs** for their organization (GET /jobs).
 
-### Logistics Admin
+#### Logistics Admin
 
 Logistics Admin is a member of the logistics organisation in Auth0
 
@@ -166,7 +172,7 @@ Logistics Admin is a member of the logistics organisation in Auth0
    workforce IDP.
 2. **Update the details** of the logistics company.
 
-### Driver
+#### Driver
 
 Driver is a member of the logistics organisation in Auth0
 
@@ -175,7 +181,7 @@ Driver is a member of the logistics organisation in Auth0
 3. Mark delivery **in progress**.
 4. Mark delivery as **completed**.
 
-### Community Admin
+#### Community Admin
 
 Community Admin is a member of a community organisation in Auth0
 
@@ -184,7 +190,7 @@ Community Admin is a member of a community organisation in Auth0
    workforce IDP.
 3. **Update the address** of the community's delivery location
 
-### Community Member
+#### Community Member
 
 Community Member is a member of a community organisation in Auth0
 
@@ -376,17 +382,21 @@ The full contract is defined in `business/api/spec/openapi.yaml`. All developmen
     - **Implementation**: Lists records from the PickupJob table, filtering by the Organization record associated with the
       caller’s auth0_org_id claim.
 - **`POST /jobs`**: Creates a new ad-hoc pickup job.
-    - **Permissions**: Requires a token with create:pickups permission.
+    - **Permissions**: Requires a token with `create:pickups` permission.
     - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier
       organization from the caller’s org.
+- **`PATCH /jobs/{id}`**: marks a job as in-progress or completed.
+    - **Permissions**: transitions restricted by `https://replate.dev/org_role === driver` and scope `update:pickups`
 - **`GET /schedules`**: Fetches the pickup schedules for the user's organization.
-    - **Permissions**: Requires a token with read:schedules permission.
+    - **Permissions**: Requires a token with `read:schedules` permission.
     - **Implementation**: Lists records from the PickupSchedule table, filtering by the Organization record associated with
       the caller's auth0_org_id.
 - **`POST /schedules`**: Creates a new recurring pickup schedule.
-    - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
+    - **Permissions**: Requires a token with `update:schedules` permission. 
 - **`PATCH /schedules/{scheduleId}`**: Updates an existing pickup schedule.
-    - **Permissions**: Requires a token with update:schedules permission. User must be an 'Admin' of their organization.
+    - **Permissions**: Requires a token with `update:schedules` permission. 
+- **`GET /delivery-schedules`**: Get list of delivery schedules for this community
+- **`PATCH /delivery-schedules/{id}`**: update delivery schedules for this community
 
 ### Admin API
 
@@ -570,7 +580,7 @@ Look & Feel (shared)
   - Dashboard: summary of active jobs, schedules.
   - JobsList: GET /jobs filtered by org_id and role; Driver sees "My Jobs" with status updates (PATCH job status endpoints may exist later).
   - JobNew: POST /jobs to create ad-hoc job (Supplier role only: admin/member).
-  - SchedulesList: GET /schedules; Admin can edit.
+  - SchedulesList: GET /schedules; Admin and Supplier Member can create/update pickup schedules (POST /schedules, PATCH /schedules/{id}).
   - ScheduleNew/Edit: POST /schedules and PATCH /schedules/{id}.
   - OrganizationDetails: GET /organizations/{orgId} and PATCH for admins to update metadata (addresses, etc.).
   - CallbackPage, ProtectedRoute, OrgSwitcher (optional if user is in multiple orgs; pass organization hint).
@@ -643,7 +653,7 @@ Look & Feel (shared)
 - Business SPA
   - Audience: `business.api`
   - Required claims: `org_id` present; `https://replate.dev/org_role` in `admin|member|driver`
-  - Scopes (as needed by pages): `read:organization update:organization read:pickups create:pickups read:schedules update:schedules`
+  - Scopes (as needed by pages): `read:organization update:organization read:pickups create:pickups read:schedules update:schedules update:pickups`
 - Admin SPA
   - Audience: `admin.api`
   - Scopes: `read:organizations update:organizations create:organizations read:sso_invitations create:sso_invitations delete:sso_invitations`
