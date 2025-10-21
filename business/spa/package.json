@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/main.jsx --bundle --outfile=public/dist/main.js --format=esm --sourcemap --loader:.jsx=jsx",
-    "dev": "npm run build && wrangler dev",
+    "dev": "react-scripts start",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.21.5",
-    "wrangler": "^4.42.1"
+    "wrangler": "^4.43.0",
+    "react-scripts": "^ 5.0.1"
   }
 }
