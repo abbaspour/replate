@@ -4,18 +4,8 @@ import { useNavigate } from 'react-router-dom'
 
 const ClaimsContext = createContext(null)
 
-function decodeJwt(token) {
-  try {
-    const [, payload] = token.split('.')
-    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-    return JSON.parse(decodeURIComponent(escape(json)))
-  } catch (e) {
-    return null
-  }
-}
-
 export function ClaimsProvider({ children }) {
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0()
+  const { isAuthenticated, getIdTokenClaims } = useAuth0()
   const [claims, setClaims] = useState(null)
 
   useEffect(() => {
@@ -23,21 +13,18 @@ export function ClaimsProvider({ children }) {
     async function load() {
       if (!isAuthenticated) { setClaims(null); return }
       try {
-        const token = await getAccessTokenSilently()
-        const decoded = decodeJwt(token)
-        if (mounted) setClaims({ token, decoded })
+        const claims = await getIdTokenClaims()
+        delete claims.__raw
+        if (mounted) setClaims(claims)
       } catch (e) {
         if (mounted) setClaims(null)
       }
     }
     load()
     // refresh on auth changes
-  }, [isAuthenticated, getAccessTokenSilently])
+  }, [isAuthenticated, getIdTokenClaims])
 
-  const value = useMemo(() => ({
-    claims: claims?.decoded ?? null,
-    accessToken: claims?.token ?? null,
-  }), [claims])
+  const value = useMemo(() => ({claims}), [claims])
 
   return (
     <ClaimsContext.Provider value={value}>{children}</ClaimsContext.Provider>
@@ -45,15 +32,19 @@ export function ClaimsProvider({ children }) {
 }
 
 export function useClaims() {
-  return useContext(ClaimsContext) || { claims: null, accessToken: null }
+  return useContext(ClaimsContext) || { claims: null}
 }
 
 export function useRoleAndScopes() {
   const { claims } = useClaims()
+  console.log(`claims: ${JSON.stringify(claims)}`)
+
   const role = claims?.['https://replate.dev/org_role'] || null
   const orgId = claims?.org_id || null
   const scopeString = claims?.scope || ''
   const scopes = new Set(String(scopeString).split(' ').filter(Boolean))
+
+  console.log({ role, orgId, scopes })
   return { role, orgId, scopes }
 }
 
@@ -116,8 +107,8 @@ export function Auth0ProviderWithConfig({ children }) {
         const target = appState?.returnTo || '/'
         navigate(target, { replace: true })
       }}
-      cacheLocation="memory"
-      useRefreshTokens
+      cacheLocation="localstorage"
+      //useRefreshTokens=
     >
       <ClaimsProvider>{children}</ClaimsProvider>
     </Auth0Provider>

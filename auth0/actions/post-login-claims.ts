@@ -18,15 +18,22 @@ exports.onExecutePostLogin = async (event: Event, api: PostLoginAPI) => {
 
     if(!event.organization) {
         api.accessToken.setCustomClaim(`${namespace}donor`, true);
+        api.idToken.setCustomClaim(`${namespace}donor`, true);
     }
 
-    if (event?.authorization?.roles.includes("Logistics Driver"))
+    if (event?.authorization?.roles.includes("Logistics Driver")) {
         api.accessToken.setCustomClaim(`${namespace}org_role`, 'driver');
+        api.idToken.setCustomClaim(`${namespace}org_role`, 'driver');
+    }
 
-    if (event?.authorization?.roles.some(e => ["Supplier Member", "Community Member"].includes(e)))
+    if (event?.authorization?.roles.some(e => ["Supplier Member", "Community Member"].includes(e))) {
         api.accessToken.setCustomClaim(`${namespace}org_role`, 'member');
+        api.idToken.setCustomClaim(`${namespace}org_role`, 'member');
+    }
 
-    if (event?.authorization?.roles.some(e => ["Supplier Admin", "Logistics Admin", "Community Admin"].includes(e)))
+    if (event?.authorization?.roles.some(e => ["Supplier Admin", "Logistics Admin", "Community Admin"].includes(e))) {
         api.accessToken.setCustomClaim(`${namespace}org_role`, 'admin');
+        api.idToken.setCustomClaim(`${namespace}org_role`, 'admin');
+    }
 
 };
