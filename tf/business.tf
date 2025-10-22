@@ -97,10 +97,10 @@ resource "local_file" "business_auth_config_json" {
 {
   "domain": "${local.auth0_custom_domain}",
   "clientId": "${auth0_client.business.client_id}",
-  "audience": "${auth0_resource_server.business_api.identifier}",
-  "redirectUri": "http://localhost:8787"
+  "audience": "${auth0_resource_server.business_api.identifier}"
 }
 EOT
+  #"redirectUri": "http://localhost:8787"
   #"redirectUri": "https://business.${var.top_level_domain}"
 }
 
