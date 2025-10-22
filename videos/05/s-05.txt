@@ -1,0 +1,41 @@
+[SCENE START]
+INT. REPLATE HQ - DAY
+Months later. The small office is now a proper headquarters, buzzing with energy. A large monitor on one wall displays a sleek dashboard. The main metric, in a large font, reads: "KILOS OF FOOD SAVED".
+
+MAYA stands in front of it, arms crossed, smiling.
+
+MAYA I love this dashboard. It's my new favorite metric. Liam, we're growing over 10% month-on-month. The feedback from the business site has been incredible. Suppliers, communities, logistics... they're all happy.
+
+LIAM looks up from his desk, grinning.
+
+LIAM It's scaling perfectly. Auth0 Organizations is handling the B2B side like a champ. I've actually started interviewing contractors to spin up the native app for the drivers.
+
+MAYA That's the best part. Automating the scheduling meant we could move two of those casuals straight into marketing. Our growth is literally speeding up because we automated.
+
+Her smile fades just a little.
+
+MAYA I just wish we could have released all five of them. We're still keeping three people on support full-time.
+
+LIAM (Nodding, leaning back) I know. We're always moving from one bottleneck to the next. We fixed scheduling, and now we have a login problem.
+
+MAYA What do you mean?
+
+LIAM All those business users have to remember a unique username and password just for Replate. They forget, they have challenges resetting their MFA, and they call our team. That’s what those three contractors are doing all day: password support.
+
+MAYA (Groans) That's such a waste of their talent.
+
+LIAM But I think we can save this, too. With Auth0. All these organizations we partner with—the big hotel chains, the logistics companies—they already have their own employee authentication platforms.
+
+MAYA Right... they use their own work email to log in to everything else.
+
+LIAM Exactly. We shouldn't expect people to remember yet another username and password just for our app. We should let them log in using the credentials they already use every single day.
+
+Maya’s eyes light up. The next piece of the puzzle clicks into place.
+
+MAYA So, no new passwords to forget. No more reset calls. And we get our other three marketers.
+
+LIAM That's the plan.
+
+MAYA Okay. Let's see how Auth0 can help us solve this.
+[SCENE END]
+

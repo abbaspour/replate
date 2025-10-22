@@ -1,0 +1,41 @@
+[SCENE START]
+INT. REPLATE HQ - DAY
+A few months later. LIAM and MAYA are looking at a dashboard on a large monitor. A graph showing "Donation per Member" is trending visibly upwards.
+
+LIAM I’ve got to say, the MCD rollout was a pivotal shift. Look at that. Ever since we introduced the country-specific domains, the average donation is growing. Trust is returning.
+
+MAYA (Nodding, but with a thoughtful expression) The donations growing is definitely good news. But we still have a long way to go to be sustainable. I spoke to 'Local Impact Partners'.
+
+LIAM The campaign specialists?
+
+MAYA Exactly. They say campaigns work best because people see the direct impact of their donation in their local community. There's only so much we can collect from repeat donors. To really grow, we need to run more targeted campaigns.
+
+LIAM So... what's stopping us?
+
+MAYA (Sighs) The sheer amount of manual work. Every time we want to run a campaign, our team has to export users from Auth0, manually clean up and anonymize the data, and then upload it to the partner's CRM. It’s slow, it’s error-prone, and it’s a bottleneck.
+
+LIAM is quiet for a moment, processing this.
+
+LIAM The partner's CRM... it has an automated interface, right? I remember seeing they have a well-defined format and webhooks.
+
+MAYA I think so. Why?
+
+LIAM Because that means we can keep our user system in sync with their CRM, automatically. Whenever we want to run a campaign, the most accurate, up-to-date data is already in their system.
+
+MAYA (Looks intrigued) Is that something Auth0 supports? How can they keep the data in sync?
+
+LIAM Of course. Auth0 has user events, which are designed for precisely this.
+
+MAYA User events?
+
+LIAM Yeah. Whenever a new donor signs up, or someone makes a change to their profile, like updating their email, Auth0's user events fire. We can set them up to send that up-to-date information straight to the CRM.
+
+Maya’s face lights up, seeing the bottleneck disappear.
+
+MAYA So, no more manual exports. No more cleanup. It just... works.
+
+LIAM It just works.
+
+MAYA (Lets out a sigh of relief) Let's try it. Let's see if we can automate this step, too.
+[SCENE END]
+

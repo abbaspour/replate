@@ -1,0 +1,21 @@
+[SCENE START]
+LIAM: Alex's party was incredible, a 10 out of 10.
+MAYA: The food was amazing. Those little mushroom tarts were divine.
+LIAM: But did you see the cleanup?
+MAYA: Yeah, trays of untouched food, dumped. I saw at least 3 full trays of those tarts go straight into the garbage.
+MAYA: Venues must do this every single night.
+MAYA: Weddings, corporate events, a massive constant waste.
+MAYA: What if we could connect that food to people who need it?
+LIAM: Connecting venues with food banks, like through an app?
+MAYA: An app is too big to start. We start small.
+LIAM: A website.
+LIAM: I can build a simple landing page this week.
+LIAM: We tell the story.
+LIAM: We call it The Food Connect project.
+MAYA: People sign up.
+MAYA: They suggest venues we can approach.
+MAYA: We build a community,
+LIAM: we show the venues that people want this to happen. We start a tiny ripple.
+MAYA: We can do this.
+LIAM: Let's get started.
+[SCENE END]

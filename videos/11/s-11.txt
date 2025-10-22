@@ -1,0 +1,31 @@
+[SCENE START]
+INT. REPLATE HQ - DAY
+A year later. The Replate office is a mature, thriving workspace with a dozen employees. MAYA and LIAM are in their glass-walled meeting room, looking at a dashboard that shows strong, consistent donation and food-saved metrics.
+
+MAYA (Smiling, genuinely relaxed) I have to say, Liam, that CRM sync was the final key. Removing the campaign bottleneck... it worked. Donation levels are higher than ever. We are officially on a sustainable path.
+
+LIAM It feels good. Seeing the user events fire off to the CRM in real-time is still kind of magical.
+
+MAYA (Turns from the monitor to face him) It is. But technology is moving faster than ever. If we want to stay ahead, we need to step up our game to the next level.
+
+LIAM (Leans forward, intrigued) What do you mean?
+
+MAYA AI. Imagine if we could connect an AI agent to a venue’s live schedule calendar. The AI could analyze that schedule against our historical data and predict leftovers before they even happen.
+
+LIAM (Eyes widening as he catches the vision) ...and it could proactively allocate delivery jobs from suppliers to communities based on those predictions. It would optimize the whole chain.
+
+MAYA Exactly.
+
+LIAM (The engineer in him kicks in) But for that... we need to connect an AI agent so it has access to hundreds of different suppliers' and logistics partners' private calendars. That seems... trivial to say, but we have to be extremely careful. The privacy considerations are huge. We can't just open those calendars to the world.
+
+MAYA (Nodding) I understand the privacy concerns, absolutely. But there has to be a way to do this safely and correctly. There is so much we could gain.
+
+She pauses, a familiar, confident smile appearing.
+
+MAYA So far, whatever identity and access management requirement we've thrown at Auth0, they've already had it covered. Consumer, B2B, federation, security... I would be shocked if authenticating an AI bot, with the correct, limited permissions, isn't something they've already thought of.
+
+Liam considers this. He nods slowly, a new challenge accepted.
+
+LIAM A non-human user. A machine-to-machine connection. You're right, that has to be a solved problem. Okay. I'll start looking into a prototype.
+[SCENE END]
+
