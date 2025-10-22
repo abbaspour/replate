@@ -1,21 +1,22 @@
 {
-  "name": "replate-business-spa",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "esbuild src/main.jsx --bundle --outfile=public/dist/main.js --format=esm --sourcemap --loader:.jsx=jsx",
-    "dev": "wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
-  },
-  "dependencies": {
-    "@auth0/auth0-react": "^2.4.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router-dom": "^6.27.0"
-  },
-  "devDependencies": {
-    "esbuild": "^0.21.5",
-    "wrangler": "^4.43.0",
-    "react-scripts": "^ 5.0.1"
-  }
+    "name": "replate-business-spa",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "esbuild src/main.jsx --bundle --outfile=public/dist/main.js --format=esm --sourcemap --loader:.jsx=jsx",
+        "dev": "wrangler dev",
+        "deploy": "npm run build && wrangler deploy",
+        "format": "prettier --write ."
+    },
+    "dependencies": {
+        "@auth0/auth0-react": "^2.4.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "react-router-dom": "^6.27.0"
+    },
+    "devDependencies": {
+        "esbuild": "^0.21.5",
+        "wrangler": "^4.43.0",
+        "prettier": "^3.6.2"
+    }
 }

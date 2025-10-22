@@ -9,7 +9,11 @@ dev:
 build:
 	npm run build
 
-.PHONY: build deploy dev
+
+format:
+	npm run format
+
+.PHONY: build deploy dev format
 
 help:
 	@echo "Available targets:"
