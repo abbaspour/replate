@@ -2,6 +2,7 @@
 .junie
 .wrangler
 dist/
+t/
 auth_config.json
 package-lock.json
 .env

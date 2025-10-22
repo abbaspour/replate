@@ -14,6 +14,7 @@ resource "auth0_connection_clients" "test-supplier-org-db-clients" {
 }
 resource "auth0_organization" "test-supplier-org" {
   name = "test-supplier"
+  display_name = "test-supplier"
 }
 
 resource "auth0_organization_connections" "test-supplier-connections" {

@@ -4,40 +4,40 @@ import { useNavigate } from 'react-router-dom'
 
 const ClaimsContext = createContext(null)
 
-function decodeJwt(token) {
-  try {
-    const [, payload] = token.split('.')
-    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-    return JSON.parse(decodeURIComponent(escape(json)))
-  } catch (e) {
-    return null
-  }
-}
-
 export function ClaimsProvider({ children }) {
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0()
+  const { isAuthenticated, getIdTokenClaims } = useAuth0()
   const [claims, setClaims] = useState(null)
 
   useEffect(() => {
     let mounted = true
     async function load() {
-      if (!isAuthenticated) { setClaims(null); return }
+      // Start loading whenever auth state changes
+      if (!mounted) return
+      if (!isAuthenticated) {
+        if (mounted) {
+          setClaims(null)
+        }
+        return
+      }
       try {
-        const token = await getAccessTokenSilently()
-        const decoded = decodeJwt(token)
-        if (mounted) setClaims({ token, decoded })
+        const c = await getIdTokenClaims()
+        if (mounted) {
+          if (c && '__raw' in c) delete c.__raw
+          setClaims(c || null)
+        }
       } catch (e) {
-        if (mounted) setClaims(null)
+        if (mounted) {
+          setClaims(null)
+        }
       }
     }
     load()
+    // cleanup to prevent state updates after unmount
+    return () => { mounted = false }
     // refresh on auth changes
-  }, [isAuthenticated, getAccessTokenSilently])
+  }, [isAuthenticated, getIdTokenClaims])
 
-  const value = useMemo(() => ({
-    claims: claims?.decoded ?? null,
-    accessToken: claims?.token ?? null,
-  }), [claims])
+  const value = useMemo(() => ({ claims }), [claims])
 
   return (
     <ClaimsContext.Provider value={value}>{children}</ClaimsContext.Provider>
@@ -45,34 +45,31 @@ export function ClaimsProvider({ children }) {
 }
 
 export function useClaims() {
-  return useContext(ClaimsContext) || { claims: null, accessToken: null }
+  return useContext(ClaimsContext) || { claims: null, claimsLoading: true }
 }
 
 export function useRoleAndScopes() {
   const { claims } = useClaims()
+
   const role = claims?.['https://replate.dev/org_role'] || null
   const orgId = claims?.org_id || null
   const scopeString = claims?.scope || ''
   const scopes = new Set(String(scopeString).split(' ').filter(Boolean))
+
   return { role, orgId, scopes }
 }
 
 export function ProtectedRoute({ children, requireScopes = [] }) {
-  const navigate = useNavigate()
   const { isLoading, isAuthenticated, loginWithRedirect } = useAuth0()
   const { role, orgId, scopes } = useRoleAndScopes()
 
   useEffect(() => {
-    if (isLoading) return
+    if (isLoading /*|| claimsLoading*/) return
     if (!isAuthenticated) {
       loginWithRedirect({ appState: { returnTo: window.location.pathname + window.location.search } })
       return
     }
-    // For Business app, orgId must be present per spec
-    if (!orgId) {
-      navigate('/error?reason=no-org', { replace: true })
-    }
-  }, [isLoading, isAuthenticated, loginWithRedirect, navigate, orgId])
+  }, [isLoading, isAuthenticated, loginWithRedirect])
 
   if (isLoading) return <div className="container"><p>Loading...</p></div>
   if (!isAuthenticated) return null
@@ -110,14 +107,14 @@ export function Auth0ProviderWithConfig({ children }) {
       clientId={cfg.clientId}
       authorizationParams={{
         audience: cfg.audience,
-        redirect_uri: cfg.redirectUri || window.location.origin + '/callback'
+        redirect_uri: cfg.redirectUri || window.location.origin
       }}
       onRedirectCallback={(appState) => {
         const target = appState?.returnTo || '/'
         navigate(target, { replace: true })
       }}
-      cacheLocation="memory"
-      useRefreshTokens
+      cacheLocation="localstorage"
+      //useRefreshTokens=
     >
       <ClaimsProvider>{children}</ClaimsProvider>
     </Auth0Provider>

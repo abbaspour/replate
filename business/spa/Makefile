@@ -1,4 +1,4 @@
-all: deploy
+all: build
 
 deploy:
 	npm run deploy

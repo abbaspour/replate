@@ -67,15 +67,18 @@ resource "auth0_client" "business" {
   is_first_party  = true
 
   callbacks = [
-    "https://business.${var.top_level_domain}"
+    "https://business.${var.top_level_domain}",
+    "http://localhost:8787"
   ]
 
   allowed_logout_urls = [
-    "https://business.${var.top_level_domain}"
+    "https://business.${var.top_level_domain}",
+    "http://localhost:8787"
   ]
 
   web_origins = [
-    "https://business.${var.top_level_domain}"
+    "https://business.${var.top_level_domain}",
+    "http://localhost:8787"
   ]
 
   jwt_configuration {
@@ -94,10 +97,11 @@ resource "local_file" "business_auth_config_json" {
 {
   "domain": "${local.auth0_custom_domain}",
   "clientId": "${auth0_client.business.client_id}",
-  "audience": "${auth0_resource_server.business_api.identifier}",
-  "redirectUri": "https://business.${var.top_level_domain}"
+  "audience": "${auth0_resource_server.business_api.identifier}"
 }
 EOT
+  #"redirectUri": "http://localhost:8787"
+  #"redirectUri": "https://business.${var.top_level_domain}"
 }
 
 // -- Roles
