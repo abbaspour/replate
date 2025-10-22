@@ -1,0 +1,45 @@
+[SCENE START]
+INT. REPLATE HQ - DAY
+A month later. The office is bright and buzzing. MAYA is walking towards LIAM's desk, holding a coffee mug, with a look of visible relief and satisfaction.
+
+MAYA Liam, I just checked my spam folder. Nothing. I checked my inbox. Nothing. The extortion emails have completely stopped. That Tenant ACL was a massive, massive success.
+
+LIAM (Swivels in his chair, smiling) Total silence. It's beautiful. We’re finally blocking them before they can even make a request.
+
+MAYA Well, that's perfect, because I have some good news. You know my friend Sarah, who runs the 'Community Crate' NGO?
+
+LIAM Yeah, the one focused on local bakeries?
+
+MAYA That's the one. She wants to join forces. They've decided to shut down their operation and route all their users—their donors and their venues—directly to Replate.
+
+LIAM (Eyes widening) Wow, that's amazing! A merger!
+
+MAYA It's about ten thousand users. They can export their entire database from their user platform. Is that... is that something we can do? Just... absorb them into our system?
+
+LIAM (Leaning back, confident) One hundred percent doable. Auth0 is built for this. We can do a bulk import of all 10k users, including their existing passwords and MFA. They even added a new feature to manage the bulk import directly from the management dashboard.
+
+MAYA (Sighs in relief) Okay, perfect. That’s exactly what we need. But... one more concern.
+
+LIAM (Smiling) The legal team?
+
+MAYA (Laughs) The legal team. They reviewed both of our Terms & Conditions and found some major discrepancies. They said there's no automated way to resolve this. To be safe, we must get interactive consent from every single migrated user to accept Replate's T&Cs. Otherwise, we can't let them use the service.
+
+LIAM (Nodding) That makes total sense. We can't risk it. I've been playing with Auth0 Forms, and I think that's the exact solution.
+
+MAYA How would it work?
+
+LIAM We mark all the imported users with a flag in their profile, something like 'requires_consent'. On their first login, an Auth0 Action fires. It checks for that flag, and if it's there, it renders a custom Auth0 Form that has a link to our new T&Cs and a big "I agree" checkbox.
+
+MAYA And they can't log in until they check it?
+
+LIAM Exactly. Once they consent, the Action removes the flag, and they're in.
+
+Maya looks genuinely impressed.
+
+MAYA So, the entire migration—the user import and the new legal consent—can all be solved on top of Auth0's stack? Without us building and hosting a single new page?
+
+LIAM Yes. Of course. It’s all part of the flow.
+
+MAYA (Beaming) Let's do it. Let's bring them on board.
+[SCENE END]
+

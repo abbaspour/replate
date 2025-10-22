@@ -1,0 +1,38 @@
+[SCENE START]
+INT. CO-WORKING SPACE - DAY
+
+A few weeks later. The co-working space is buzzing. LIAM and MAYA are huddled around his laptop at their usual desk. A simple analytics dashboard is on the screen, showing upward-trending graphs.
+
+LIAM (Beaming) The launch has been even better than we hoped. The response from our circles has been amazing. We've raised enough to keep this whole thing running for the next few months.
+MAYA That's incredible! I knew people would get behind it.
+
+LIAM I was digging into the metrics, and look at this. The majority of our traffic originates from stories people are sharing on just two social networks: LinkedIn, mostly from our old colleagues, and Facebook, from friends and family.
+
+He points to a pie chart on the screen, confirming his statement.
+
+LIAM So, in response, I pushed an update last night.
+
+He clicks over to their website, now named "Replate". The login box now features prominent "Log in with Facebook" and "Log in with LinkedIn" buttons.
+
+LIAM We now have social logins. And it's already working—the number of registered donors has jumped, and we saw another big spike in contributions this morning.
+
+MAYA Liam, that's brilliant! Making it easier for people is key.
+
+She smiles, then her expression becomes thoughtful. She leans back, pondering.
+
+MAYA Hang on. We registered Replate as an NGO, right? So every donor receives a tax invoice for their donations. How are we going to manage that for people who previously signed up with a password and now use a social login? Does that mean we have to generate two different tax invoices for the same person?
+Liam nods, anticipating her question.
+
+LIAM Good question. Luckily, Auth0 handles this in a really elegant way. It has a feature called 'account linking'. If someone with an existing email-and-password account logs in with, say, LinkedIn, Auth0 can link the two profiles. As long as the emails match, it merges them into a single user identity on our end.
+
+MAYA So they only have one account in our system? And they'll receive just one consolidated tax invoice at the end of the financial year?
+
+LIAM Exactly. One person, one profile, one invoice. No confusion.
+
+Maya breaks into a wide grin, visibly impressed and relieved.
+
+MAYA Wow. You've really thought all of this through. Let's push ahead. Social logins for the win!
+
+Liam grins back, giving a satisfied nod. They both look at the screen, watching the numbers continue to climb.
+[SCENE END]
+
