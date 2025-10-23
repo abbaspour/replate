@@ -1,11 +1,11 @@
 import React from 'react';
 import {Link, NavLink} from 'react-router-dom';
 import {useAuth0} from '@auth0/auth0-react';
-import {useRoleAndScopes} from '../auth/AuthContext';
+import {useRoleAndPermissions} from '../auth/AuthContext';
 
 export default function Header() {
     const {isAuthenticated, user, loginWithRedirect, logout, isLoading} = useAuth0();
-    const {role, orgId, scopes} = useRoleAndScopes();
+    const {role, orgId, permissions} = useRoleAndPermissions();
 
     return (
         <nav className="nav">
@@ -19,15 +19,15 @@ export default function Header() {
                     <NavLink to="/" end>
                         Dashboard
                     </NavLink>
-                    {/*scopes.has('read:pickups') &&*/  <NavLink to="/jobs">Jobs</NavLink>}
-                    {(role === 'admin' || role === 'member') /*&& scopes.has('create:pickups')*/ && (
+                    {permissions.has('read:pickups') && <NavLink to="/jobs">Jobs</NavLink>}
+                    {/*(role === 'admin' || role === 'member') &&*/ permissions.has('create:pickups') && (
                         <NavLink to="/jobs/new">New Job</NavLink>
                     )}
-                    {/*scopes.has('read:schedules') &&*/ <NavLink to="/schedules">Schedules</NavLink>}
-                    {(role === 'admin' || role === 'member') /*&& scopes.has('update:schedules')*/ && (
+                    { permissions.has('read:schedules') && <NavLink to="/schedules">Schedules</NavLink>}
+                    {/*(role === 'admin' || role === 'member') &&*/ permissions.has('update:schedules') && (
                         <NavLink to="/schedules/new">New Schedule</NavLink>
                     )}
-                    {role === 'admin' /*&& scopes.has('read:organization')*/ && <NavLink to="/organization">Organization</NavLink>}
+                    { role === 'admin' && permissions.has('read:organization') && <NavLink to="/organization">Organization</NavLink>}
                     <div className="spacer" />
                     <div className="user">
                         {orgId && (

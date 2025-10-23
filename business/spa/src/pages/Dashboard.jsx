@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {useApi} from '../api/client';
-import {useRoleAndScopes} from '../auth/AuthContext';
+import {useRoleAndPermissions} from '../auth/AuthContext';
 
 export default function Dashboard() {
     const api = useApi();
-    const {role, orgId, scopes} = useRoleAndScopes();
+    const {role, orgId, permissions} = useRoleAndPermissions();
     const [stats, setStats] = useState({jobs: 0, schedules: 0});
     const [err, setErr] = useState('');
 
@@ -13,8 +13,8 @@ export default function Dashboard() {
         async function load() {
             try {
                 const [jobs, schedules] = await Promise.all([
-                    /*scopes.has('read:pickups')*/ true ? api.get('/jobs') : Promise.resolve([]),
-                    /*scopes.has('read:schedules')*/ true ? api.get('/schedules') : Promise.resolve([]),
+                    permissions.has('read:pickups') ? api.get('/jobs') : Promise.resolve([]),
+                    permissions.has('read:schedules') ? api.get('/schedules') : Promise.resolve([]),
                 ]);
                 if (!mounted) return;
                 setStats({jobs: jobs.length || 0, schedules: schedules.length || 0});

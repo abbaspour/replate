@@ -30,7 +30,7 @@ export default function App() {
                 <Route
                     path="/jobs"
                     element={
-                        <ProtectedRoute requireScopes={['read:pickups']}>
+                        <ProtectedRoute requirePermissions={['read:pickups']}>
                             <JobsList />
                         </ProtectedRoute>
                     }
@@ -38,7 +38,7 @@ export default function App() {
                 <Route
                     path="/jobs/new"
                     element={
-                        <ProtectedRoute requireScopes={['create:pickups']}>
+                        <ProtectedRoute requirePermissions={['create:pickups']}>
                             <JobNew />
                         </ProtectedRoute>
                     }
@@ -46,7 +46,7 @@ export default function App() {
                 <Route
                     path="/schedules"
                     element={
-                        <ProtectedRoute requireScopes={['read:schedules']}>
+                        <ProtectedRoute requirePermissions={['read:schedules']}>
                             <SchedulesList />
                         </ProtectedRoute>
                     }
@@ -54,7 +54,7 @@ export default function App() {
                 <Route
                     path="/schedules/new"
                     element={
-                        <ProtectedRoute requireScopes={['update:schedules']}>
+                        <ProtectedRoute requirePermissions={['update:schedules']}>
                             <ScheduleNew />
                         </ProtectedRoute>
                     }
@@ -62,7 +62,7 @@ export default function App() {
                 <Route
                     path="/organization"
                     element={
-                        <ProtectedRoute requireScopes={['read:organization']}>
+                        <ProtectedRoute requirePermissions={['read:organization']}>
                             <Organization />
                         </ProtectedRoute>
                     }

@@ -48,20 +48,56 @@ export function useClaims() {
     return useContext(ClaimsContext) || {claims: null};
 }
 
-export function useRoleAndScopes() {
+function decodeJwtPayload(token) {
+    try {
+        const part = token.split('.')[1] || '';
+        const base64 = part.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+        const json = atob(padded);
+        return JSON.parse(json);
+    } catch (_) {
+        return {};
+    }
+}
+
+// TODO: split orgId & role (from id_token) and permissions (from access_token) into separate methods
+
+export function useRoleAndPermissions() {
     const {claims} = useClaims();
+    const {isAuthenticated, getAccessTokenSilently} = useAuth0();
+    const [permissions, setPermissions] = useState(new Set());
 
     const role = claims?.['https://replate.dev/org_role'] || null;
     const orgId = claims?.org_id || null;
-    const scopeString = claims?.scope || '';
-    const scopes = new Set(String(scopeString).split(' ').filter(Boolean));
 
-    return {role, orgId, scopes};
+    useEffect(() => {
+        let cancelled = false;
+        async function load() {
+            if (!isAuthenticated) {
+                if (!cancelled) setPermissions(new Set());
+                return;
+            }
+            try {
+                const token = await getAccessTokenSilently();
+                const payload = decodeJwtPayload(token);
+                const perms = Array.isArray(payload?.permissions) ? payload.permissions : [];
+                if (!cancelled) setPermissions(new Set(perms));
+            } catch (e) {
+                if (!cancelled) setPermissions(new Set());
+            }
+        }
+        load();
+        return () => {
+            cancelled = true;
+        };
+    }, [isAuthenticated, getAccessTokenSilently]);
+
+    return {role, orgId, permissions};
 }
 
-export function ProtectedRoute({children, requireScopes = []}) {
+export function ProtectedRoute({children, requirePermissions = []}) {
     const {isLoading, isAuthenticated, loginWithRedirect} = useAuth0();
-    const {role, orgId, scopes} = useRoleAndScopes();
+    const {orgId, permissions} = useRoleAndPermissions();
 
     useEffect(() => {
         if (isLoading) return;
@@ -86,20 +122,18 @@ export function ProtectedRoute({children, requireScopes = []}) {
             </div>
         );
 
-/*
-    for (const s of requireScopes) {
-        if (!scopes.has(s)) {
+    for (const p of requirePermissions) {
+        if (!permissions.has(p)) {
             return (
                 <div className="container">
                     <h2>Insufficient permissions</h2>
                     <p>
-                        Missing scope: <code>{s}</code>
+                        Missing permission: <code>{p}</code>
                     </p>
                 </div>
             );
         }
     }
-*/
 
     return children;
 }
