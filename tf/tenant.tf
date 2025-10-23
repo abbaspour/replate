@@ -38,6 +38,7 @@ resource "auth0_connection" "Username-Password-Authentication" {
     brute_force_protection = false
     attributes {
       email {
+        unique = true
         signup {
           status = "required"
           verification {
@@ -69,4 +70,14 @@ resource "auth0_self_service_profile" "ss-sso-profile" {
   branding {
     logo_url = "https://donor.replate.dev/images/logo.png"
   }
+  allowed_strategies = [
+    "adfs",
+    "google-apps",
+    "keycloak-samlp",
+    "oidc",
+    "okta",
+    "pingfederate",
+    "samlp",
+    "waad",
+  ]
 }
