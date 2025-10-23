@@ -9,8 +9,8 @@ export default function Organization() {
     const [err, setErr] = useState('');
     const [msg, setMsg] = useState('');
 
-    const canRead = scopes.has('read:organization');
-    const canUpdate = role === 'admin' && scopes.has('update:organization');
+    const canRead = true /*scopes.has('read:organization')*/;
+    const canUpdate = role === 'admin' /*&& scopes.has('update:organization')*/;
 
     useEffect(() => {
         let mounted = true;

@@ -5,7 +5,7 @@ import {useNavigate} from 'react-router-dom';
 
 export default function JobNew() {
     const {role, scopes} = useRoleAndScopes();
-    const canCreate = (role === 'admin' || role === 'member') && scopes.has('create:pickups');
+    const canCreate = (role === 'admin' || role === 'member') /*&& scopes.has('create:pickups')*/;
     const api = useApi();
     const navigate = useNavigate();
 

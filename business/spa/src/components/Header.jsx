@@ -19,15 +19,15 @@ export default function Header() {
                     <NavLink to="/" end>
                         Dashboard
                     </NavLink>
-                    {scopes.has('read:pickups') && <NavLink to="/jobs">Jobs</NavLink>}
-                    {(role === 'admin' || role === 'member') && scopes.has('create:pickups') && (
+                    {/*scopes.has('read:pickups') &&*/  <NavLink to="/jobs">Jobs</NavLink>}
+                    {(role === 'admin' || role === 'member') /*&& scopes.has('create:pickups')*/ && (
                         <NavLink to="/jobs/new">New Job</NavLink>
                     )}
-                    {scopes.has('read:schedules') && <NavLink to="/schedules">Schedules</NavLink>}
-                    {(role === 'admin' || role === 'member') && scopes.has('update:schedules') && (
+                    {/*scopes.has('read:schedules') &&*/ <NavLink to="/schedules">Schedules</NavLink>}
+                    {(role === 'admin' || role === 'member') /*&& scopes.has('update:schedules')*/ && (
                         <NavLink to="/schedules/new">New Schedule</NavLink>
                     )}
-                    {role === 'admin' && scopes.has('read:organization') && <NavLink to="/organization">Organization</NavLink>}
+                    {role === 'admin' /*&& scopes.has('read:organization')*/ && <NavLink to="/organization">Organization</NavLink>}
                     <div className="spacer" />
                     <div className="user">
                         {orgId && (

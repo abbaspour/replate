@@ -86,6 +86,7 @@ export function ProtectedRoute({children, requireScopes = []}) {
             </div>
         );
 
+/*
     for (const s of requireScopes) {
         if (!scopes.has(s)) {
             return (
@@ -98,6 +99,7 @@ export function ProtectedRoute({children, requireScopes = []}) {
             );
         }
     }
+*/
 
     return children;
 }

@@ -26,7 +26,7 @@ export default function JobsList() {
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');
 
-    const canUpdate = role === 'driver' && scopes.has('update:pickups');
+    const canUpdate = role === 'driver' /*&& scopes.has('update:pickups')*/;
 
     async function load() {
         setLoading(true);

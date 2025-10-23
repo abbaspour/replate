@@ -9,7 +9,7 @@ export default function SchedulesList() {
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');
 
-    const canUpdate = (role === 'admin' || role === 'member') && scopes.has('update:schedules');
+    const canUpdate = (role === 'admin' || role === 'member') /*&& scopes.has('update:schedules')*/;
 
     async function load() {
         setLoading(true);

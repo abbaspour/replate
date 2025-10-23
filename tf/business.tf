@@ -10,8 +10,10 @@ resource "auth0_resource_server" "business_api" {
   # JWT settings
   signing_alg = "RS256"
   
-  # Allow refresh tokens for better UX
   allow_offline_access = false
+
+  enforce_policies = true
+  token_dialect = "access_token_authz"
 }
 
 # Define scopes for donor API
