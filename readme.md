@@ -1,31 +1,24 @@
-# Replate Project Guidelines
+---
+title: "Replate"
+author: "Okta"
+subject: "Markdown"
+keywords: [ Auth0, B2B, B2C, B2A, SaaS]
+subtitle: "A hypothetical start-up demonstrating Auth0" 
+lang: "en"
+toc: true
+numbersections: true
+titlepage: true,
+titlepage-text-color: "FFFFFF"
+titlepage-rule-color: "360049"
+titlepage-rule-height: 0
+titlepage-background: "./diagrams/okta-background-a4.jpg"
+...
 
-Note: This repository is an informative demo to showcase Auth0 patterns (B2C, B2B/Organizations, SaaS, AI). Some
-features are intentionally stubbed. The focus is clarity and code generation.
+# Replate 
 
 Replate is a hypothetical start-up demonstrating Auth0’s B2C, B2B/Organizations, SaaS, and AI capabilities. This repo
 provides reusable assets and patterns to show how Auth0 integrates with Cloudflare Workers and related services. Some
 features are intentionally stubbed for clarity; the repo is an informative demo rather than a fully functional product.
-
-## Quickstart for Code Generators
-
-- Read config from the following files (do not hardcode):
-    - donor SPA: donor/spa/public/auth_config.json
-    - business SPA: business/spa/public/auth_config.json
-    - admin SPA: admin/spa/public/auth_config.json
-- API contracts to follow:
-    - donor/api/spec/openapi.yaml
-    - business/api/spec/openapi.yaml
-    - admin/api/spec/openapi.yaml
-- API code to follow:
-    - donor/api/src
-    - business/src
-    - admin/api/src
-- Where to place routes and bundles:
-    - SPAs live under donor/spa, business/spa, admin/spa (React single-page bundles)
-    - API workers live under donor/api, business/api, admin/api (Hono + Cloudflare Workers)
-- Auth initialization: fetch /auth_config.json at startup; use PKCE flows; attach Bearer tokens as specified
-- Cloudflare SPA routing: set not_found_handling = "single-page-application" in each wrangler.toml
 
 ## Business Case
 
@@ -38,6 +31,8 @@ Replate connects three groups of entities within its platform:
 - **Communities** are locations where food can be shipped to consume or redistribute among those in need. Think of
   shelters, charities, aged care centres, and humanitarian organisations.
 - **Logistics** are transport companies that have spare capacity to transport food from suppliers to communities.
+
+![Terminology](./diagrams/replate-terms.png)
 
 Replate allows suppliers to inform that they have an oversupply of food. Suppliers can do this by raising an ad-hoc
 request or scheduling a cadence for food collection. Think of Replate as Uber for food.
@@ -63,7 +58,7 @@ We have a high-level working prototype that's built on top of the following inte
 - [ReactAdmin](https://marmelab.com/react-admin/) is a front-end SPA technology for business website `business.`
 - Client side React is a front-end SPA technology for consumer website `donor.`
 - The static website is using plain HTML/CSS
-- Okta is the Workforce identity for Replate employees- It's added an organization & connection in Auth0 with Terraform
+- Okta is the Workforce identity for Replate employees - It's added an organization & connection in Auth0 with Terraform
 - API is built with [Hono](https://hono.dev) and TypeScript
 - Mailtrap as an SMTP server for email communications
 - Makefile, npm and wrangler for executing build and deployment
@@ -101,6 +96,26 @@ All apis are with Hono SDK, accept Auth0 issued access_token and deployed on top
 
 App SPA apps are using React v19 (client side mode) and Auth0 React SDK v2.4. SPA apps use browser's native fetch to
 make API calls.
+
+## Quickstart for Code Generators
+
+- Read config from the following files (do not hardcode):
+    - donor SPA: donor/spa/public/auth_config.json
+    - business SPA: business/spa/public/auth_config.json
+    - admin SPA: admin/spa/public/auth_config.json
+- API contracts:
+    - donor/api/spec/openapi.yaml
+    - business/api/spec/openapi.yaml
+    - admin/api/spec/openapi.yaml
+- API code:
+    - donor/api/src
+    - business/src
+    - admin/api/src
+- Where to place routes and bundles:
+    - SPAs live under donor/spa, business/spa, admin/spa (React single-page bundles)
+    - API workers live under donor/api, business/api, admin/api (Hono + Cloudflare Workers)
+- Auth initialization: fetch /auth_config.json at startup; use PKCE flows; attach Bearer tokens as specified
+- Cloudflare SPA routing: set not_found_handling = "single-page-application" in each wrangler.toml
 
 ## Domain names
 
@@ -148,7 +163,7 @@ Use cases:
 
 ### Business Use Cases
 
-![Business Use Case Diagram](./business/diagrams/business-use-cases.png)
+![Business Use Case Diagram](./diagrams/business-use-cases.png)
 
 Note: Admin personas inherit the capabilities of their corresponding Member personas (e.g., Supplier Admin inherits
 Supplier Member; Community Admin inherits Community Member).
