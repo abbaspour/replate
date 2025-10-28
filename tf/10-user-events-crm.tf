@@ -1,13 +1,3 @@
-# Cloudflare resources for Replate
-
-# Get the DNS zone for the top level domain
-data "cloudflare_zone" "replate-dev" {
-  filter = {
-    name = var.top_level_domain
-  }
-}
-
-
 # Creates a Cloudflare D1 database for CRM data. A future worker/API will connect to this DB.
 resource "cloudflare_d1_database" "crm" {
   account_id = var.cloudflare_account_id

@@ -1,0 +1,41 @@
+@startuml
+left to right direction
+
+' Visual style (aligned with repo color palette)
+skinparam usecase {
+  BackgroundColor #EEF7EE
+  BorderColor #2E7D32
+  ArrowColor #1565C0
+}
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam DefaultTextAlignment center
+skinparam dpi 180
+
+' === Actors (high-level personas) ===
+actor "Consumer\n(Donor)" as Donor
+actor "Business User" as BizUser
+actor "Internal Admin\n(Workforce)" as Admin
+
+' === Systems / Websites (high-level) ===
+rectangle "Donor Website + API\n(donor.replate.dev)" as DonorSite {
+  usecase "Use Donor Features\n- Authenticate (Auth0)\n- Donate & History\n- Submit Suggestions" as UC_Donor
+}
+
+rectangle "Business Website + API\n(business.replate.dev)" as BizSite {
+  usecase "Run Business Operations\n- SSO/Organizations\n- Jobs & Schedules\n- Org Details" as UC_Biz
+}
+
+rectangle "Admin Website + API\n(admin.replate.dev)" as AdminSite {
+  usecase "Admin Console\n- Manage Orgs\n- SSO Invitations\n- Users & Reporting" as UC_Admin
+}
+
+' === Associations (who connects where) ===
+Donor --> UC_Donor : connects to
+
+Admin --> UC_Admin : connects to
+
+BizUser --> UC_Biz : connects to
+
+@enduml

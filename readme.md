@@ -121,16 +121,17 @@ make API calls.
 
 The following are business subdomains under top-level domain name `replate.dev`:
 
-- **www.** static website with a landing page showing a picture of a donation and a counter of how many plates of food
+![websites and actors](./diagrams/high-level-users-websites.png)
+
+- **`www`** static website with a landing page showing a picture of a donation and a counter of how many plates of food
   are saved. On the top right side of the website, there is a Login button. When clicked, the Login button shows a
   dropdown to log in to Consumer App or Business App.
     - If the user is already logged in (detected by Auth0 SDK), the top right of the website shows a button to go to the
       app and log out.
-- **donor.** SPA app and API that is for consumer persona (Donor)
-- **business.** SPA app and API that is for business user personas (see Actors section for details)
-- **id.** Auth0-managed custom domain name pointing to production tenant `replate-prd.au.auth0.com`.
-- **api.id.** Webhook that receives events from Auth0. Authenticate with a static bearer token and deployed as a
-  Cloudflare worker.
+- **`donor`** SPA app and API that is for consumer persona (Donor)
+- **`business`** SPA app and API that is for business user personas (see Actors section for details)
+- **`admin`** SPA app and API that is for Replate's own admin workforce personas (see Actors section for details)
+- **`id`** Auth0-managed custom domain name pointing to production tenant `replate-prd.au.auth0.com`.
 
 All subdomains are powered by Cloudflare ESM workers and Cloudflare DNS. SPA sites use workers with assets and
 `not_found_handling = "single-page-application"` flag.
