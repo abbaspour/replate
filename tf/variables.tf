@@ -92,6 +92,17 @@ variable "linkedin_client_secret" {
   description = "LinkedIn social connection client_secret"
 }
 
+## Facebook Social
+variable "facebook_client_id" {
+  type = string
+  description = "Facebook social connection client_id"
+}
+
+variable "facebook_client_secret" {
+  type = string
+  description = "Facebook social connection client_secret"
+}
+
 ## AoB
 variable "default-password" {
   type = string

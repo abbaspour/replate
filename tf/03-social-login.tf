@@ -95,13 +95,6 @@ resource "auth0_trigger_actions" "post_login_binding" {
   }
 }
 
-# sample users
-resource "auth0_user" "user1" {
-  connection_name = data.auth0_connection.Username-Password-Authentication.name
-  email           = "user1@atko.email"
-  password        = "user1@atko.email"
-}
-
 ## LinkedIn social
 resource "auth0_connection" "linkedin" {
   name     = "linkedin"
@@ -116,23 +109,42 @@ resource "auth0_connection" "linkedin" {
   }
 }
 
-## Google Social
-data "auth0_connection" "google-oauth2" {
-  name = "google-oauth2"
-}
-
-
-resource "auth0_connection_clients" "GS-clients" {
-  connection_id = data.auth0_connection.google-oauth2.id
-  enabled_clients = [
-    //auth0_client.donor.client_id,
-  ]
-}
-
-resource "auth0_connection_clients" "LinkedIn-clients" {
+resource "auth0_connection_clients" "linkedin-clients" {
   connection_id = auth0_connection.linkedin.id
   enabled_clients = [
     auth0_client.donor.client_id,
   ]
 }
 
+## Google Social
+data "auth0_connection" "google-oauth2" {
+  name = "google-oauth2"
+}
+
+
+resource "auth0_connection_clients" "google-clients" {
+  connection_id = data.auth0_connection.google-oauth2.id
+  enabled_clients = [
+    //auth0_client.donor.client_id,
+  ]
+}
+
+## Facebook social
+resource "auth0_connection" "facebook" {
+  name     = "facebook"
+  strategy = "facebook"
+
+  options {
+    client_id = var.facebook_client_id
+    client_secret = var.facebook_client_secret
+    scopes                   = ["email", "public_profile"]
+    set_user_root_attributes = "on_each_login"
+  }
+}
+
+resource "auth0_connection_clients" "facebook-clients" {
+  connection_id = auth0_connection.facebook.id
+  enabled_clients = [
+    auth0_client.donor.client_id,
+  ]
+}

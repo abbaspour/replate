@@ -30,6 +30,14 @@ resource "auth0_prompt" "profile" {
   webauthn_platform_first_factor = false
 }
 
+# sample users
+resource "auth0_user" "user1" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email           = "user1@atko.email"
+  password        = "user1@atko.email"
+}
+
+
 
 # VISIT https://manage.auth0.com/dashboard/au/replate-prd/connections/database/con_owPfvhuFwnFzkfjh/attributes
 resource "auth0_connection" "Username-Password-Authentication" {
