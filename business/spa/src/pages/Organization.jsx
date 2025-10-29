@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {useApi} from '../api/client';
-import {usePermissions} from '../auth/AuthContext';
+import {usePermissions, useOrgId} from '../auth/AuthContext';
 
 export default function Organization() {
     const api = useApi();
-    const {orgId, permissions} = usePermissions();
+    const orgId = useOrgId();
+    const {permissions} = usePermissions();
     const [org, setOrg] = useState(null);
     const [err, setErr] = useState('');
     const [msg, setMsg] = useState('');

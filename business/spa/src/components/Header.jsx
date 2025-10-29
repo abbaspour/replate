@@ -1,11 +1,12 @@
 import React from 'react';
 import {Link, NavLink} from 'react-router-dom';
 import {useAuth0} from '@auth0/auth0-react';
-import {usePermissions} from '../auth/AuthContext';
+import {usePermissions, useOrgId} from '../auth/AuthContext';
 
 export default function Header() {
     const {isAuthenticated, user, loginWithRedirect, logout, isLoading} = useAuth0();
-    const {orgId, permissions} = usePermissions();
+    const orgId = useOrgId();
+    const {permissions} = usePermissions();
 
     return (
         <nav className="nav">

@@ -60,14 +60,16 @@ function decodeJwtPayload(token) {
     }
 }
 
-// TODO: split orgId & role (from id_token) and permissions (from access_token) into separate methods
+// Split orgId & role (from id_token) and permissions (from access_token) into separate hooks
+
+export function useOrgId() {
+    const {claims} = useClaims();
+    return claims?.org_id || null;
+}
 
 export function usePermissions() {
-    const {claims} = useClaims();
     const {isAuthenticated, getAccessTokenSilently} = useAuth0();
     const [permissions, setPermissions] = useState(new Set());
-
-    const orgId = claims?.org_id || null;
 
     useEffect(() => {
         let cancelled = false;
@@ -91,12 +93,13 @@ export function usePermissions() {
         };
     }, [isAuthenticated, getAccessTokenSilently]);
 
-    return {orgId, permissions};
+    return {permissions};
 }
 
 export function ProtectedRoute({children, requirePermissions = []}) {
     const {isLoading, isAuthenticated, loginWithRedirect} = useAuth0();
-    const {orgId, permissions} = usePermissions();
+    const orgId = useOrgId();
+    const {permissions} = usePermissions();
 
     useEffect(() => {
         if (isLoading) return;
