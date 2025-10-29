@@ -32,10 +32,12 @@ function getOrgId(c: Context<Env>): string | undefined {
   return token?.org_id as string | undefined;
 }
 
+/*
 function getOrgRole(c: Context<Env>): string | null {
   const token: any = c.get('token');
   return (token?.['https://replate.dev/org_role'] as string) ?? null;
 }
+*/
 
 async function verifyAccessToken(c: Context<Env>) {
   const auth = c.req.header('authorization') || '';
@@ -164,8 +166,10 @@ app.patch('/organizations/:orgId', async (c) => {
   if (!requirePermissions(c, ['update:organization'])) {
     return c.json({ error: 'Forbidden' }, 403);
   }
+    /*
   const role = getOrgRole(c);
   if (role !== 'admin') return c.json({ error: 'Forbidden' }, 403);
+    */
 
   const orgId = c.req.param('orgId');
   const callerOrgId = getOrgId(c);
@@ -248,7 +252,7 @@ app.get('/jobs', async (c) => {
   const limit = Math.min(parseInt(per_page || '20', 10) || 20, 100);
   const offset = ((parseInt(page || '1', 10) || 1) - 1) * limit;
 
-  const role = getOrgRole(c);
+  const role = requirePermissions(c, ['update:pickups']) ? 'driver' : null; // only drivers have permission to update pickups
 
   try {
     const params: any[] = [];
@@ -307,8 +311,10 @@ app.post('/jobs', async (c) => {
   const unauth = await verifyAccessToken(c);
   if (unauth) return unauth;
   if (!requirePermissions(c, ['create:pickups'])) return c.json({ error: 'Forbidden' }, 403);
+  /*
   const role = getOrgRole(c);
   if (role !== 'admin' && role !== 'member') return c.json({ error: 'Forbidden' }, 403);
+  */
 
   const auth0OrgId = getOrgId(c);
   if (!auth0OrgId) return c.json({ error: 'Forbidden' }, 403);
@@ -381,8 +387,10 @@ app.patch('/jobs/:id', async (c) => {
   const unauth = await verifyAccessToken(c);
   if (unauth) return unauth;
   if (!requirePermissions(c, ['update:pickups'])) return c.json({ error: 'Forbidden' }, 403);
+  /*
   const role = getOrgRole(c);
   if (role !== 'driver') return c.json({ error: 'Forbidden' }, 403);
+  */
 
   const id = Number(c.req.param('id'));
   if (!Number.isFinite(id) || id < 1) return c.json({ error: 'Bad Request' }, 400);
@@ -502,8 +510,10 @@ app.post('/schedules', async (c) => {
   const unauth = await verifyAccessToken(c);
   if (unauth) return unauth;
   if (!requirePermissions(c, ['update:schedules'])) return c.json({ error: 'Forbidden' }, 403);
+  /*
   const role = getOrgRole(c);
   if (role !== 'admin' && role !== 'member') return c.json({ error: 'Forbidden' }, 403);
+  */
 
   const auth0OrgId = getOrgId(c);
   if (!auth0OrgId) return c.json({ error: 'Forbidden' }, 403);
