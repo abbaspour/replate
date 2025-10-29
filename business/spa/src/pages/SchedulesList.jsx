@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import {useApi} from '../api/client';
-import {useRoleAndPermissions} from '../auth/AuthContext';
+import {usePermissions} from '../auth/AuthContext';
 
 export default function SchedulesList() {
     const api = useApi();
-    const {/*role,*/ permissions} = useRoleAndPermissions();
+    const {permissions} = usePermissions();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');
 
-    const canUpdate = /*(role === 'admin' || role === 'member') &&*/ permissions.has('update:schedules');
+    const canUpdate = permissions.has('update:schedules');
 
     async function load() {
         setLoading(true);

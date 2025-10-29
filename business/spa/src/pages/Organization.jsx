@@ -1,16 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import {useApi} from '../api/client';
-import {useRoleAndPermissions} from '../auth/AuthContext';
+import {usePermissions} from '../auth/AuthContext';
 
 export default function Organization() {
     const api = useApi();
-    const {/*role,*/ orgId, permissions} = useRoleAndPermissions();
+    const {orgId, permissions} = usePermissions();
     const [org, setOrg] = useState(null);
     const [err, setErr] = useState('');
     const [msg, setMsg] = useState('');
 
     const canRead = permissions.has('read:organization');
-    const canUpdate = /*role === 'admin' &&*/ permissions.has('update:organization');
+    const canUpdate = permissions.has('update:organization');
 
     useEffect(() => {
         let mounted = true;

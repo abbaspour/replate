@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {useApi} from '../api/client';
-import {useRoleAndPermissions} from '../auth/AuthContext';
+import {usePermissions} from '../auth/AuthContext';
 import {useNavigate} from 'react-router-dom';
 
 export default function JobNew() {
-    const {/*role,*/ permissions} = useRoleAndPermissions();
-    const canCreate = /*(role === 'admin' || role === 'member') && */permissions.has('create:pickups');
+    const {permissions} = usePermissions();
+    const canCreate = permissions.has('create:pickups');
     const api = useApi();
     const navigate = useNavigate();
 

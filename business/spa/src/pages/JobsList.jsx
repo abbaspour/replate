@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useApi} from '../api/client';
-import {useRoleAndPermissions} from '../auth/AuthContext';
+import {usePermissions} from '../auth/AuthContext';
 
 function StatusPill({status}) {
     const color =
@@ -21,12 +21,12 @@ function StatusPill({status}) {
 
 export default function JobsList() {
     const api = useApi();
-    const {/*role,*/ permissions} = useRoleAndPermissions();
+    const {permissions} = usePermissions();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');
 
-    const canUpdate = /*role === 'driver' &&*/ permissions.has('update:pickups');
+    const canUpdate = permissions.has('update:pickups');
 
     async function load() {
         setLoading(true);

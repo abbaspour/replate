@@ -622,7 +622,6 @@ Look & Feel (shared)
     - NavBar, Footer, ProtectedRoute wrapper.
 - Auth rules:
     - Audience `donor.api`
-    - Ensure claim `https://replate.dev/donor === true`, otherwise show error or logout.
     - Silent token refresh
 - API integration:
     - `GET /donations`
@@ -742,8 +741,6 @@ Look & Feel (shared)
 ### Claims and Permissions Checklist (for code generators)
 
 - Donor SPA
-    - Audience: `donor.api`
-    - Required claim: `https://replate.dev/donor === true`
     - Scopes: `openid profile email`
 - Business SPA
     - Audience: `business.api`
@@ -754,11 +751,6 @@ Look & Feel (shared)
     - Audience: `admin.api`
     - Scopes:
       `read:organizations update:organizations create:organizations read:sso_invitations create:sso_invitations delete:sso_invitations`
-
-### Donor
-
-Donors are simply authenticated with Auth0 and need to present a valid access_token against resource server `donor.api`
-and _must_ contain claim `"https://replate.dev/donor": true`
 
 ### Replate Admin
 

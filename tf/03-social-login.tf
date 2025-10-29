@@ -27,7 +27,6 @@ resource "null_resource" "build_auth0_actions" {
     pkg_hash             = filesha1("${path.module}/../auth0/actions/package.json")
     tsconfig_hash        = filesha1("${path.module}/../auth0/actions/tsconfig.json")
     sal_acntlink_ts_hash = filesha1("${path.module}/../auth0/actions/silent-account-linking.ts")
-    sal_claims_ts_hash    = filesha1("${path.module}/../auth0/actions/post-login-claims.ts")
   }
 
   provisioner "local-exec" {
@@ -70,24 +69,8 @@ resource "auth0_action" "silent_account_linking" {
   }
 }
 
-/*
-resource "auth0_trigger_actions" "silent_linking_trigger" {
-  trigger = "post-login"
-
-  actions {
-    id           = auth0_action.silent_account_linking.id
-    display_name = auth0_action.silent_account_linking.name
-  }
-}
-*/
-
 resource "auth0_trigger_actions" "post_login_binding" {
   trigger = "post-login"
-
-  actions {
-    id           = auth0_action.claims.id
-    display_name = "Set Claims"
-  }
 
   actions {
     id           = auth0_action.silent_account_linking.id

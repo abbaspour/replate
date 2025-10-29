@@ -62,12 +62,11 @@ function decodeJwtPayload(token) {
 
 // TODO: split orgId & role (from id_token) and permissions (from access_token) into separate methods
 
-export function useRoleAndPermissions() {
+export function usePermissions() {
     const {claims} = useClaims();
     const {isAuthenticated, getAccessTokenSilently} = useAuth0();
     const [permissions, setPermissions] = useState(new Set());
 
-    const role = claims?.['https://replate.dev/org_role'] || null;
     const orgId = claims?.org_id || null;
 
     useEffect(() => {
@@ -92,12 +91,12 @@ export function useRoleAndPermissions() {
         };
     }, [isAuthenticated, getAccessTokenSilently]);
 
-    return {role, orgId, permissions};
+    return {orgId, permissions};
 }
 
 export function ProtectedRoute({children, requirePermissions = []}) {
     const {isLoading, isAuthenticated, loginWithRedirect} = useAuth0();
-    const {orgId, permissions} = useRoleAndPermissions();
+    const {orgId, permissions} = usePermissions();
 
     useEffect(() => {
         if (isLoading) return;

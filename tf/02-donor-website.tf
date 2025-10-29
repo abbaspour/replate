@@ -168,6 +168,7 @@ resource "local_file" "donor_auth_config_json" {
   })
 }
 
+/*
 resource "auth0_action" "claims" {
   name    = "Claims Post Login Action"
   runtime = "node22"
@@ -179,6 +180,7 @@ resource "auth0_action" "claims" {
     version = "v3"
   }
 }
+*/
 
 # IPv4 - A
 resource "cloudflare_dns_record" "donor" {
