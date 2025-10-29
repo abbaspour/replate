@@ -1,3 +1,19 @@
+# sample users with matching social accounts
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/users
+resource "auth0_user" "linkedin-match" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email           = var.linkedin_user_email
+  password        = var.default-password
+  email_verified = true
+}
+
+resource "auth0_user" "facebook-match" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email           = var.facebook_user_email
+  password        = var.default-password
+  email_verified = true
+}
+
 # M2M update and search/read users
 resource "auth0_client" "m2m_client_update_read_users" {
   name     = "m2m client with users read, update"

@@ -38,7 +38,6 @@ resource "auth0_user" "user1" {
 }
 
 
-
 # VISIT https://manage.auth0.com/dashboard/au/replate-prd/connections/database/con_owPfvhuFwnFzkfjh/attributes
 resource "auth0_connection" "Username-Password-Authentication" {
   name     = "Username-Password-Authentication"
