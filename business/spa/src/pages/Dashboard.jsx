@@ -5,7 +5,7 @@ import {usePermissions, useOrgId} from '../auth/AuthContext';
 export default function Dashboard() {
     const api = useApi();
     const orgId = useOrgId();
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
     const [stats, setStats] = useState({jobs: 0, schedules: 0});
     const [err, setErr] = useState('');
 

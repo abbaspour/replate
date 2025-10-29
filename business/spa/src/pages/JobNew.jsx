@@ -4,7 +4,7 @@ import {usePermissions} from '../auth/AuthContext';
 import {useNavigate} from 'react-router-dom';
 
 export default function JobNew() {
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
     const canCreate = permissions.has('create:pickups');
     const api = useApi();
     const navigate = useNavigate();

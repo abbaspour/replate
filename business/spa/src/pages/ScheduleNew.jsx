@@ -4,7 +4,7 @@ import {useApi} from '../api/client';
 import {useNavigate} from 'react-router-dom';
 
 export default function ScheduleNew() {
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
     const canCreate = permissions.has('update:schedules');
     const api = useApi();
     const navigate = useNavigate();

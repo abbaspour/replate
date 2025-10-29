@@ -6,7 +6,7 @@ import {usePermissions, useOrgId} from '../auth/AuthContext';
 export default function Header() {
     const {isAuthenticated, user, loginWithRedirect, logout, isLoading} = useAuth0();
     const orgId = useOrgId();
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
 
     return (
         <nav className="nav">

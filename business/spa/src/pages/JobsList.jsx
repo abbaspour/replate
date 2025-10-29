@@ -21,7 +21,7 @@ function StatusPill({status}) {
 
 export default function JobsList() {
     const api = useApi();
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');

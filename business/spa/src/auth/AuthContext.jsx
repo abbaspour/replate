@@ -93,13 +93,13 @@ export function usePermissions() {
         };
     }, [isAuthenticated, getAccessTokenSilently]);
 
-    return {permissions};
+    return permissions;
 }
 
 export function ProtectedRoute({children, requirePermissions = []}) {
     const {isLoading, isAuthenticated, loginWithRedirect} = useAuth0();
     const orgId = useOrgId();
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
 
     useEffect(() => {
         if (isLoading) return;

@@ -4,7 +4,7 @@ import {usePermissions} from '../auth/AuthContext';
 
 export default function SchedulesList() {
     const api = useApi();
-    const {permissions} = usePermissions();
+    const permissions = usePermissions();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');
