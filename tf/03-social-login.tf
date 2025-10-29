@@ -35,6 +35,7 @@ resource "null_resource" "build_auth0_actions" {
   }
 }
 
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/actions/triggers/post-login/
 resource "auth0_action" "silent_account_linking" {
   name    = "Silent Account Linking"
   runtime = "node22"
@@ -79,6 +80,7 @@ resource "auth0_trigger_actions" "post_login_binding" {
 }
 
 ## LinkedIn social
+# VISIT https://www.linkedin.com/developers/apps/226261749/auth
 resource "auth0_connection" "linkedin" {
   name     = "linkedin"
   strategy = "linkedin"
@@ -113,6 +115,7 @@ resource "auth0_connection_clients" "google-clients" {
 }
 
 ## Facebook social
+# VISIT https://developers.facebook.com/apps/1505837500618862/fb-login/settings/
 resource "auth0_connection" "facebook" {
   name     = "facebook"
   strategy = "facebook"
