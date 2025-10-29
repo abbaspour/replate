@@ -60,15 +60,16 @@ function decodeJwtPayload(token) {
     }
 }
 
-// TODO: split orgId & role (from id_token) and permissions (from access_token) into separate methods
+// Split orgId & role (from id_token) and permissions (from access_token) into separate hooks
 
-export function useRoleAndPermissions() {
+export function useOrgId() {
     const {claims} = useClaims();
+    return claims?.org_id || null;
+}
+
+export function usePermissions() {
     const {isAuthenticated, getAccessTokenSilently} = useAuth0();
     const [permissions, setPermissions] = useState(new Set());
-
-    const role = claims?.['https://replate.dev/org_role'] || null;
-    const orgId = claims?.org_id || null;
 
     useEffect(() => {
         let cancelled = false;
@@ -92,12 +93,13 @@ export function useRoleAndPermissions() {
         };
     }, [isAuthenticated, getAccessTokenSilently]);
 
-    return {role, orgId, permissions};
+    return permissions;
 }
 
 export function ProtectedRoute({children, requirePermissions = []}) {
     const {isLoading, isAuthenticated, loginWithRedirect} = useAuth0();
-    const {orgId, permissions} = useRoleAndPermissions();
+    const orgId = useOrgId();
+    const permissions = usePermissions();
 
     useEffect(() => {
         if (isLoading) return;

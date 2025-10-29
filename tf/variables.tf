@@ -92,6 +92,28 @@ variable "linkedin_client_secret" {
   description = "LinkedIn social connection client_secret"
 }
 
+variable "linkedin_user_email" {
+  type = string
+  description = "database user with a matching email for linkedin social"
+}
+
+## Facebook Social
+variable "facebook_client_id" {
+  type = string
+  description = "Facebook social connection client_id"
+}
+
+variable "facebook_client_secret" {
+  type = string
+  description = "Facebook social connection client_secret"
+}
+
+variable "facebook_user_email" {
+  type = string
+  description = "database user with a matching email for facebook social"
+}
+
+
 ## AoB
 variable "default-password" {
   type = string

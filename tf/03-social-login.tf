@@ -1,3 +1,19 @@
+# sample users with matching social accounts
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/users
+resource "auth0_user" "linkedin-match" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email           = var.linkedin_user_email
+  password        = var.default-password
+  email_verified = true
+}
+
+resource "auth0_user" "facebook-match" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email           = var.facebook_user_email
+  password        = var.default-password
+  email_verified = true
+}
+
 # M2M update and search/read users
 resource "auth0_client" "m2m_client_update_read_users" {
   name     = "m2m client with users read, update"
@@ -27,7 +43,6 @@ resource "null_resource" "build_auth0_actions" {
     pkg_hash             = filesha1("${path.module}/../auth0/actions/package.json")
     tsconfig_hash        = filesha1("${path.module}/../auth0/actions/tsconfig.json")
     sal_acntlink_ts_hash = filesha1("${path.module}/../auth0/actions/silent-account-linking.ts")
-    sal_claims_ts_hash    = filesha1("${path.module}/../auth0/actions/post-login-claims.ts")
   }
 
   provisioner "local-exec" {
@@ -36,6 +51,7 @@ resource "null_resource" "build_auth0_actions" {
   }
 }
 
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/actions/triggers/post-login/
 resource "auth0_action" "silent_account_linking" {
   name    = "Silent Account Linking"
   runtime = "node22"
@@ -70,24 +86,8 @@ resource "auth0_action" "silent_account_linking" {
   }
 }
 
-/*
-resource "auth0_trigger_actions" "silent_linking_trigger" {
-  trigger = "post-login"
-
-  actions {
-    id           = auth0_action.silent_account_linking.id
-    display_name = auth0_action.silent_account_linking.name
-  }
-}
-*/
-
 resource "auth0_trigger_actions" "post_login_binding" {
   trigger = "post-login"
-
-  actions {
-    id           = auth0_action.claims.id
-    display_name = "Set Claims"
-  }
 
   actions {
     id           = auth0_action.silent_account_linking.id
@@ -95,14 +95,8 @@ resource "auth0_trigger_actions" "post_login_binding" {
   }
 }
 
-# sample users
-resource "auth0_user" "user1" {
-  connection_name = data.auth0_connection.Username-Password-Authentication.name
-  email           = "user1@atko.email"
-  password        = "user1@atko.email"
-}
-
 ## LinkedIn social
+# VISIT https://www.linkedin.com/developers/apps/226261749/auth
 resource "auth0_connection" "linkedin" {
   name     = "linkedin"
   strategy = "linkedin"
@@ -116,23 +110,43 @@ resource "auth0_connection" "linkedin" {
   }
 }
 
-## Google Social
-data "auth0_connection" "google-oauth2" {
-  name = "google-oauth2"
-}
-
-
-resource "auth0_connection_clients" "GS-clients" {
-  connection_id = data.auth0_connection.google-oauth2.id
-  enabled_clients = [
-    //auth0_client.donor.client_id,
-  ]
-}
-
-resource "auth0_connection_clients" "LinkedIn-clients" {
+resource "auth0_connection_clients" "linkedin-clients" {
   connection_id = auth0_connection.linkedin.id
   enabled_clients = [
     auth0_client.donor.client_id,
   ]
 }
 
+## Google Social
+data "auth0_connection" "google-oauth2" {
+  name = "google-oauth2"
+}
+
+
+resource "auth0_connection_clients" "google-clients" {
+  connection_id = data.auth0_connection.google-oauth2.id
+  enabled_clients = [
+    //auth0_client.donor.client_id,
+  ]
+}
+
+## Facebook social
+# VISIT https://developers.facebook.com/apps/1505837500618862/fb-login/settings/
+resource "auth0_connection" "facebook" {
+  name     = "facebook"
+  strategy = "facebook"
+
+  options {
+    client_id = var.facebook_client_id
+    client_secret = var.facebook_client_secret
+    scopes                   = ["email", "public_profile"]
+    set_user_root_attributes = "on_each_login"
+  }
+}
+
+resource "auth0_connection_clients" "facebook-clients" {
+  connection_id = auth0_connection.facebook.id
+  enabled_clients = [
+    auth0_client.donor.client_id,
+  ]
+}

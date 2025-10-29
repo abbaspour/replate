@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
-import {useRoleAndPermissions} from '../auth/AuthContext';
+import {usePermissions} from '../auth/AuthContext';
 import {useApi} from '../api/client';
 import {useNavigate} from 'react-router-dom';
 
 export default function ScheduleNew() {
-    const {/*role,*/ permissions} = useRoleAndPermissions();
-    const canCreate = /*(role === 'admin' || role === 'member') &&*/ permissions.has('update:schedules');
+    const permissions = usePermissions();
+    const canCreate = permissions.has('update:schedules');
     const api = useApi();
     const navigate = useNavigate();
 

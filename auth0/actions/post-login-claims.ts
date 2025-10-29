@@ -16,9 +16,8 @@ exports.onExecutePostLogin = async (event: Event, api: PostLoginAPI) => {
 
     const namespace = "https://replate.dev/";
 
-    if(!event.organization) {
-        api.accessToken.setCustomClaim(`${namespace}donor`, true);
-        api.idToken.setCustomClaim(`${namespace}donor`, true);
+    if(!event.organization) {   // consumer login
+        return;
     }
 
     if (event?.authorization?.roles.includes("Logistics Driver")) {
