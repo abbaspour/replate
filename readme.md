@@ -2,8 +2,8 @@
 title: "Replate"
 author: "Okta"
 subject: "Markdown"
-keywords: [ Auth0, B2B, B2C, B2A, SaaS]
-subtitle: "A hypothetical start-up demonstrating Auth0" 
+keywords: [ Auth0, B2B, B2C, B2A, SaaS ]
+subtitle: "A hypothetical start-up demonstrating Auth0"
 lang: "en"
 toc: true
 numbersections: true
@@ -14,7 +14,7 @@ titlepage-rule-height: 0
 titlepage-background: "./diagrams/okta-background-a4.jpg"
 ...
 
-# Replate 
+# Replate
 
 Replate is a hypothetical start-up demonstrating Auth0’s B2C, B2B/Organizations, SaaS, and AI capabilities. This repo
 provides reusable assets and patterns to show how Auth0 integrates with Cloudflare Workers and related services. Some
@@ -252,17 +252,18 @@ stores the resulting Record ID in the user's `app_metadata`.
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields**:
     - `auth0_user_id` (Text, Unique)
-    - `email` (Text)
-    - `email_verified` (boolean)
+    - `auth0_org_id` (Text, nullable; Auth0 Organization ID if the user is a business user)
+    - `email` (Text, required)
+    - `email_verified` (Boolean: 0=false, 1=true)
     - `name`, `picture` (synced from Auth0)
-    - `donor` (boolean)
+    - `donor` (Boolean)
     - `org_role` (Single Select: `admin`, `member`, `driver`; nullable for donors)
     - `org_status` (Single Select: `invited`, `active`, `suspended`)
-    - `sso_enrolled` (Checkbox), `sso_provider` (Text)
     - `consumer_lifecycle_stage` (Single Select: `visitor`, `registered`, `donor_first_time`, `donor_repeat`,
-      `advocate`)
+      `advocate`; default `registered`)
+    - `created_at`, `updated_at` (Timestamps; `updated_at` maintained by trigger)
 - **Associations**:
-    - Linked to one record in the `Organizations` table (for business users).
+    - Linked to one record in the `Organizations` table (for business users) via `auth0_org_id`.
 
 ### 2) `Organizations` Table
 
@@ -273,16 +274,16 @@ records in this table. The organization domain stored here is the same domain us
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields**:
-    - `auth0_org_id` (Text, Unique)
-    - `org_type` (Single Select: `supplier`, `community`, `logistics`)
-    - `name`, `domain` (synced from Auth0)
-    - `sso_status` (Single Select: `not_started`, `invited`, `configured`, `active`)
+    - `auth0_org_id` (Text, Unique, required)
+    - `org_type` (Text; one of `supplier`, `community`, `logistics`)
+    - `name` (Text, required)
+    - `domain` (Text; single domain used for HRD; optional)
+    - `sso_status` (Text; one of `not_started`, `invited`, `configured`, `active`; default `not_started`)
     - `pickup_address` (Text, for Suppliers)
-    - `pickup_schedule` (Long Text / JSON, for Suppliers)
     - `delivery_address` (Text, for Communities)
-    - `delivery_schedule` (Long Text / JSON, for Communities)
     - `coverage_regions` (Long Text, for Logistics)
-    - `vehicle_types` (Multiple Select, for Logistics)
+    - `vehicle_types` (Text; JSON array string, e.g., `["van", "truck"]`, for Logistics)
+    - `created_at`, `updated_at` (Timestamps; `updated_at` maintained by trigger)
 - **Associations**:
     - Linked to many records in the `Users` table (the members of the organization).
 
@@ -292,30 +293,31 @@ Tracks all monetary donations from consumer users (Donors).
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields**:
-    - `donation_id` (Autonumber or UUID)
-    - `amount` (Currency), `currency` (Single Select), `status` (Single Select)
-    - `created_at` (Created Time)
+    - `auth0_user_id` (Text, required)
+    - `amount` (Number; stored as REAL), `currency` (Text), `status` (Text; one of `pending`, `succeeded`, `failed`)
     - `testimonial` (Long Text)
+    - `created_at` (Timestamp)
 - **Associations**:
-    - Linked to one record in the `Users` table (the Donor).
+    - Linked to one User via `auth0_user_id`.
 
 ### 4) `PickupSchedules` Table
 
 This table defines the recurring pickup arrangements (i.e., "standing orders"). It acts as a template for creating
 individual PickupJob records.
 
-- **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
+- **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields:**
-- `supplier_id` (FK to `Organizations` table)
-- `default_community_id` (FK to `Organizations` table)
-- `is_active` (Boolean)
-- `cron_expression` (Text, e.g., 0 19 * * 1-5 for 7 PM on weekdays)
-- `pickup_time_of_day` (Time)
-- `pickup_duration_minutes` (Integer)
-- `default_food_category` (Multiple Select)
-- `default_estimated_weight_kg` (Number)
+    - `supplier_auth0_org_id` (Text, required)
+    - `default_community_auth0_org_id` (Text, optional)
+    - `is_active` (Boolean; 1=true, 0=false; default 1)
+    - `cron_expression` (Text; e.g., `0 19 * * 1-5` for 7 PM on weekdays)
+    - `pickup_time_of_day` (Time; format `HH:MM:SS`)
+    - `pickup_duration_minutes` (Integer)
+    - `default_food_category` (Text; JSON array string)
+    - `default_estimated_weight_kg` (Number; REAL)
+    - `created_at`, `updated_at` (Timestamps; `updated_at` maintained by trigger)
 - **Associations**:
-    - Linked to one record in `Organizations` (the Supplier).
+    - Linked to one supplier organization via `supplier_auth0_org_id`.
     - Has a one-to-many relationship with the `PickupJobs` table.
 
 ### 5) `PickupJobs` Table
@@ -323,21 +325,28 @@ individual PickupJob records.
 This table tracks the lifecycle of a single, concrete pickup event, whether it was generated from a schedule or created
 as an ad-hoc request.
 
-- **Primary Key**: id (INTEGER PRIMARY KEY AUTOINCREMENT)
+- **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields:**
-- `schedule_id` (FK to PickupSchedules table, nullable) - If NULL, this is an ad-hoc request.
-- `status` (Single Select pipeline: `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`, `Canceled`)
-- `pickup_window_start` (DateTime), `pickup_window_end` (DateTime)
-- `food_category` (Multiple Select),
-- `estimated_weight_kg` (Number),
-- `packaging` (Long Text),
-- `handling_notes` (Long Text)
+    - `schedule_id` (Integer; FK to PickupSchedules.id, nullable; if NULL, this is an ad-hoc request)
+    - `supplier_auth0_org_id` (Text, required)
+    - `community_auth0_org_id` (Text, optional)
+    - `logistics_auth0_org_id` (Text, optional)
+    - `driver_auth0_user_id` (Text, optional)
+    - `status` (Text; default `New`; one of `New`, `Triage`, `Logistics Assigned`, `In Transit`, `Delivered`,
+      `Canceled`)
+    - `pickup_window_start` (Timestamp, ISO 8601)
+    - `pickup_window_end` (Timestamp, ISO 8601)
+    - `food_category` (Text)
+    - `estimated_weight_kg` (Number; REAL)
+    - `packaging` (Long Text)
+    - `handling_notes` (Long Text)
+    - `created_at`, `updated_at` (Timestamps; `updated_at` maintained by trigger)
 - **Associations**:
-    - Linked to one record in Organizations (the Supplier).
-    - Linked to one record in Organizations (the destination Community).
-    - Linked to one record in Organizations (the assigned Logistics partner).
-    - Linked to one record in Users (the assigned Driver).
-    - (Optionally) Linked to one record in PickupSchedules.
+    - Linked to one record in Organizations via `supplier_auth0_org_id` (the Supplier).
+    - Linked to one record in Organizations via `community_auth0_org_id` (the destination Community).
+    - Linked to one record in Organizations via `logistics_auth0_org_id` (the assigned Logistics partner).
+    - Linked to one record in Users via `driver_auth0_user_id` (the assigned Driver).
+    - (Optionally) Linked to one record in PickupSchedules via `schedule_id`.
 
 ### 6) `Suggestions` Table
 
@@ -345,13 +354,17 @@ Captures new leads for potential partners, submitted by consumers.
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields**:
-    - `type` (Single Select: `supplier`, `community`, `logistics`)
-    - `name` (Text), `address` (Text)
-    - `submitted_at` (Created Time)
-    - `qualification_status` (Single Select: `New`, `Contacted`, `Qualified`, `Rejected`)
+    - `submitter_auth0_user_id` (Text, required)
+    - `converted_auth0_org_id` (Text, optional)
+    - `type` (Text; one of `supplier`, `community`, `logistics`)
+    - `name` (Text)
+    - `address` (Text)
+    - `qualification_status` (Text; default `New`; one of `New`, `Contacted`, `Qualified`, `Rejected`)
+    - `submitted_at` (Timestamp)
 - **Associations**:
-    - Linked to one record in `Users` (the Submitter).
-    - (Optionally) Linked to one record in `Organizations` once the suggestion is converted into a partner.
+    - Linked to one record in `Users` via `submitter_auth0_user_id` (the Submitter).
+    - (Optionally) Linked to one record in `Organizations` via `converted_auth0_org_id` once the suggestion is converted
+      into a partner.
 
 ### 7) `SsoInvitations` Table
 
@@ -359,18 +372,19 @@ Captures self-service SSO Invitations for an organization
 
 - **Primary Key**: `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
 - **Fields**:
+    - `auth0_org_id` (Text, required)
+    - `issuer_auth0_user_id` (Text, optional)
     - `display_name` (Text)
-    - `link` (Text)
+    - `link` (Text, required)
     - `auth0_ticket_id` (Text)
     - `auth0_connection_name` (Text)
-    - `domain_verification` (Single Select: `Off`, `Optional`, `Required`)
-    - `accept_idp_init_saml` (boolean default false)
-    - `ttl` (number time to live of invitation link from the creation time in second. default is 432000 seconds = 5
-      days)
-    - `created_at` (Created Time)
+    - `domain_verification` (Text; one of `Off`, `Optional`, `Required`)
+    - `accept_idp_init_saml` (Boolean; default 0=false)
+    - `ttl` (Integer; time to live in seconds from creation; default 432000)
+    - `created_at` (Timestamp)
 - **Associations**:
-    - Linked to one record in `Organizations` (the organization this invitation is issued for).
-    - Linked to one record in `Users` (Admin user who issued invitation link).
+    - Linked to one record in `Organizations` via `auth0_org_id` (the organization this invitation is issued for).
+    - Linked to one record in `Users` via `issuer_auth0_user_id` (Admin user who issued invitation link).
 
 ## API Contract
 
@@ -414,7 +428,7 @@ base path is `/api/`
     - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier
       organization from the caller’s org.
 - **`PATCH /jobs/{id}`**: marks a job as in-progress or completed.
-    - **Permissions**: transitions restricted by `https://replate.dev/org_role === driver` and scope `update:pickups`
+    - **Permissions**: transitions restricted by permission `update:pickups`
 - **`GET /schedules`**: Fetches the pickup schedules for the user's organization.
     - **Permissions**: Requires a token with `read:schedules` permission.
     - **Implementation**: Lists records from the PickupSchedule table, filtering by the Organization record associated
@@ -451,7 +465,7 @@ Admin API is backed by two systems:
         - Creates an invitation row in SelfServiceSSOInvitations table. `link` and `auth0_link_id` are from the Auth0
           management API call response.
         - updates the Organization record in D1 with. sets `sso_status` to `invited`.
-    - Permissions: Requires an admin workforce token with scope `create:sso_invitations`.
+    - Permissions: Requires an admin workforce token with permission `create:sso_invitations`.
     - Response: `{ "invitation_id": "inv_123", "auth0_org_id": "org_abc123", "link": "https://invitation-link" }`
 
 - **`GET /organizations/{orgId}/sso-invitations`**: Lists invitations for the organization and their current statuses.
@@ -537,8 +551,7 @@ generator) can create working SPAs that integrate with Auth0 and our APIs on Clo
 - State: Lightweight state via React Context + hooks; URL state in query strings where useful. No Redux required.
 - Styling: CSS variables and utility classes. Dark-mode-aware. Accessible (WCAG AA), responsive. Fonts: Inter (fallback
   system fonts).
-- Auth: Auth0 SPA SDK @auth0/auth0-spa-js for Donor and Business. Admin uses Auth0/OIDC. All SPAs use PKCE. Custom
-  claims in tokens under https://replate.dev/ namespace.
+- Auth: Auth0 SPA SDK @auth0/auth0-spa-js for Donor and Business. Admin uses Auth0/OIDC. All SPAs use PKCE. 
 - Environments: Configuration via env-specific auth_config.json and .env populated by Terraform.
 - APIs: Hono workers per domain, CORS restricted, bearer verification.
 
@@ -562,16 +575,16 @@ Folder hints (existing and to be generated by an implementation):
 - Business Application (SPA with Organizations):
     - client_id: AUTH0_CLIENT_ID_BUSINESS
     - audience: `business.api`
-    - scope: openid profile email read:organization update:organization read:pickups create:pickups read:schedules
-      update:schedules
+    - scope: openid profile email 
+    - permissions: read:organization update:organization read:pickups create:pickups read:schedules update:schedules
     - Allowed callback URLs: https://business.replate.dev/
     - Allowed logout URLs: https://business.replate.dev/
     - Organizations: enabled; prompt=login or organization hint supported; org_id claim expected.
 - Admin Application (SPA/Console):
     - client_id: AUTH0_CLIENT_ID_ADMIN
     - audience: `admin.api`
-    - scope: openid profile email read:organizations update:organizations create:organizations read:sso_invitations
-      create:sso_invitations delete:sso_invitations
+    - scope: openid profile email 
+    - permissions: read:organizations update:organizations create:organizations read:sso_invitations create:sso_invitations delete:sso_invitations
     - Token type: 30-minute lifetime
     - Allowed callback URLs: https://admin.replate.dev/
     - Allowed logout URLs: https://admin.replate.dev/
@@ -586,9 +599,7 @@ Folder hints (existing and to be generated by an implementation):
 - Token claims relied upon:
     - `sub` (Auth0 user id)
     - `org_id` (for Business; may be null for Donor)
-    - `scope` (string)
-    - `https://replate.dev/donor`: boolean (true for Donor app users)
-    - `https://replate.dev/org_role`: one of admin|member|driver|null
+    - `permissions` (string array)
 
 ### Routing Conventions
 
@@ -649,8 +660,6 @@ Look & Feel (shared)
 - Auth rules:
     - Audience `business.api`
     - org_id must be present; enforce membership and role via claims and scopes.
-    - roles from https://replate.dev/org_role determine UI capabilities: admin (can PATCH org, manage schedules),
-      member (create ad-hoc jobs, view lists), driver (view assigned jobs only, update status).
 - Pages/Features:
     - Dashboard: summary of active jobs, schedules.
     - JobsList: GET /jobs filtered by org_id and role; Driver sees "My Jobs" with status updates (PATCH job status
@@ -727,14 +736,12 @@ Look & Feel (shared)
 - Externalize configuration via public/auth_config.json and .env; never hardcode secrets or client IDs.
 - For SPA routing, ensure not_found_handling = "single-page-application" in wrangler.toml.
 - Use Hono for Workers, React 19 for SPAs, and @auth0/auth0-react v2.4 patterns shown here.
-- Keep tokens’ custom claims under https://replate.dev/ namespace as referenced.
-- Validate access control using scope and, for Business, org_id and https://replate.dev/org_role claims.
 - Generate `index.html` that loads a root React bundle, defines a #root element, and fetches `/auth_config.json` at
   startup to init Auth0.
 - Implement an AuthProvider component exposing isAuthenticated, user, login, logout, getAccessTokenSilently.
 - Implement ProtectedRoute that waits for Auth0 to initialize and then either renders children or triggers
   loginWithRedirect.
-- Keep configuration externalized in public/auth_config.json; do not hardcode client IDs or domain names.
+- Keep configuration externalized in `public/auth_config.json`; do not hardcode client IDs or domain names.
 
 ## Authorization Model
 
@@ -744,12 +751,12 @@ Look & Feel (shared)
     - Scopes: `openid profile email`
 - Business SPA
     - Audience: `business.api`
-    - Required claims: `org_id` present; `https://replate.dev/org_role` in `admin|member|driver`
-    - Scopes (as needed by pages):
+    - Required claims: `org_id` present; 
+    - Permissions (as needed by pages):
       `read:organization update:organization read:pickups create:pickups read:schedules update:schedules update:pickups`
 - Admin SPA
     - Audience: `admin.api`
-    - Scopes:
+    - Permissions:
       `read:organizations update:organizations create:organizations read:sso_invitations create:sso_invitations delete:sso_invitations`
 
 ### Replate Admin
@@ -769,10 +776,8 @@ Sample access_token. `org_id` is nullable for donors.
 ```json
 {
   "sub": "auth0|123",
-  "scope": "read:organization update:organization read:pickups create:pickups",
-  "org_id": "org_abc123",
-  "https://replate.dev/org_role": "admin|member|driver|null",
-  "https://replate.dev/donor": false
+  "permissions": ["read:organization", "update:organization", "read:pickups", "create:pickups"],
+  "org_id": "org_abc123"
 }
 ```
 
@@ -781,9 +786,9 @@ Sample access_token. `org_id` is nullable for donors.
 | No | Screenplay                       | Video                            | Website  | Demo Topic                     |
 |----|----------------------------------|----------------------------------|----------|--------------------------------|
 | 01 | [s-01.txt](./videos/01/s-01.txt) | [s-01.mp4](./videos/01/s-01.mp4) | Donor    | Ideation                       |
-| 02 | [s-02.txt](./videos/02/s-02.txt) | [s-02.mp4](./videos/02/s-02.mp4) | Donor    | Credential login               |
+| 02 | [s-02.txt](./videos/02/s-02.txt) | [s-02.mp4](./videos/02/s-02.mp4) | Donor    | Credential login, MyAccount    |
 | 03 | [s-03.txt](./videos/03/s-03.txt) | [s-03.mp4](./videos/03/s-03.mp4) | Donor    | Social login & account linking |
-| 04 | [s-04.txt](./videos/04/s-04.txt) | [s-04.mp4](./videos/04/s-04.mp4) | Business | Credential login               |
+| 04 | [s-04.txt](./videos/04/s-04.txt) | [s-04.mp4](./videos/04/s-04.mp4) | Business | Credential login & RBAC        |
 | 05 | [s-05.txt](./videos/05/s-05.txt) | [s-05.mp4](./videos/05/s-05.mp4) | Business | Federation and HRD             |
 | 06 | [s-06.txt](./videos/06/s-06.txt) | [s-06.mp4](./videos/06/s-06.mp4) | Business | SS-SSO                         |
 | 07 | [s-07.txt](./videos/07/s-07.txt) | [s-07.mp4](./videos/07/s-07.mp4) | Both     | RTL & ACL                      |

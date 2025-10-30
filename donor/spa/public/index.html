@@ -53,6 +53,9 @@
                             <a href="/donate" class="nav-link route-link">Donate</a>
                         </li>
                         <li class="nav-item auth-visible hidden">
+                            <a href="/history" class="nav-link route-link">History</a>
+                        </li>
+                        <li class="nav-item auth-visible hidden">
                             <a href="/suggest" class="nav-link route-link">Suggest a business</a>
                         </li>
                     </ul>
@@ -179,6 +182,16 @@
             </div>
         </div>
 
+        <div class="page hidden" id="content-history">
+            <div class="container">
+                <h2 class="mb-4">Donation History</h2>
+                <div id="history-error" class="alert alert-danger hidden" role="alert"></div>
+                <div id="history-loading" class="text-muted">Loading...</div>
+                <div id="history-empty" class="text-muted hidden">No donations yet.</div>
+                <ul id="history-list" class="list-group hidden" aria-live="polite"></ul>
+            </div>
+        </div>
+
         <div class="page hidden" id="content-donate">
             <div class="container">
                 <h2 class="mb-4">Make a Donation</h2>
@@ -257,6 +270,12 @@
                             <option value="logistics">Logistics</option>
                         </select>
                         <div class="invalid-feedback">Please select a type.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="suggestAddress">Address</label>
+                        <input type="text" class="form-control" id="suggestAddress" name="address" required aria-required="true" />
+                        <div class="invalid-feedback">Please enter an address.</div>
                     </div>
 
                     <div class="form-group">

@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/organizations/{orgId}": {
+    '/organizations/{orgId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -15,7 +15,7 @@ export interface paths {
          * Get organization details
          * @description Retrieves details for a specific organization. Caller must be a member of the organization.
          */
-        get: operations["getOrganization"];
+        get: operations['getOrganization'];
         put?: never;
         post?: never;
         delete?: never;
@@ -26,10 +26,10 @@ export interface paths {
          * @description Updates organization details managed by Replate (e.g., addresses and schedules in D1).
          *     Only Admins of the organization may update. Auth0 org name/domain updates are not part of this API.
          */
-        patch: operations["updateOrganization"];
+        patch: operations['updateOrganization'];
         trace?: never;
     };
-    "/jobs": {
+    '/jobs': {
         parameters: {
             query?: never;
             header?: never;
@@ -40,20 +40,20 @@ export interface paths {
          * List pickup jobs for caller's organization
          * @description Lists pickup jobs filtered by the caller's organization (from `org_id` claim). Drivers may see only their assigned jobs.
          */
-        get: operations["listJobs"];
+        get: operations['listJobs'];
         put?: never;
         /**
          * Create ad-hoc pickup job
          * @description Creates a new ad-hoc pickup job (no schedule_id). Supplier Admin/Member roles only.
          */
-        post: operations["createJob"];
+        post: operations['createJob'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/jobs/{id}": {
+    '/jobs/{id}': {
         parameters: {
             query?: never;
             header?: never;
@@ -70,10 +70,10 @@ export interface paths {
          * Update job status (driver)
          * @description Marks a job as in-progress or completed. Restricted to tokens with scope `update:pickups` and role `driver`.
          */
-        patch: operations["updateJobStatus"];
+        patch: operations['updateJobStatus'];
         trace?: never;
     };
-    "/schedules": {
+    '/schedules': {
         parameters: {
             query?: never;
             header?: never;
@@ -84,20 +84,20 @@ export interface paths {
          * List pickup schedules
          * @description Fetches pickup schedules for the caller's supplier organization.
          */
-        get: operations["listPickupSchedules"];
+        get: operations['listPickupSchedules'];
         put?: never;
         /**
          * Create pickup schedule
          * @description Creates a new recurring pickup schedule for the caller's supplier organization.
          */
-        post: operations["createPickupSchedule"];
+        post: operations['createPickupSchedule'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/schedules/{scheduleId}": {
+    '/schedules/{scheduleId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -114,10 +114,10 @@ export interface paths {
          * Update pickup schedule
          * @description Updates an existing pickup schedule.
          */
-        patch: operations["updatePickupSchedule"];
+        patch: operations['updatePickupSchedule'];
         trace?: never;
     };
-    "/delivery-schedules": {
+    '/delivery-schedules': {
         parameters: {
             query?: never;
             header?: never;
@@ -128,7 +128,7 @@ export interface paths {
          * List delivery schedules (community)
          * @description Returns delivery schedules associated with the caller's community organization.
          */
-        get: operations["listDeliverySchedules"];
+        get: operations['listDeliverySchedules'];
         put?: never;
         post?: never;
         delete?: never;
@@ -137,7 +137,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/delivery-schedules/{id}": {
+    '/delivery-schedules/{id}': {
         parameters: {
             query?: never;
             header?: never;
@@ -154,7 +154,7 @@ export interface paths {
          * Update delivery schedule (community)
          * @description Updates a delivery schedule for the caller's community organization.
          */
-        patch: operations["updateDeliverySchedule"];
+        patch: operations['updateDeliverySchedule'];
         trace?: never;
     };
 }
@@ -166,11 +166,11 @@ export interface components {
             message?: string;
         };
         /** @enum {string} */
-        OrgType: "supplier" | "community" | "logistics";
+        OrgType: 'supplier' | 'community' | 'logistics';
         Organization: {
             /** @example org_abc123 */
             auth0_org_id: string;
-            org_type: components["schemas"]["OrgType"];
+            org_type: components['schemas']['OrgType'];
             name: string;
             /**
              * @description Primary domain used for HRD
@@ -204,12 +204,12 @@ export interface components {
             };
         };
         /** @enum {string} */
-        JobStatus: "New" | "Triage" | "Logistics Assigned" | "In Transit" | "Delivered" | "Canceled";
+        JobStatus: 'New' | 'Triage' | 'Logistics Assigned' | 'In Transit' | 'Delivered' | 'Canceled';
         Job: {
             /** @example 12 */
             id: number;
             schedule_id?: number | null;
-            status: components["schemas"]["JobStatus"];
+            status: components['schemas']['JobStatus'];
             /** Format: date-time */
             pickup_window_start: string;
             /** Format: date-time */
@@ -243,7 +243,7 @@ export interface components {
         /** @description Only driver-triggered status transitions are supported here */
         JobUpdateRequest: {
             /** @enum {string} */
-            status: "In Transit" | "Delivered";
+            status: 'In Transit' | 'Delivered';
         };
         PickupSchedule: {
             /** @example 101 */
@@ -307,7 +307,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Forbidden */
@@ -316,7 +316,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Not Found */
@@ -325,7 +325,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Bad Request */
@@ -334,7 +334,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Server error */
@@ -343,7 +343,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
     };
@@ -373,7 +373,7 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Auth0 Organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
+                orgId: components['parameters']['OrgIdPathParam'];
             };
             cookie?: never;
         };
@@ -385,13 +385,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organization"];
+                    'application/json': components['schemas']['Organization'];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     updateOrganization: {
@@ -400,13 +400,13 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Auth0 Organization ID (e.g., org_abc123) */
-                orgId: components["parameters"]["OrgIdPathParam"];
+                orgId: components['parameters']['OrgIdPathParam'];
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OrganizationUpdateRequest"];
+                'application/json': components['schemas']['OrganizationUpdateRequest'];
             };
         };
         responses: {
@@ -416,25 +416,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Organization"];
+                    'application/json': components['schemas']['Organization'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     listJobs: {
         parameters: {
             query?: {
                 /** @description Optional filter by job status */
-                status?: components["schemas"]["JobStatus"];
+                status?: components['schemas']['JobStatus'];
                 /** @description Page number (1-based) */
-                page?: components["parameters"]["PageParam"];
+                page?: components['parameters']['PageParam'];
                 /** @description Page size (default 20) */
-                per_page?: components["parameters"]["PerPageParam"];
+                per_page?: components['parameters']['PerPageParam'];
             };
             header?: never;
             path?: never;
@@ -448,12 +448,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Job"][];
+                    'application/json': components['schemas']['Job'][];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     createJob: {
@@ -465,7 +465,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["JobCreateRequest"];
+                'application/json': components['schemas']['JobCreateRequest'];
             };
         };
         responses: {
@@ -475,13 +475,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Job"];
+                    'application/json': components['schemas']['Job'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     updateJobStatus: {
@@ -490,13 +490,13 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Pickup Job numeric identifier */
-                id: components["parameters"]["JobIdPathParam"];
+                id: components['parameters']['JobIdPathParam'];
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["JobUpdateRequest"];
+                'application/json': components['schemas']['JobUpdateRequest'];
             };
         };
         responses: {
@@ -506,23 +506,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Job"];
+                    'application/json': components['schemas']['Job'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     listPickupSchedules: {
         parameters: {
             query?: {
                 /** @description Page number (1-based) */
-                page?: components["parameters"]["PageParam"];
+                page?: components['parameters']['PageParam'];
                 /** @description Page size (default 20) */
-                per_page?: components["parameters"]["PerPageParam"];
+                per_page?: components['parameters']['PerPageParam'];
             };
             header?: never;
             path?: never;
@@ -536,12 +536,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PickupSchedule"][];
+                    'application/json': components['schemas']['PickupSchedule'][];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     createPickupSchedule: {
@@ -553,7 +553,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PickupScheduleCreateRequest"];
+                'application/json': components['schemas']['PickupScheduleCreateRequest'];
             };
         };
         responses: {
@@ -563,13 +563,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PickupSchedule"];
+                    'application/json': components['schemas']['PickupSchedule'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     updatePickupSchedule: {
@@ -578,13 +578,13 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Pickup Schedule numeric identifier */
-                scheduleId: components["parameters"]["ScheduleIdPathParam"];
+                scheduleId: components['parameters']['ScheduleIdPathParam'];
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PickupScheduleUpdateRequest"];
+                'application/json': components['schemas']['PickupScheduleUpdateRequest'];
             };
         };
         responses: {
@@ -594,14 +594,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PickupSchedule"];
+                    'application/json': components['schemas']['PickupSchedule'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     listDeliverySchedules: {
@@ -619,12 +619,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeliverySchedule"][];
+                    'application/json': components['schemas']['DeliverySchedule'][];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     updateDeliverySchedule: {
@@ -633,13 +633,13 @@ export interface operations {
             header?: never;
             path: {
                 /** @description Delivery Schedule numeric identifier */
-                id: components["parameters"]["DeliveryScheduleIdPathParam"];
+                id: components['parameters']['DeliveryScheduleIdPathParam'];
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DeliveryScheduleUpdateRequest"];
+                'application/json': components['schemas']['DeliveryScheduleUpdateRequest'];
             };
         };
         responses: {
@@ -649,14 +649,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeliverySchedule"];
+                    'application/json': components['schemas']['DeliverySchedule'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            404: components['responses']['NotFound'];
+            '5XX': components['responses']['ServerError'];
         };
     };
 }

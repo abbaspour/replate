@@ -7,6 +7,9 @@ routes = [
     { pattern = "business.replate.dev/*", zone_name = "replate.dev" }
 ]
 
+[build]
+command = "npm run build"
+
 [assets]
 directory = "./public"
 not_found_handling = "single-page-application"

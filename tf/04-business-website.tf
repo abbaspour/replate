@@ -157,10 +157,12 @@ resource "auth0_role_permissions" "supplier-admin-perms" {
     name                       = "create:pickups"
     resource_server_identifier = auth0_resource_server.business_api.identifier
   }
+  /*
   permissions {
     name                       = "update:pickups"
     resource_server_identifier = auth0_resource_server.business_api.identifier
   }
+  */
   permissions {
     name                       = "read:schedules"
     resource_server_identifier = auth0_resource_server.business_api.identifier

@@ -1,4 +1,4 @@
-name = "replate-business-api"
+name = "replate-donor-api"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
 compatibility_flags = [ "nodejs_compat" ]
@@ -6,11 +6,11 @@ workers_dev = false
 preview_urls = false
 
 routes = [
-    { pattern = "business.replate.dev/api/*", zone_name = "replate.dev" }
+    { pattern = "donor.replate.dev/api/*", zone_name = "replate.dev" }
 ]
 
 [build]
-command = "npm run build"
+    command = "npm run build"
 
 [observability]
 enabled = true
@@ -19,7 +19,7 @@ head_sampling_rate = 1
 [vars]
 # Set these via Terraform or wrangler secrets in real envs
 AUTH0_JWKS_URL = "https://id.replate.dev/.well-known/jwks.json"
-AUTH0_AUDIENCE_ADMIN = "business.api"
+AUTH0_AUDIENCE = "donor.api"
 AUTH0_ISSUER = "https://id.replate.dev/"
 
 [[d1_databases]]

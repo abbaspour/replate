@@ -39,7 +39,7 @@ CREATE INDEX idx_organizations_org_type ON Organizations(org_type);
 CREATE TABLE Users (
                          id INTEGER PRIMARY KEY AUTOINCREMENT,
                          auth0_user_id TEXT UNIQUE NOT NULL,
-                         organization_id INTEGER,
+                         auth0_org_id TEXT,
                          email TEXT NOT NULL,
                          email_verified INTEGER NOT NULL DEFAULT 0, -- Boolean (0=false, 1=true)
                          name TEXT,
@@ -49,11 +49,10 @@ CREATE TABLE Users (
                          org_status TEXT CHECK(org_status IN ('invited', 'active', 'suspended')),
                          consumer_lifecycle_stage TEXT DEFAULT 'registered' CHECK(consumer_lifecycle_stage IN ('visitor', 'registered', 'donor_first_time', 'donor_repeat', 'advocate')),
                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         FOREIGN KEY (organization_id) REFERENCES Organizations(id)
+                         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_users_auth0_user_id ON Users(auth0_user_id);
-CREATE INDEX idx_users_organization_id ON Users(organization_id);
+CREATE INDEX idx_users_auth0_org_id ON Users(auth0_org_id);
 
 
 -------------------------------------------------
@@ -62,15 +61,14 @@ CREATE INDEX idx_users_organization_id ON Users(organization_id);
 -------------------------------------------------
 CREATE TABLE Donations (
                           id INTEGER PRIMARY KEY AUTOINCREMENT,
-                          user_id INTEGER NOT NULL,
+                          auth0_user_id TEXT NOT NULL,
                           amount REAL NOT NULL,
                           currency TEXT NOT NULL,
                           status TEXT NOT NULL CHECK(status IN ('pending', 'succeeded', 'failed')),
                           testimonial TEXT,
-                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                          FOREIGN KEY (user_id) REFERENCES Users(id)
+                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_donations_user_id ON Donations(user_id);
+CREATE INDEX idx_donations_auth0_user_id ON Donations(auth0_user_id);
 
 
 -------------------------------------------------
@@ -79,8 +77,8 @@ CREATE INDEX idx_donations_user_id ON Donations(user_id);
 -------------------------------------------------
 CREATE TABLE PickupSchedules (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                supplier_id INTEGER NOT NULL,
-                                default_community_id INTEGER,
+                                supplier_auth0_org_id TEXT NOT NULL,
+                                default_community_auth0_org_id TEXT,
                                 is_active INTEGER NOT NULL DEFAULT 1, -- Boolean
                                 cron_expression TEXT NOT NULL,
                                 pickup_time_of_day TEXT NOT NULL, -- Format 'HH:MM:SS'
@@ -88,24 +86,23 @@ CREATE TABLE PickupSchedules (
                                 default_food_category TEXT, -- Stored as a JSON array string
                                 default_estimated_weight_kg REAL,
                                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                FOREIGN KEY (supplier_id) REFERENCES Organizations(id),
-                                FOREIGN KEY (default_community_id) REFERENCES Organizations(id)
+                                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_pickupschedules_supplier_id ON PickupSchedules(supplier_id);
+CREATE INDEX idx_pickupschedules_supplier_auth0_org_id ON PickupSchedules(supplier_auth0_org_id);
 
 
 -------------------------------------------------
+-- Table: PickupJobs
 -- Table: PickupJobs
 -- Tracks the lifecycle of a single, concrete pickup event.
 -------------------------------------------------
 CREATE TABLE PickupJobs (
                            id INTEGER PRIMARY KEY AUTOINCREMENT,
                            schedule_id INTEGER, -- Nullable for ad-hoc jobs
-                           supplier_id INTEGER NOT NULL,
-                           community_id INTEGER,
-                           logistics_id INTEGER,
-                           driver_id INTEGER,
+                           supplier_auth0_org_id TEXT NOT NULL,
+                           community_auth0_org_id TEXT,
+                           logistics_auth0_org_id TEXT,
+                           driver_auth0_user_id TEXT,
                            status TEXT NOT NULL DEFAULT 'New' CHECK(status IN ('New', 'Triage', 'Logistics Assigned', 'In Transit', 'Delivered', 'Canceled')),
                            pickup_window_start TEXT, -- ISO 8601 format
                            pickup_window_end TEXT,   -- ISO 8601 format
@@ -115,15 +112,11 @@ CREATE TABLE PickupJobs (
                            handling_notes TEXT,
                            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                           FOREIGN KEY (schedule_id) REFERENCES PickupSchedules(id),
-                           FOREIGN KEY (supplier_id) REFERENCES Organizations(id),
-                          FOREIGN KEY (community_id) REFERENCES Organizations(id),
-                          FOREIGN KEY (logistics_id) REFERENCES Organizations(id),
-                          FOREIGN KEY (driver_id) REFERENCES Users(id)
+                           FOREIGN KEY (schedule_id) REFERENCES PickupSchedules(id)
 );
 CREATE INDEX idx_pickupjobs_status ON PickupJobs(status);
-CREATE INDEX idx_pickupjobs_supplier_id ON PickupJobs(supplier_id);
-CREATE INDEX idx_pickupjobs_driver_id ON PickupJobs(driver_id);
+CREATE INDEX idx_pickupjobs_supplier_auth0_org_id ON PickupJobs(supplier_auth0_org_id);
+CREATE INDEX idx_pickupjobs_driver_auth0_user_id ON PickupJobs(driver_auth0_user_id);
 
 
 -------------------------------------------------
@@ -132,17 +125,16 @@ CREATE INDEX idx_pickupjobs_driver_id ON PickupJobs(driver_id);
 -------------------------------------------------
 CREATE TABLE Suggestions (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            submitter_id INTEGER NOT NULL,
-                            converted_organization_id INTEGER, -- The organization created from this suggestion
+                            submitter_auth0_user_id TEXT NOT NULL,
+                            converted_auth0_org_id TEXT, -- The organization created from this suggestion
                             type TEXT NOT NULL CHECK(type IN ('supplier', 'community', 'logistics')),
                             name TEXT NOT NULL,
                             address TEXT,
                             qualification_status TEXT NOT NULL DEFAULT 'New' CHECK(qualification_status IN ('New', 'Contacted', 'Qualified', 'Rejected')),
-                            submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            FOREIGN KEY (submitter_id) REFERENCES Users(id),
-                            FOREIGN KEY (converted_organization_id) REFERENCES Organizations(id)
+                            submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_suggestions_submitter_id ON Suggestions(submitter_id);
+CREATE INDEX idx_suggestions_submitter_auth0_user_id ON Suggestions(submitter_auth0_user_id);
+CREATE INDEX idx_suggestions_converted_auth0_org_id ON Suggestions(converted_auth0_org_id);
 
 
 -------------------------------------------------
@@ -182,8 +174,8 @@ END;
 -------------------------------------------------
 CREATE TABLE SsoInvitations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    organization_id INTEGER NOT NULL,
-    issuer_user_id INTEGER,
+    auth0_org_id TEXT NOT NULL,
+    issuer_auth0_user_id TEXT,
     display_name TEXT,
     link TEXT NOT NULL,
     auth0_ticket_id TEXT,
@@ -191,9 +183,8 @@ CREATE TABLE SsoInvitations (
     domain_verification TEXT CHECK(domain_verification IN ('Off','Optional','Required')),
     accept_idp_init_saml INTEGER NOT NULL DEFAULT 0,
     ttl INTEGER NOT NULL DEFAULT 432000, -- seconds
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (organization_id) REFERENCES Organizations(id),
-    FOREIGN KEY (issuer_user_id) REFERENCES Users(id)
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_ssoinv_org_id ON SsoInvitations(organization_id);
+CREATE INDEX idx_ssoinv_org_id ON SsoInvitations(auth0_org_id);
 CREATE INDEX idx_ssoinv_created_at ON SsoInvitations(created_at);
+CREATE INDEX idx_ssoinv_issuer_auth0_user_id ON SsoInvitations(issuer_auth0_user_id);
