@@ -16,7 +16,7 @@ export type Env = {
     Bindings: {
         DB: D1Database;
         AUTH0_JWKS_URL: string; // e.g., https://id.replate.dev/.well-known/jwks.json
-        AUTH0_AUDIENCE_ADMIN: string; // set to donor.api in wrangler.toml
+        AUTH0_AUDIENCE: string; // set to donor.api in wrangler.toml
         AUTH0_ISSUER: string; // e.g., https://id.replate.dev/
     };
 };
@@ -32,7 +32,7 @@ async function verifyAccessToken(c: Context<Env>) {
         const JWKS = createRemoteJWKSet(new URL(c.env.AUTH0_JWKS_URL));
         const {payload} = await jwtVerify(token, JWKS, {
             issuer: c.env.AUTH0_ISSUER,
-            audience: c.env.AUTH0_AUDIENCE_ADMIN,
+            audience: c.env.AUTH0_AUDIENCE,
         });
         c.set('token', payload);
         return null;
