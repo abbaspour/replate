@@ -1,12 +1,12 @@
 // noinspection SqlResolve
 
-import {Hono} from "hono";
-import type {Context} from "hono";
-import {cors} from "hono/cors";
-import {createRemoteJWKSet, jwtVerify, JWTPayload} from "jose";
+import {Hono} from 'hono';
+import type {Context, MiddlewareHandler} from 'hono';
+import {cors} from 'hono/cors';
+import {createRemoteJWKSet, jwtVerify, JWTPayload} from 'jose';
 
 // Types generated from OpenAPI for Business API
-import type {components} from "./api-types";
+import type {components} from './api-types';
 
 // Environment bindings for the Business API worker
 export type Env = {
@@ -23,21 +23,21 @@ export type Env = {
 
 // Utility: permission (Auth0 RBAC permissions array)
 function requirePermissions(c: Context<Env>, required: string[]): boolean {
-    const token: JWTPayload = c.get("token");
+    const token: JWTPayload = c.get('token');
     const permissions = token?.permissions;
     if (!permissions || !Array.isArray(permissions)) return false;
     return required.every((p) => (permissions as string[]).includes(p));
 }
 
 function getOrgId(c: Context<Env>): string | undefined {
-    const token: JWTPayload = c.get("token");
+    const token: JWTPayload = c.get('token');
     return token?.org_id as string | undefined;
 }
 
 async function verifyAccessToken(c: Context<Env>) {
-    const auth = c.req.header("authorization") || "";
-    if (!auth.toLowerCase().startsWith("bearer ")) {
-        return c.json({error: "Unauthorized"}, 401);
+    const auth = c.req.header('authorization') || '';
+    if (!auth.toLowerCase().startsWith('bearer ')) {
+        return c.json({error: 'Unauthorized'}, 401);
     }
     const token = auth.slice(7).trim();
     try {
@@ -46,18 +46,30 @@ async function verifyAccessToken(c: Context<Env>) {
             issuer: c.env.AUTH0_ISSUER,
             audience: c.env.AUTH0_AUDIENCE_ADMIN,
         });
-        c.set("token", payload);
+        c.set('token', payload);
         return null;
     } catch {
-        return c.json({error: "Unauthorized"}, 401);
+        return c.json({error: 'Unauthorized'}, 401);
     }
 }
 
-const app = new Hono<Env>().basePath("/api");
-app.use("*", cors());
+// Hono middleware to verify access token and check required permissions per route
+function auth(requiredPermissions: string[] = []): MiddlewareHandler<Env> {
+    return async (c, next) => {
+        const unauth = await verifyAccessToken(c);
+        if (unauth) return unauth;
+        if (requiredPermissions.length && !requirePermissions(c, requiredPermissions)) {
+            return c.json({error: 'Forbidden'}, 403);
+        }
+        await next();
+    };
+}
+
+const app = new Hono<Env>().basePath('/api');
+app.use('*', cors());
 
 // Health
-app.get("/health", (c) => c.json({ok: true}));
+app.get('/health', (c) => c.json({ok: true}));
 
 // Helpers: D1 mappers and lookups
 function parseJsonArray<T = string>(val: any): T[] | undefined {
@@ -104,16 +116,11 @@ async function getOrgIdByAuth0Id(c: Context<Env>, auth0OrgId?: string | null): P
 }
 
 // Organizations
-app.get("/organizations/:orgId", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["read:organization"])) {
-        return c.json({error: "Forbidden"}, 403);
-    }
-    const orgId = c.req.param("orgId");
+app.get('/organizations/:orgId', auth(['read:organization']), async (c) => {
+    const orgId = c.req.param('orgId');
     const callerOrgId = getOrgId(c);
     if (!callerOrgId || callerOrgId !== orgId) {
-        return c.json({error: "Forbidden"}, 403);
+        return c.json({error: 'Forbidden'}, 403);
     }
     try {
         const rs = await c.env.DB.prepare(
@@ -131,9 +138,9 @@ app.get("/organizations/:orgId", async (c) => {
             .bind(orgId)
             .first<any>();
 
-        if (!rs) return c.json({error: "Not Found"}, 404);
+        if (!rs) return c.json({error: 'Not Found'}, 404);
 
-        const org: components["schemas"]["Organization"] = {
+        const org: components['schemas']['Organization'] = {
             auth0_org_id: rs.auth0_org_id,
             org_type: rs.org_type,
             name: rs.name,
@@ -148,52 +155,46 @@ app.get("/organizations/:orgId", async (c) => {
         };
         return c.json(org);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
-app.patch("/organizations/:orgId", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["update:organization"])) {
-        return c.json({error: "Forbidden"}, 403);
-    }
-
-    const orgId = c.req.param("orgId");
+app.patch('/organizations/:orgId', auth(['update:organization']), async (c) => {
+    const orgId = c.req.param('orgId');
     const callerOrgId = getOrgId(c);
-    if (!callerOrgId || callerOrgId !== orgId) return c.json({error: "Forbidden"}, 403);
+    if (!callerOrgId || callerOrgId !== orgId) return c.json({error: 'Forbidden'}, 403);
 
-    const body = await c.req.json<components["schemas"]["OrganizationUpdateRequest"]>();
+    const body = await c.req.json<components['schemas']['OrganizationUpdateRequest']>();
 
     try {
-        const exists = await c.env.DB.prepare("SELECT auth0_org_id FROM Organizations WHERE auth0_org_id = ?")
+        const exists = await c.env.DB.prepare('SELECT auth0_org_id FROM Organizations WHERE auth0_org_id = ?')
             .bind(orgId)
             .first();
-        if (!exists) return c.json({error: "Not Found"}, 404);
+        if (!exists) return c.json({error: 'Not Found'}, 404);
 
         const fields: string[] = [];
         const params: any[] = [];
 
         if (body?.metadata?.pickup_address !== undefined) {
-            fields.push("pickup_address = ?");
+            fields.push('pickup_address = ?');
             params.push(body.metadata.pickup_address);
         }
         if (body?.metadata?.delivery_address !== undefined) {
-            fields.push("delivery_address = ?");
+            fields.push('delivery_address = ?');
             params.push(body.metadata.delivery_address);
         }
         if (body?.metadata?.coverage_regions !== undefined) {
-            fields.push("coverage_regions = ?");
+            fields.push('coverage_regions = ?');
             params.push(body.metadata.coverage_regions);
         }
         if (body?.metadata?.vehicle_types !== undefined) {
-            fields.push("vehicle_types = ?");
+            fields.push('vehicle_types = ?');
             params.push(JSON.stringify(body.metadata.vehicle_types ?? []));
         }
 
         if (fields.length) {
             params.push(orgId);
-            const sql = `UPDATE Organizations SET ${fields.join(", ")} WHERE auth0_org_id = ?`;
+            const sql = `UPDATE Organizations SET ${fields.join(', ')} WHERE auth0_org_id = ?`;
             await c.env.DB.prepare(sql)
                 .bind(...params)
                 .run();
@@ -206,7 +207,7 @@ app.patch("/organizations/:orgId", async (c) => {
             .bind(orgId)
             .first<any>();
 
-        const org: components["schemas"]["Organization"] = {
+        const org: components['schemas']['Organization'] = {
             auth0_org_id: updated.auth0_org_id,
             org_type: updated.org_type,
             name: updated.name,
@@ -220,27 +221,23 @@ app.patch("/organizations/:orgId", async (c) => {
         };
         return c.json(org);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
 // Jobs
-app.get("/jobs", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["read:pickups"])) return c.json({error: "Forbidden"}, 403);
-
+app.get('/jobs', auth(['read:pickups']), async (c) => {
     const auth0OrgId = getOrgId(c);
-    if (!auth0OrgId) return c.json({error: "Forbidden"}, 403);
+    if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
 
     const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: "Not Found"}, 404);
+    if (!orgRow) return c.json({error: 'Not Found'}, 404);
 
-    const {status, page = "1", per_page = "20"} = c.req.query();
-    const limit = Math.min(parseInt(per_page || "20", 10) || 20, 100);
-    const offset = ((parseInt(page || "1", 10) || 1) - 1) * limit;
+    const {status, page = '1', per_page = '20'} = c.req.query();
+    const limit = Math.min(parseInt(per_page || '20', 10) || 20, 100);
+    const offset = ((parseInt(page || '1', 10) || 1) - 1) * limit;
 
-    const role = requirePermissions(c, ["update:pickups"]) ? "driver" : null; // only drivers have permission to update pickups
+    const role = requirePermissions(c, ['update:pickups']) ? 'driver' : null; // only drivers have permission to update pickups
 
     try {
         const params: any[] = [];
@@ -256,8 +253,8 @@ app.get("/jobs", async (c) => {
             LEFT JOIN Organizations logi ON j.logistics_id = logi.id
                 WHERE 1=1`;
 
-        if (role === "driver") {
-            const token: any = c.get("token");
+        if (role === 'driver') {
+            const token: any = c.get('token');
             const sub = token?.sub as string | undefined;
             if (!sub) return c.json([], 200);
             sql += ` AND j.driver_auth0_user_id = ? AND (j.supplier_id = ? OR j.community_id = ? OR j.logistics_id = ?)`;
@@ -278,7 +275,7 @@ app.get("/jobs", async (c) => {
         const rs = await c.env.DB.prepare(sql)
             .bind(...params)
             .all<any>();
-        const list: components["schemas"]["Job"][] = (rs.results || []).map((r: any) => ({
+        const list: components['schemas']['Job'][] = (rs.results || []).map((r: any) => ({
             id: r.id,
             schedule_id: r.schedule_id ?? null,
             status: r.status,
@@ -295,24 +292,20 @@ app.get("/jobs", async (c) => {
         }));
         return c.json(list);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
-app.post("/jobs", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["create:pickups"])) return c.json({error: "Forbidden"}, 403);
-
+app.post('/jobs', auth(['create:pickups']), async (c) => {
     const auth0OrgId = getOrgId(c);
-    if (!auth0OrgId) return c.json({error: "Forbidden"}, 403);
+    if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
 
-    const body = await c.req.json<components["schemas"]["JobCreateRequest"]>();
+    const body = await c.req.json<components['schemas']['JobCreateRequest']>();
 
     try {
         const supplier = await getOrgByAuth0Id(c, auth0OrgId);
-        if (!supplier) return c.json({error: "Not Found"}, 404);
-        if (supplier.org_type !== "supplier") return c.json({error: "Forbidden"}, 403);
+        if (!supplier) return c.json({error: 'Not Found'}, 404);
+        if (supplier.org_type !== 'supplier') return c.json({error: 'Forbidden'}, 403);
 
         const communityId = await getOrgIdByAuth0Id(c, body.community_org_id ?? null);
 
@@ -349,7 +342,7 @@ app.post("/jobs", async (c) => {
             .bind(insertedId)
             .first<any>();
 
-        const job: components["schemas"]["Job"] = {
+        const job: components['schemas']['Job'] = {
             id: row.id,
             schedule_id: row.schedule_id ?? null,
             status: row.status,
@@ -367,32 +360,28 @@ app.post("/jobs", async (c) => {
 
         return c.json(job, 201);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
-app.patch("/jobs/:id", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["update:pickups"])) return c.json({error: "Forbidden"}, 403);
+app.patch('/jobs/:id', auth(['update:pickups']), async (c) => {
+    const id = Number(c.req.param('id'));
+    if (!Number.isFinite(id) || id < 1) return c.json({error: 'Bad Request'}, 400);
 
-    const id = Number(c.req.param("id"));
-    if (!Number.isFinite(id) || id < 1) return c.json({error: "Bad Request"}, 400);
-
-    const body = await c.req.json<components["schemas"]["JobUpdateRequest"]>();
-    if (!["In Transit", "Delivered"].includes(body.status)) return c.json({error: "Bad Request"}, 400);
+    const body = await c.req.json<components['schemas']['JobUpdateRequest']>();
+    if (!['In Transit', 'Delivered'].includes(body.status)) return c.json({error: 'Bad Request'}, 400);
 
     try {
-        const token: any = c.get("token");
+        const token: any = c.get('token');
         const sub = token?.sub as string | undefined;
-        if (!sub) return c.json({error: "Forbidden"}, 403);
+        if (!sub) return c.json({error: 'Forbidden'}, 403);
 
         const job = await c.env.DB.prepare(`SELECT id, driver_auth0_user_id FROM PickupJobs WHERE id = ?`).bind(id).first<any>();
-        if (!job) return c.json({error: "Not Found"}, 404);
+        if (!job) return c.json({error: 'Not Found'}, 404);
 
         // Ensure the caller is the assigned driver
         if (job.driver_auth0_user_id == null || String(job.driver_auth0_user_id) !== String(sub)) {
-            return c.json({error: "Forbidden"}, 403);
+            return c.json({error: 'Forbidden'}, 403);
         }
 
         await c.env.DB.prepare(`UPDATE PickupJobs SET status = ? WHERE id = ?`).bind(body.status, id).run();
@@ -412,7 +401,7 @@ app.patch("/jobs/:id", async (c) => {
             .bind(id)
             .first<any>();
 
-        const jobDto: components["schemas"]["Job"] = {
+        const jobDto: components['schemas']['Job'] = {
             id: updated.id,
             schedule_id: updated.schedule_id ?? null,
             status: updated.status,
@@ -429,24 +418,20 @@ app.patch("/jobs/:id", async (c) => {
         };
         return c.json(jobDto);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
 // Pickup Schedules
-app.get("/schedules", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["read:schedules"])) return c.json({error: "Forbidden"}, 403);
-
+app.get('/schedules', auth(['read:schedules']), async (c) => {
     const auth0OrgId = getOrgId(c);
-    if (!auth0OrgId) return c.json({error: "Forbidden"}, 403);
+    if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
     const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: "Not Found"}, 404);
+    if (!orgRow) return c.json({error: 'Not Found'}, 404);
 
-    const {page = "1", per_page = "20"} = c.req.query();
-    const limit = Math.min(parseInt(per_page || "20", 10) || 20, 100);
-    const offset = ((parseInt(page || "1", 10) || 1) - 1) * limit;
+    const {page = '1', per_page = '20'} = c.req.query();
+    const limit = Math.min(parseInt(per_page || '20', 10) || 20, 100);
+    const offset = ((parseInt(page || '1', 10) || 1) - 1) * limit;
 
     try {
         const rs = await c.env.DB.prepare(
@@ -470,7 +455,7 @@ app.get("/schedules", async (c) => {
             .bind(orgRow.id, limit, offset)
             .all<any>();
 
-        const list: components["schemas"]["PickupSchedule"][] = (rs.results || []).map((r: any) => ({
+        const list: components['schemas']['PickupSchedule'][] = (rs.results || []).map((r: any) => ({
             id: r.id,
             supplier_id: r.supplier_org_id,
             default_community_id: r.default_community_org_id ?? null,
@@ -484,22 +469,18 @@ app.get("/schedules", async (c) => {
         }));
         return c.json(list);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
-app.post("/schedules", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["update:schedules"])) return c.json({error: "Forbidden"}, 403);
-
+app.post('/schedules', auth(['update:schedules']), async (c) => {
     const auth0OrgId = getOrgId(c);
-    if (!auth0OrgId) return c.json({error: "Forbidden"}, 403);
+    if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
     const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: "Not Found"}, 404);
-    if (orgRow.org_type !== "supplier") return c.json({error: "Forbidden"}, 403);
+    if (!orgRow) return c.json({error: 'Not Found'}, 404);
+    if (orgRow.org_type !== 'supplier') return c.json({error: 'Forbidden'}, 403);
 
-    const body = await c.req.json<components["schemas"]["PickupScheduleCreateRequest"]>();
+    const body = await c.req.json<components['schemas']['PickupScheduleCreateRequest']>();
 
     try {
         const defaultCommunityNumericId = await getOrgIdByAuth0Id(c, body.default_community_id ?? null);
@@ -542,7 +523,7 @@ app.post("/schedules", async (c) => {
             .bind(insertedId)
             .first<any>();
 
-        const dto: components["schemas"]["PickupSchedule"] = {
+        const dto: components['schemas']['PickupSchedule'] = {
             id: row.id,
             supplier_id: row.supplier_org_id,
             default_community_id: row.default_community_org_id ?? null,
@@ -557,68 +538,64 @@ app.post("/schedules", async (c) => {
 
         return c.json(dto, 201);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
-app.patch("/schedules/:scheduleId", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["update:schedules"])) return c.json({error: "Forbidden"}, 403);
-
+app.patch('/schedules/:scheduleId', auth(['update:schedules']), async (c) => {
     const auth0OrgId = getOrgId(c);
-    if (!auth0OrgId) return c.json({error: "Forbidden"}, 403);
+    if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
     const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: "Not Found"}, 404);
+    if (!orgRow) return c.json({error: 'Not Found'}, 404);
 
-    const scheduleId = Number(c.req.param("scheduleId"));
-    if (!Number.isFinite(scheduleId) || scheduleId < 1) return c.json({error: "Bad Request"}, 400);
+    const scheduleId = Number(c.req.param('scheduleId'));
+    if (!Number.isFinite(scheduleId) || scheduleId < 1) return c.json({error: 'Bad Request'}, 400);
 
-    const body = await c.req.json<components["schemas"]["PickupScheduleUpdateRequest"]>();
+    const body = await c.req.json<components['schemas']['PickupScheduleUpdateRequest']>();
 
     try {
         const exists = await c.env.DB.prepare(`SELECT id, supplier_id FROM PickupSchedules WHERE id = ?`)
             .bind(scheduleId)
             .first<any>();
-        if (!exists) return c.json({error: "Not Found"}, 404);
-        if (exists.supplier_id !== orgRow.id) return c.json({error: "Forbidden"}, 403);
+        if (!exists) return c.json({error: 'Not Found'}, 404);
+        if (exists.supplier_id !== orgRow.id) return c.json({error: 'Forbidden'}, 403);
 
         const fields: string[] = [];
         const params: any[] = [];
 
         if (body.default_community_id !== undefined) {
             const newComId = await getOrgIdByAuth0Id(c, body.default_community_id ?? null);
-            fields.push("default_community_id = ?");
+            fields.push('default_community_id = ?');
             params.push(newComId);
         }
         if (body.is_active !== undefined) {
-            fields.push("is_active = ?");
+            fields.push('is_active = ?');
             params.push(body.is_active ? 1 : 0);
         }
         if (body.cron_expression !== undefined) {
-            fields.push("cron_expression = ?");
+            fields.push('cron_expression = ?');
             params.push(body.cron_expression);
         }
         if (body.pickup_time_of_day !== undefined) {
-            fields.push("pickup_time_of_day = ?");
+            fields.push('pickup_time_of_day = ?');
             params.push(body.pickup_time_of_day);
         }
         if (body.pickup_duration_minutes !== undefined) {
-            fields.push("pickup_duration_minutes = ?");
+            fields.push('pickup_duration_minutes = ?');
             params.push(body.pickup_duration_minutes);
         }
         if (body.default_food_category !== undefined) {
-            fields.push("default_food_category = ?");
+            fields.push('default_food_category = ?');
             params.push(JSON.stringify(body.default_food_category ?? []));
         }
         if (body.default_estimated_weight_kg !== undefined) {
-            fields.push("default_estimated_weight_kg = ?");
+            fields.push('default_estimated_weight_kg = ?');
             params.push(body.default_estimated_weight_kg ?? null);
         }
 
         if (fields.length) {
             params.push(scheduleId);
-            const sql = `UPDATE PickupSchedules SET ${fields.join(", ")} WHERE id = ?`;
+            const sql = `UPDATE PickupSchedules SET ${fields.join(', ')} WHERE id = ?`;
             await c.env.DB.prepare(sql)
                 .bind(...params)
                 .run();
@@ -644,7 +621,7 @@ app.patch("/schedules/:scheduleId", async (c) => {
             .bind(scheduleId)
             .first<any>();
 
-        const dto: components["schemas"]["PickupSchedule"] = {
+        const dto: components['schemas']['PickupSchedule'] = {
             id: row.id,
             supplier_id: row.supplier_org_id,
             default_community_id: row.default_community_org_id ?? null,
@@ -659,28 +636,20 @@ app.patch("/schedules/:scheduleId", async (c) => {
 
         return c.json(dto);
     } catch {
-        return c.json({error: "Server error"}, 500);
+        return c.json({error: 'Server error'}, 500);
     }
 });
 
 // Delivery schedules (community)
 // Note: DeliverySchedules table is not present in CRM DDL; return empty list and 404 for update to align with current schema.
-app.get("/delivery-schedules", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["read:schedules"])) return c.json({error: "Forbidden"}, 403);
-
+app.get('/delivery-schedules', auth(['read:schedules']), async (c) => {
     // No backing table in current DDL
     return c.json([]);
 });
 
-app.patch("/delivery-schedules/:id", async (c) => {
-    const unauth = await verifyAccessToken(c);
-    if (unauth) return unauth;
-    if (!requirePermissions(c, ["update:schedules"])) return c.json({error: "Forbidden"}, 403);
-
+app.patch('/delivery-schedules/:id', auth(['update:schedules']), async (c) => {
     // No backing table in current DDL
-    return c.json({error: "Not Found"}, 404);
+    return c.json({error: 'Not Found'}, 404);
 });
 
 // noinspection JSUnusedGlobalSymbols

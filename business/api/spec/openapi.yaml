@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
     title: Replate Business API
-    version: "1.0.0"
+    version: '1.0.0'
     description: |
         Business API for Replate Organizations (Suppliers, Communities, Logistics).
         Exposes organization metadata, pickup jobs, pickup schedules, and community delivery schedules
@@ -25,18 +25,18 @@ paths:
             security:
                 - oauth2: [read:organization]
             parameters:
-                - $ref: "#/components/parameters/OrgIdPathParam"
+                - $ref: '#/components/parameters/OrgIdPathParam'
             responses:
-                "200":
+                '200':
                     description: Organization details
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Organization"
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "404": {$ref: "#/components/responses/NotFound"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/Organization'
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '404': {$ref: '#/components/responses/NotFound'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
         patch:
             tags: [Organizations]
             summary: Update organization metadata
@@ -47,25 +47,25 @@ paths:
             security:
                 - oauth2: [update:organization]
             parameters:
-                - $ref: "#/components/parameters/OrgIdPathParam"
+                - $ref: '#/components/parameters/OrgIdPathParam'
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/OrganizationUpdateRequest"
+                            $ref: '#/components/schemas/OrganizationUpdateRequest'
             responses:
-                "200":
+                '200':
                     description: Updated organization
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Organization"
-                "400": {$ref: "#/components/responses/BadRequest"}
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "404": {$ref: "#/components/responses/NotFound"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/Organization'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '404': {$ref: '#/components/responses/NotFound'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
     /jobs:
         get:
@@ -80,22 +80,22 @@ paths:
                 - in: query
                   name: status
                   schema:
-                      $ref: "#/components/schemas/JobStatus"
+                      $ref: '#/components/schemas/JobStatus'
                   description: Optional filter by job status
-                - $ref: "#/components/parameters/PageParam"
-                - $ref: "#/components/parameters/PerPageParam"
+                - $ref: '#/components/parameters/PageParam'
+                - $ref: '#/components/parameters/PerPageParam'
             responses:
-                "200":
+                '200':
                     description: A list of jobs
                     content:
                         application/json:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/Job"
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                    $ref: '#/components/schemas/Job'
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
         post:
             tags: [Jobs]
             summary: Create ad-hoc pickup job
@@ -108,18 +108,18 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/JobCreateRequest"
+                            $ref: '#/components/schemas/JobCreateRequest'
             responses:
-                "201":
+                '201':
                     description: Job created
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Job"
-                "400": {$ref: "#/components/responses/BadRequest"}
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/Job'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
     /jobs/{id}:
         patch:
@@ -131,25 +131,25 @@ paths:
             security:
                 - oauth2: [update:pickups]
             parameters:
-                - $ref: "#/components/parameters/JobIdPathParam"
+                - $ref: '#/components/parameters/JobIdPathParam'
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/JobUpdateRequest"
+                            $ref: '#/components/schemas/JobUpdateRequest'
             responses:
-                "200":
+                '200':
                     description: Updated job
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Job"
-                "400": {$ref: "#/components/responses/BadRequest"}
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "404": {$ref: "#/components/responses/NotFound"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/Job'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '404': {$ref: '#/components/responses/NotFound'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
     /schedules:
         get:
@@ -160,20 +160,20 @@ paths:
             security:
                 - oauth2: [read:schedules]
             parameters:
-                - $ref: "#/components/parameters/PageParam"
-                - $ref: "#/components/parameters/PerPageParam"
+                - $ref: '#/components/parameters/PageParam'
+                - $ref: '#/components/parameters/PerPageParam'
             responses:
-                "200":
+                '200':
                     description: A list of pickup schedules
                     content:
                         application/json:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/PickupSchedule"
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                    $ref: '#/components/schemas/PickupSchedule'
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
         post:
             tags: [Pickup Schedules]
             summary: Create pickup schedule
@@ -186,18 +186,18 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/PickupScheduleCreateRequest"
+                            $ref: '#/components/schemas/PickupScheduleCreateRequest'
             responses:
-                "201":
+                '201':
                     description: Schedule created
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/PickupSchedule"
-                "400": {$ref: "#/components/responses/BadRequest"}
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/PickupSchedule'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
     /schedules/{scheduleId}:
         patch:
@@ -208,25 +208,25 @@ paths:
             security:
                 - oauth2: [update:schedules]
             parameters:
-                - $ref: "#/components/parameters/ScheduleIdPathParam"
+                - $ref: '#/components/parameters/ScheduleIdPathParam'
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/PickupScheduleUpdateRequest"
+                            $ref: '#/components/schemas/PickupScheduleUpdateRequest'
             responses:
-                "200":
+                '200':
                     description: Updated schedule
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/PickupSchedule"
-                "400": {$ref: "#/components/responses/BadRequest"}
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "404": {$ref: "#/components/responses/NotFound"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/PickupSchedule'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '404': {$ref: '#/components/responses/NotFound'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
     /delivery-schedules:
         get:
@@ -237,17 +237,17 @@ paths:
             security:
                 - oauth2: [read:schedules]
             responses:
-                "200":
+                '200':
                     description: A list of delivery schedules
                     content:
                         application/json:
                             schema:
                                 type: array
                                 items:
-                                    $ref: "#/components/schemas/DeliverySchedule"
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                    $ref: '#/components/schemas/DeliverySchedule'
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
     /delivery-schedules/{id}:
         patch:
@@ -258,25 +258,25 @@ paths:
             security:
                 - oauth2: [update:schedules]
             parameters:
-                - $ref: "#/components/parameters/DeliveryScheduleIdPathParam"
+                - $ref: '#/components/parameters/DeliveryScheduleIdPathParam'
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/DeliveryScheduleUpdateRequest"
+                            $ref: '#/components/schemas/DeliveryScheduleUpdateRequest'
             responses:
-                "200":
+                '200':
                     description: Updated delivery schedule
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/DeliverySchedule"
-                "400": {$ref: "#/components/responses/BadRequest"}
-                "401": {$ref: "#/components/responses/Unauthorized"}
-                "403": {$ref: "#/components/responses/Forbidden"}
-                "404": {$ref: "#/components/responses/NotFound"}
-                "5XX": {$ref: "#/components/responses/ServerError"}
+                                $ref: '#/components/schemas/DeliverySchedule'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '404': {$ref: '#/components/responses/NotFound'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
 components:
     securitySchemes:
@@ -347,31 +347,31 @@ components:
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Error"
+                        $ref: '#/components/schemas/Error'
         Forbidden:
             description: Forbidden
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Error"
+                        $ref: '#/components/schemas/Error'
         NotFound:
             description: Not Found
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Error"
+                        $ref: '#/components/schemas/Error'
         BadRequest:
             description: Bad Request
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Error"
+                        $ref: '#/components/schemas/Error'
         ServerError:
             description: Server error
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Error"
+                        $ref: '#/components/schemas/Error'
     schemas:
         Error:
             type: object
@@ -391,7 +391,7 @@ components:
                     type: string
                     example: org_abc123
                 org_type:
-                    $ref: "#/components/schemas/OrgType"
+                    $ref: '#/components/schemas/OrgType'
                 name:
                     type: string
                 domain:
@@ -465,7 +465,7 @@ components:
                     type: integer
                     nullable: true
                 status:
-                    $ref: "#/components/schemas/JobStatus"
+                    $ref: '#/components/schemas/JobStatus'
                 pickup_window_start:
                     type: string
                     format: date-time
@@ -529,7 +529,7 @@ components:
             properties:
                 status:
                     type: string
-                    enum: ["In Transit", "Delivered"]
+                    enum: ['In Transit', 'Delivered']
             required: [status]
             additionalProperties: false
         PickupSchedule:
@@ -552,7 +552,7 @@ components:
                 pickup_time_of_day:
                     type: string
                     description: Time of day (HH:mm)
-                    example: "19:00"
+                    example: '19:00'
                 pickup_duration_minutes:
                     type: integer
                 default_food_category:
@@ -573,7 +573,7 @@ components:
                     type: string
                 pickup_time_of_day:
                     type: string
-                    example: "19:00"
+                    example: '19:00'
                 pickup_duration_minutes:
                     type: integer
                     minimum: 5
@@ -619,7 +619,7 @@ components:
                     example: 0 10 * * 1
                 delivery_time_of_day:
                     type: string
-                    example: "10:00"
+                    example: '10:00'
             required: [id, community_id, is_active, cron_expression, delivery_time_of_day]
         DeliveryScheduleUpdateRequest:
             type: object

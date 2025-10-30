@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/donations": {
+    '/donations': {
         parameters: {
             query?: never;
             header?: never;
@@ -16,7 +16,7 @@ export interface paths {
          * @description Returns the donation history for the logged-in user. Results are scoped to the caller
          *     based on the Auth0 `sub` claim. Supports simple pagination.
          */
-        get: operations["listDonations"];
+        get: operations['listDonations'];
         put?: never;
         post?: never;
         delete?: never;
@@ -25,7 +25,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/donations/create-payment-intent": {
+    '/donations/create-payment-intent': {
         parameters: {
             query?: never;
             header?: never;
@@ -39,14 +39,14 @@ export interface paths {
          * @description Creates a new donation record and returns its identifier. The underlying payment
          *     processor may be mocked for demo purposes.
          */
-        post: operations["createPaymentIntent"];
+        post: operations['createPaymentIntent'];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/suggestions": {
+    '/suggestions': {
         parameters: {
             query?: never;
             header?: never;
@@ -59,7 +59,7 @@ export interface paths {
          * Submit a partner suggestion
          * @description Submits a suggestion for a new supplier, community, or logistics partner.
          */
-        post: operations["createSuggestion"];
+        post: operations['createSuggestion'];
         delete?: never;
         options?: never;
         head?: never;
@@ -75,7 +75,7 @@ export interface components {
             message?: string;
         };
         /** @enum {string} */
-        DonationStatus: "pending" | "succeeded" | "failed";
+        DonationStatus: 'pending' | 'succeeded' | 'failed';
         Donation: {
             /** @example 42 */
             id: number;
@@ -91,7 +91,7 @@ export interface components {
             amount: number;
             /** @example USD */
             currency: string;
-            status: components["schemas"]["DonationStatus"];
+            status: components['schemas']['DonationStatus'];
             /** Format: date-time */
             created_at: string;
             testimonial?: string | null;
@@ -116,9 +116,9 @@ export interface components {
             id: number;
         };
         /** @enum {string} */
-        SuggestionType: "supplier" | "community" | "logistics";
+        SuggestionType: 'supplier' | 'community' | 'logistics';
         SuggestionCreateRequest: {
-            type: components["schemas"]["SuggestionType"];
+            type: components['schemas']['SuggestionType'];
             /** @example Local Bakery */
             name: string;
             /** @example 456 Oak Ave */
@@ -136,7 +136,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Forbidden */
@@ -145,7 +145,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Bad Request */
@@ -154,7 +154,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
         /** @description Server error */
@@ -163,7 +163,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                'application/json': components['schemas']['Error'];
             };
         };
     };
@@ -183,9 +183,9 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Page number (1-based) */
-                page?: components["parameters"]["PageParam"];
+                page?: components['parameters']['PageParam'];
                 /** @description Page size (default 20) */
-                per_page?: components["parameters"]["PerPageParam"];
+                per_page?: components['parameters']['PerPageParam'];
             };
             header?: never;
             path?: never;
@@ -199,12 +199,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Donation"][];
+                    'application/json': components['schemas']['Donation'][];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     createPaymentIntent: {
@@ -216,7 +216,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreatePaymentIntentRequest"];
+                'application/json': components['schemas']['CreatePaymentIntentRequest'];
             };
         };
         responses: {
@@ -226,13 +226,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CreatePaymentIntentResponse"];
+                    'application/json': components['schemas']['CreatePaymentIntentResponse'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
     createSuggestion: {
@@ -244,7 +244,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SuggestionCreateRequest"];
+                'application/json': components['schemas']['SuggestionCreateRequest'];
             };
         };
         responses: {
@@ -254,13 +254,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuggestionCreateResponse"];
+                    'application/json': components['schemas']['SuggestionCreateResponse'];
                 };
             };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            "5XX": components["responses"]["ServerError"];
+            400: components['responses']['BadRequest'];
+            401: components['responses']['Unauthorized'];
+            403: components['responses']['Forbidden'];
+            '5XX': components['responses']['ServerError'];
         };
     };
 }

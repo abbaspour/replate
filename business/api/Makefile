@@ -1,4 +1,4 @@
-goal: help
+goal: build
 
 SECRETS_FILE = .env
 

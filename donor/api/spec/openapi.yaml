@@ -1,243 +1,243 @@
 openapi: 3.1.0
 info:
-  title: Replate Donor API
-  version: "1.0.0"
-  description: |
-    Donor API for Replate consumer users. Enables donors to view donation history,
-    create donation payment intents, and submit partner suggestions. All endpoints
-    require an Auth0 access token (audience `donor.api`).
+    title: Replate Donor API
+    version: '1.0.0'
+    description: |
+        Donor API for Replate consumer users. Enables donors to view donation history,
+        create donation payment intents, and submit partner suggestions. All endpoints
+        require an Auth0 access token (audience `donor.api`).
 servers:
-  - url: https://donor.replate.dev
-    description: Production
-  - url: https://donor.dev.local
-    description: Local/dev
+    - url: https://donor.replate.dev
+      description: Production
+    - url: https://donor.dev.local
+      description: Local/dev
 security:
-  - oauth2: []
+    - oauth2: []
 paths:
-  /donations:
-    get:
-      tags: [Donations]
-      summary: List donation history for the authenticated user
-      description: |
-        Returns the donation history for the logged-in user. Results are scoped to the caller
-        based on the Auth0 `sub` claim. Supports simple pagination.
-      operationId: listDonations
-      security:
-        - oauth2: []
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PerPageParam'
-      responses:
-        '200':
-          description: A list of donations
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Donation'
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '5XX': { $ref: '#/components/responses/ServerError' }
+    /donations:
+        get:
+            tags: [Donations]
+            summary: List donation history for the authenticated user
+            description: |
+                Returns the donation history for the logged-in user. Results are scoped to the caller
+                based on the Auth0 `sub` claim. Supports simple pagination.
+            operationId: listDonations
+            security:
+                - oauth2: []
+            parameters:
+                - $ref: '#/components/parameters/PageParam'
+                - $ref: '#/components/parameters/PerPageParam'
+            responses:
+                '200':
+                    description: A list of donations
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Donation'
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
-  /donations/create-payment-intent:
-    post:
-      tags: [Donations]
-      summary: Create a donation payment intent
-      description: |
-        Creates a new donation record and returns its identifier. The underlying payment
-        processor may be mocked for demo purposes.
-      operationId: createPaymentIntent
-      security:
-        - oauth2: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreatePaymentIntentRequest'
-      responses:
-        '201':
-          description: Payment intent created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreatePaymentIntentResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '5XX': { $ref: '#/components/responses/ServerError' }
+    /donations/create-payment-intent:
+        post:
+            tags: [Donations]
+            summary: Create a donation payment intent
+            description: |
+                Creates a new donation record and returns its identifier. The underlying payment
+                processor may be mocked for demo purposes.
+            operationId: createPaymentIntent
+            security:
+                - oauth2: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreatePaymentIntentRequest'
+            responses:
+                '201':
+                    description: Payment intent created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreatePaymentIntentResponse'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
-  /suggestions:
-    post:
-      tags: [Suggestions]
-      summary: Submit a partner suggestion
-      description: Submits a suggestion for a new supplier, community, or logistics partner.
-      operationId: createSuggestion
-      security:
-        - oauth2: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SuggestionCreateRequest'
-      responses:
-        '201':
-          description: Suggestion created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuggestionCreateResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '5XX': { $ref: '#/components/responses/ServerError' }
+    /suggestions:
+        post:
+            tags: [Suggestions]
+            summary: Submit a partner suggestion
+            description: Submits a suggestion for a new supplier, community, or logistics partner.
+            operationId: createSuggestion
+            security:
+                - oauth2: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SuggestionCreateRequest'
+            responses:
+                '201':
+                    description: Suggestion created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SuggestionCreateResponse'
+                '400': {$ref: '#/components/responses/BadRequest'}
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
 
 components:
-  securitySchemes:
-    oauth2:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: https://id.replate.dev/authorize
-          tokenUrl: https://id.replate.dev/oauth/token
-          scopes:
-            openid: OpenID Connect scope
-            profile: Basic profile information
-            email: Email address
-  parameters:
-    PageParam:
-      in: query
-      name: page
-      schema:
-        type: integer
-        minimum: 1
-      description: Page number (1-based)
-    PerPageParam:
-      in: query
-      name: per_page
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-      description: Page size (default 20)
-  responses:
-    Unauthorized:
-      description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Forbidden
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: Bad Request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ServerError:
-      description: Server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-      required: [error]
+    securitySchemes:
+        oauth2:
+            type: oauth2
+            flows:
+                authorizationCode:
+                    authorizationUrl: https://id.replate.dev/authorize
+                    tokenUrl: https://id.replate.dev/oauth/token
+                    scopes:
+                        openid: OpenID Connect scope
+                        profile: Basic profile information
+                        email: Email address
+    parameters:
+        PageParam:
+            in: query
+            name: page
+            schema:
+                type: integer
+                minimum: 1
+            description: Page number (1-based)
+        PerPageParam:
+            in: query
+            name: per_page
+            schema:
+                type: integer
+                minimum: 1
+                maximum: 100
+            description: Page size (default 20)
+    responses:
+        Unauthorized:
+            description: Unauthorized
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Error'
+        Forbidden:
+            description: Forbidden
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Error'
+        BadRequest:
+            description: Bad Request
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Error'
+        ServerError:
+            description: Server error
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Error'
+    schemas:
+        Error:
+            type: object
+            properties:
+                error:
+                    type: string
+                message:
+                    type: string
+            required: [error]
 
-    DonationStatus:
-      type: string
-      enum: [pending, succeeded, failed]
+        DonationStatus:
+            type: string
+            enum: [pending, succeeded, failed]
 
-    Donation:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 42
-        donation_id:
-          type: string
-          description: Public donation identifier or UUID
-          example: dn_01J5H2S9G0YQ1Z
-        amount:
-          type: number
-          format: float
-          minimum: 1
-          example: 50.0
-        currency:
-          type: string
-          example: USD
-        status:
-          $ref: '#/components/schemas/DonationStatus'
-        created_at:
-          type: string
-          format: date-time
-        testimonial:
-          type: string
-          nullable: true
-      required: [id, amount, currency, status, created_at]
+        Donation:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    example: 42
+                donation_id:
+                    type: string
+                    description: Public donation identifier or UUID
+                    example: dn_01J5H2S9G0YQ1Z
+                amount:
+                    type: number
+                    format: float
+                    minimum: 1
+                    example: 50.0
+                currency:
+                    type: string
+                    example: USD
+                status:
+                    $ref: '#/components/schemas/DonationStatus'
+                created_at:
+                    type: string
+                    format: date-time
+                testimonial:
+                    type: string
+                    nullable: true
+            required: [id, amount, currency, status, created_at]
 
-    CreatePaymentIntentRequest:
-      type: object
-      properties:
-        amount:
-          type: number
-          format: float
-          minimum: 1
-          description: Donation amount in dollars
-          example: 25.0
-        currency:
-          type: string
-          default: USD
-          description: ISO currency code
-        testimonial:
-          type: string
-          description: Optional donor message
-      required: [amount]
-      additionalProperties: false
+        CreatePaymentIntentRequest:
+            type: object
+            properties:
+                amount:
+                    type: number
+                    format: float
+                    minimum: 1
+                    description: Donation amount in dollars
+                    example: 25.0
+                currency:
+                    type: string
+                    default: USD
+                    description: ISO currency code
+                testimonial:
+                    type: string
+                    description: Optional donor message
+            required: [amount]
+            additionalProperties: false
 
-    CreatePaymentIntentResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 123
-      required: [id]
+        CreatePaymentIntentResponse:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    example: 123
+            required: [id]
 
-    SuggestionType:
-      type: string
-      enum: [supplier, community, logistics]
+        SuggestionType:
+            type: string
+            enum: [supplier, community, logistics]
 
-    SuggestionCreateRequest:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/SuggestionType'
-        name:
-          type: string
-          example: Local Bakery
-        address:
-          type: string
-          example: 456 Oak Ave
-      required: [type, name, address]
-      additionalProperties: false
+        SuggestionCreateRequest:
+            type: object
+            properties:
+                type:
+                    $ref: '#/components/schemas/SuggestionType'
+                name:
+                    type: string
+                    example: Local Bakery
+                address:
+                    type: string
+                    example: 456 Oak Ave
+            required: [type, name, address]
+            additionalProperties: false
 
-    SuggestionCreateResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 77
-      required: [id]
+        SuggestionCreateResponse:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    example: 77
+            required: [id]
