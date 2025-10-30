@@ -1,8 +1,7 @@
-// URL mapping, from hash to a function that responds to that URL action
+// URL mapping, from path to a function that responds to that URL action
 const router = {
   "/": () => showContent("content-home"),
-  "/profile": () =>
-    requireAuth(() => showContent("content-profile"), "/profile"),
+  "/profile": () => requireAuth(() => showContent("content-profile"), "/profile"),
   "/donate": () =>
     requireAuth(() => {
       showContent("content-donate");
@@ -13,6 +12,11 @@ const router = {
       showContent("content-suggest");
       initSuggestForm();
     }, "/suggest"),
+  "/history": () =>
+    requireAuth(() => {
+      showContent("content-history");
+      loadDonations();
+    }, "/history"),
   "/login": () => login()
 };
 
@@ -139,12 +143,29 @@ const initDonateForm = () => {
       return;
     }
 
-    // For demo, we do not send data to a backend. Log the payload and show thank-you.
-    const data = Object.fromEntries(new FormData(form).entries());
-    console.log("[Donate] Submission:", data);
+    // Construct payload for Donor API
+    const fd = new FormData(form);
+    const amount = parseFloat(fd.get("amount"));
+    const testimonial = (fd.get("notes") || "").toString().trim();
 
-    form.classList.add("hidden");
-    if (thankyou) thankyou.classList.remove("hidden");
+    try {
+      const resp = await apiFetch("/api/donations/create-payment-intent", {
+        method: "POST",
+        body: JSON.stringify({ amount, currency: "USD", testimonial: testimonial || undefined })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || `Request failed (${resp.status})`);
+      }
+      const data = await resp.json();
+      console.log("[Donate] Created payment intent:", data);
+      form.classList.add("hidden");
+      if (thankyou) thankyou.classList.remove("hidden");
+    } catch (err) {
+      console.error("[Donate] Error:", err);
+      alert("There was a problem creating your donation. Please try again.");
+      return;
+    }
 
     // Redirect home after 3 seconds
     setTimeout(() => {
@@ -184,7 +205,7 @@ const initSuggestForm = () => {
     }
   };
 
-  ["suggestName", "suggestType"].forEach((id) => {
+  ["suggestName", "suggestType", "suggestAddress"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", () => setValidity(el));
@@ -197,7 +218,7 @@ const initSuggestForm = () => {
 
     // Validate required fields
     let valid = true;
-    ["suggestName", "suggestType"].forEach((id) => {
+    ["suggestName", "suggestType", "suggestAddress"].forEach((id) => {
       const el = document.getElementById(id);
       setValidity(el);
       if (el && !el.checkValidity()) valid = false;
@@ -208,11 +229,31 @@ const initSuggestForm = () => {
       return;
     }
 
-    const data = Object.fromEntries(new FormData(form).entries());
-    console.log("[Suggest] Submission:", data);
+    const fd = new FormData(form);
+    const payload = {
+      name: fd.get("name")?.toString() || "",
+      type: fd.get("type")?.toString() || "",
+      address: fd.get("address")?.toString() || ""
+    };
 
-    form.classList.add("hidden");
-    if (thankyou) thankyou.classList.remove("hidden");
+    try {
+      const resp = await apiFetch("/api/suggestions", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || `Request failed (${resp.status})`);
+      }
+      const data = await resp.json();
+      console.log("[Suggest] Created:", data);
+      form.classList.add("hidden");
+      if (thankyou) thankyou.classList.remove("hidden");
+    } catch (err) {
+      console.error("[Suggest] Error:", err);
+      alert("There was a problem submitting your suggestion. Please try again.");
+      return;
+    }
 
     // Redirect home after 3 seconds
     setTimeout(() => {
@@ -223,7 +264,7 @@ const initSuggestForm = () => {
       // Reset form for next time
       form.reset();
       form.classList.remove("was-validated");
-      ["suggestName", "suggestType", "suggestWebsite", "suggestPhone", "suggestContact"].forEach((id) => {
+      ["suggestName", "suggestType", "suggestWebsite", "suggestPhone", "suggestContact", "suggestAddress"].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.classList.remove("is-invalid", "is-valid");
       });
@@ -231,6 +272,50 @@ const initSuggestForm = () => {
       if (thankyou) thankyou.classList.add("hidden");
     }, 3000);
   });
+};
+
+// Load donations and render history list
+const loadDonations = async () => {
+  const loading = document.getElementById("history-loading");
+  const list = document.getElementById("history-list");
+  const empty = document.getElementById("history-empty");
+  const error = document.getElementById("history-error");
+  if (!loading || !list || !empty || !error) return;
+
+  loading.classList.remove("hidden");
+  list.classList.add("hidden");
+  empty.classList.add("hidden");
+  error.classList.add("hidden");
+  error.textContent = "";
+
+  try {
+    const resp = await apiFetch("/api/donations", { method: "GET" });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.message || `Request failed (${resp.status})`);
+    }
+    const items = await resp.json();
+    list.innerHTML = "";
+    if (!Array.isArray(items) || items.length === 0) {
+      empty.classList.remove("hidden");
+    } else {
+      for (const d of items) {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        const date = d.created_at ? new Date(d.created_at).toLocaleString() : "";
+        const amount = typeof d.amount === "number" ? d.amount.toFixed(2) : d.amount;
+        li.innerHTML = `<span>${date}</span><span><strong>$${amount}</strong> <span class="badge badge-secondary ml-2">${(d.status || "").toString()}</span></span>`;
+        list.appendChild(li);
+      }
+      list.classList.remove("hidden");
+    }
+  } catch (e) {
+    console.error("[History] Error:", e);
+    error.textContent = e.message || "Failed to load donations.";
+    error.classList.remove("hidden");
+  } finally {
+    loading.classList.add("hidden");
+  }
 };
 
 window.onpopstate = (e) => {

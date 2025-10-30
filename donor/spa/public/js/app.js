@@ -1,5 +1,6 @@
 // The Auth0 client, initialized in configureClient()
 let auth0Client = null;
+let authConfig = null;
 
 /**
  * Starts the authentication flow
@@ -8,7 +9,7 @@ const login = async (targetUrl) => {
   try {
     console.log("Logging in", targetUrl);
 
-    const config = await (await fetchAuthConfig()).json();
+    const config = authConfig || (await (await fetchAuthConfig()).json());
     const options = {
       authorizationParams: {
         redirect_uri: config.redirectUri || window.location.origin,
@@ -52,16 +53,48 @@ const fetchAuthConfig = () => fetch("/auth_config.json");
  */
 const configureClient = async () => {
   const response = await fetchAuthConfig();
-  const config = await response.json();
+  authConfig = await response.json();
 
   auth0Client = await auth0.createAuth0Client({
-    domain: config.domain,
-    clientId: config.clientId,
+    domain: authConfig.domain,
+    clientId: authConfig.clientId,
     authorizationParams: {
-      audience: config.audience,
-      redirect_uri: config.redirectUri || window.location.origin
+      audience: authConfig.audience,
+      redirect_uri: authConfig.redirectUri || window.location.origin
     }
   });
+};
+
+/**
+ * Helper to acquire an access token for API calls
+ */
+const getAccessToken = async () => {
+  try {
+    return await auth0Client.getTokenSilently({
+      authorizationParams: { audience: authConfig?.audience }
+    });
+  } catch (e) {
+    console.warn("getAccessToken failed, redirecting to login", e);
+    await login(window.location.pathname);
+    throw e;
+  }
+};
+
+/**
+ * Fetch wrapper that attaches Authorization header and handles 401/403
+ */
+const apiFetch = async (input, init = {}) => {
+  const token = await getAccessToken();
+  const headers = new Headers(init.headers || {});
+  headers.set("Authorization", `Bearer ${token}`);
+  headers.set("Content-Type", headers.get("Content-Type") || "application/json");
+
+  const resp = await fetch(input, { ...init, headers });
+  if (resp.status === 401 || resp.status === 403) {
+    await login(window.location.pathname);
+    throw new Error(`Unauthorized (${resp.status})`);
+  }
+  return resp;
 };
 
 /**

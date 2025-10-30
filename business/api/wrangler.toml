@@ -9,6 +9,9 @@ routes = [
     { pattern = "business.replate.dev/api/*", zone_name = "replate.dev" }
 ]
 
+[build]
+command = "npm run build"
+
 [observability]
 enabled = true
 head_sampling_rate = 1

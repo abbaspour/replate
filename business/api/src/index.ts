@@ -95,7 +95,6 @@ async function getCallerD1UserId(c: Context<Env>): Promise<number | null> {
         return null;
     }
 }
-*/
 
 async function getOrgByAuth0Id(
     c: Context<Env>,
@@ -114,6 +113,7 @@ async function getOrgIdByAuth0Id(c: Context<Env>, auth0OrgId?: string | null): P
         .first<{id: number}>();
     return row?.id ?? null;
 }
+*/
 
 // Organizations
 app.get('/organizations/:orgId', auth(['read:organization']), async (c) => {
@@ -230,38 +230,31 @@ app.get('/jobs', auth(['read:pickups']), async (c) => {
     const auth0OrgId = getOrgId(c);
     if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
 
-    const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: 'Not Found'}, 404);
-
     const {status, page = '1', per_page = '20'} = c.req.query();
     const limit = Math.min(parseInt(per_page || '20', 10) || 20, 100);
     const offset = ((parseInt(page || '1', 10) || 1) - 1) * limit;
 
-    const role = requirePermissions(c, ['update:pickups']) ? 'driver' : null; // only drivers have permission to update pickups
+    const isDriver = requirePermissions(c, ['update:pickups']); // drivers have permission to update pickups
 
     try {
         const params: any[] = [];
-        // noinspection SqlConstantExpression
         let sql = `SELECT j.id, j.schedule_id, j.status, j.pickup_window_start, j.pickup_window_end, j.food_category, j.estimated_weight_kg, j.packaging, j.handling_notes,
-                      sup.auth0_org_id AS supplier_org_id,
-                      com.auth0_org_id AS community_org_id,
-                      logi.auth0_org_id AS logistics_org_id,
+                      j.supplier_auth0_org_id AS supplier_org_id,
+                      j.community_auth0_org_id AS community_org_id,
+                      j.logistics_auth0_org_id AS logistics_org_id,
                       j.driver_auth0_user_id AS driver_user_id
                  FROM PickupJobs j
-            LEFT JOIN Organizations sup ON j.supplier_id = sup.id
-            LEFT JOIN Organizations com ON j.community_id = com.id
-            LEFT JOIN Organizations logi ON j.logistics_id = logi.id
                 WHERE 1=1`;
 
-        if (role === 'driver') {
+        if (isDriver) {
             const token: any = c.get('token');
             const sub = token?.sub as string | undefined;
             if (!sub) return c.json([], 200);
-            sql += ` AND j.driver_auth0_user_id = ? AND (j.supplier_id = ? OR j.community_id = ? OR j.logistics_id = ?)`;
-            params.push(sub, orgRow.id, orgRow.id, orgRow.id);
+            sql += ` AND j.driver_auth0_user_id = ? AND (j.supplier_auth0_org_id = ? OR j.community_auth0_org_id = ? OR j.logistics_auth0_org_id = ?)`;
+            params.push(sub, auth0OrgId, auth0OrgId, auth0OrgId);
         } else {
-            sql += ` AND (j.supplier_id = ? OR j.community_id = ? OR j.logistics_id = ?)`;
-            params.push(orgRow.id, orgRow.id, orgRow.id);
+            sql += ` AND (j.supplier_auth0_org_id = ? OR j.community_auth0_org_id = ? OR j.logistics_auth0_org_id = ?)`;
+            params.push(auth0OrgId, auth0OrgId, auth0OrgId);
         }
 
         if (status) {
@@ -303,14 +296,14 @@ app.post('/jobs', auth(['create:pickups']), async (c) => {
     const body = await c.req.json<components['schemas']['JobCreateRequest']>();
 
     try {
-        const supplier = await getOrgByAuth0Id(c, auth0OrgId);
-        if (!supplier) return c.json({error: 'Not Found'}, 404);
-        if (supplier.org_type !== 'supplier') return c.json({error: 'Forbidden'}, 403);
-
-        const communityId = await getOrgIdByAuth0Id(c, body.community_org_id ?? null);
+        // Optional enforcement: if an Organizations row exists and is not a supplier, forbid; otherwise proceed
+        /*
+        const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
+        if (orgRow && orgRow.org_type !== 'supplier') return c.json({error: 'Forbidden'}, 403);
+        */
 
         const insert = await c.env.DB.prepare(
-            `INSERT INTO PickupJobs (schedule_id, status, pickup_window_start, pickup_window_end, food_category, estimated_weight_kg, packaging, handling_notes, supplier_id, community_id)
+            `INSERT INTO PickupJobs (schedule_id, status, pickup_window_start, pickup_window_end, food_category, estimated_weight_kg, packaging, handling_notes, supplier_auth0_org_id, community_auth0_org_id)
        VALUES (NULL, 'New', ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
             .bind(
@@ -320,8 +313,8 @@ app.post('/jobs', auth(['create:pickups']), async (c) => {
                 body.estimated_weight_kg,
                 body.packaging ?? null,
                 body.handling_notes ?? null,
-                supplier.id,
-                communityId,
+                auth0OrgId,
+                body.community_org_id ?? null,
             )
             .run();
 
@@ -329,14 +322,11 @@ app.post('/jobs', auth(['create:pickups']), async (c) => {
 
         const row = await c.env.DB.prepare(
             `SELECT j.id, j.schedule_id, j.status, j.pickup_window_start, j.pickup_window_end, j.food_category, j.estimated_weight_kg, j.packaging, j.handling_notes,
-              sup.auth0_org_id AS supplier_org_id,
-              com.auth0_org_id AS community_org_id,
-              logi.auth0_org_id AS logistics_org_id,
+              j.supplier_auth0_org_id AS supplier_org_id,
+              j.community_auth0_org_id AS community_org_id,
+              j.logistics_auth0_org_id AS logistics_org_id,
               j.driver_auth0_user_id AS driver_user_id
          FROM PickupJobs j
-    LEFT JOIN Organizations sup ON j.supplier_id = sup.id
-    LEFT JOIN Organizations com ON j.community_id = com.id
-    LEFT JOIN Organizations logi ON j.logistics_id = logi.id
         WHERE j.id = ?`,
         )
             .bind(insertedId)
@@ -388,14 +378,11 @@ app.patch('/jobs/:id', auth(['update:pickups']), async (c) => {
 
         const updated = await c.env.DB.prepare(
             `SELECT j.id, j.schedule_id, j.status, j.pickup_window_start, j.pickup_window_end, j.food_category, j.estimated_weight_kg, j.packaging, j.handling_notes,
-              sup.auth0_org_id AS supplier_org_id,
-              com.auth0_org_id AS community_org_id,
-              logi.auth0_org_id AS logistics_org_id,
+              j.supplier_auth0_org_id AS supplier_org_id,
+              j.community_auth0_org_id AS community_org_id,
+              j.logistics_auth0_org_id AS logistics_org_id,
               j.driver_auth0_user_id AS driver_user_id
          FROM PickupJobs j
-    LEFT JOIN Organizations sup ON j.supplier_id = sup.id
-    LEFT JOIN Organizations com ON j.community_id = com.id
-    LEFT JOIN Organizations logi ON j.logistics_id = logi.id
         WHERE j.id = ?`,
         )
             .bind(id)
@@ -426,8 +413,6 @@ app.patch('/jobs/:id', auth(['update:pickups']), async (c) => {
 app.get('/schedules', auth(['read:schedules']), async (c) => {
     const auth0OrgId = getOrgId(c);
     if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
-    const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: 'Not Found'}, 404);
 
     const {page = '1', per_page = '20'} = c.req.query();
     const limit = Math.min(parseInt(per_page || '20', 10) || 20, 100);
@@ -436,23 +421,19 @@ app.get('/schedules', auth(['read:schedules']), async (c) => {
     try {
         const rs = await c.env.DB.prepare(
             `SELECT s.id,
-              s.supplier_id,
-              s.default_community_id,
+              s.supplier_auth0_org_id AS supplier_org_id,
+              s.default_community_auth0_org_id AS default_community_org_id,
               s.is_active,
               s.cron_expression,
               s.pickup_time_of_day,
               s.pickup_duration_minutes,
               s.default_food_category,
-              s.default_estimated_weight_kg,
-              sup.auth0_org_id AS supplier_org_id,
-              com.auth0_org_id AS default_community_org_id
+              s.default_estimated_weight_kg
          FROM PickupSchedules s
-    JOIN Organizations sup ON s.supplier_id = sup.id
-    LEFT JOIN Organizations com ON s.default_community_id = com.id
-        WHERE s.supplier_id = ?
+        WHERE s.supplier_auth0_org_id = ?
      ORDER BY s.id DESC LIMIT ? OFFSET ?`,
         )
-            .bind(orgRow.id, limit, offset)
+            .bind(auth0OrgId, limit, offset)
             .all<any>();
 
         const list: components['schemas']['PickupSchedule'][] = (rs.results || []).map((r: any) => ({
@@ -476,22 +457,22 @@ app.get('/schedules', auth(['read:schedules']), async (c) => {
 app.post('/schedules', auth(['update:schedules']), async (c) => {
     const auth0OrgId = getOrgId(c);
     if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
+
+    /*
     const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: 'Not Found'}, 404);
-    if (orgRow.org_type !== 'supplier') return c.json({error: 'Forbidden'}, 403);
+    if (orgRow && orgRow.org_type !== 'supplier') return c.json({error: 'Forbidden'}, 403);
+    */
 
     const body = await c.req.json<components['schemas']['PickupScheduleCreateRequest']>();
 
     try {
-        const defaultCommunityNumericId = await getOrgIdByAuth0Id(c, body.default_community_id ?? null);
-
         const insert = await c.env.DB.prepare(
-            `INSERT INTO PickupSchedules (supplier_id, default_community_id, is_active, cron_expression, pickup_time_of_day, pickup_duration_minutes, default_food_category, default_estimated_weight_kg)
+            `INSERT INTO PickupSchedules (supplier_auth0_org_id, default_community_auth0_org_id, is_active, cron_expression, pickup_time_of_day, pickup_duration_minutes, default_food_category, default_estimated_weight_kg)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         )
             .bind(
-                orgRow.id,
-                defaultCommunityNumericId,
+                auth0OrgId,
+                body.default_community_id ?? null,
                 body.is_active ?? 1,
                 body.cron_expression,
                 body.pickup_time_of_day,
@@ -505,19 +486,15 @@ app.post('/schedules', auth(['update:schedules']), async (c) => {
 
         const row = await c.env.DB.prepare(
             `SELECT s.id,
-              s.supplier_id,
-              s.default_community_id,
+              s.supplier_auth0_org_id AS supplier_org_id,
+              s.default_community_auth0_org_id AS default_community_org_id,
               s.is_active,
               s.cron_expression,
               s.pickup_time_of_day,
               s.pickup_duration_minutes,
               s.default_food_category,
-              s.default_estimated_weight_kg,
-              sup.auth0_org_id AS supplier_org_id,
-              com.auth0_org_id AS default_community_org_id
+              s.default_estimated_weight_kg
          FROM PickupSchedules s
-    JOIN Organizations sup ON s.supplier_id = sup.id
-    LEFT JOIN Organizations com ON s.default_community_id = com.id
         WHERE s.id = ?`,
         )
             .bind(insertedId)
@@ -545,8 +522,6 @@ app.post('/schedules', auth(['update:schedules']), async (c) => {
 app.patch('/schedules/:scheduleId', auth(['update:schedules']), async (c) => {
     const auth0OrgId = getOrgId(c);
     if (!auth0OrgId) return c.json({error: 'Forbidden'}, 403);
-    const orgRow = await getOrgByAuth0Id(c, auth0OrgId);
-    if (!orgRow) return c.json({error: 'Not Found'}, 404);
 
     const scheduleId = Number(c.req.param('scheduleId'));
     if (!Number.isFinite(scheduleId) || scheduleId < 1) return c.json({error: 'Bad Request'}, 400);
@@ -554,19 +529,18 @@ app.patch('/schedules/:scheduleId', auth(['update:schedules']), async (c) => {
     const body = await c.req.json<components['schemas']['PickupScheduleUpdateRequest']>();
 
     try {
-        const exists = await c.env.DB.prepare(`SELECT id, supplier_id FROM PickupSchedules WHERE id = ?`)
+        const exists = await c.env.DB.prepare(`SELECT id, supplier_auth0_org_id FROM PickupSchedules WHERE id = ?`)
             .bind(scheduleId)
             .first<any>();
         if (!exists) return c.json({error: 'Not Found'}, 404);
-        if (exists.supplier_id !== orgRow.id) return c.json({error: 'Forbidden'}, 403);
+        if (exists.supplier_auth0_org_id !== auth0OrgId) return c.json({error: 'Forbidden'}, 403);
 
         const fields: string[] = [];
         const params: any[] = [];
 
         if (body.default_community_id !== undefined) {
-            const newComId = await getOrgIdByAuth0Id(c, body.default_community_id ?? null);
-            fields.push('default_community_id = ?');
-            params.push(newComId);
+            fields.push('default_community_auth0_org_id = ?');
+            params.push(body.default_community_id ?? null);
         }
         if (body.is_active !== undefined) {
             fields.push('is_active = ?');
@@ -603,19 +577,15 @@ app.patch('/schedules/:scheduleId', auth(['update:schedules']), async (c) => {
 
         const row = await c.env.DB.prepare(
             `SELECT s.id,
-              s.supplier_id,
-              s.default_community_id,
+              s.supplier_auth0_org_id AS supplier_org_id,
+              s.default_community_auth0_org_id AS default_community_org_id,
               s.is_active,
               s.cron_expression,
               s.pickup_time_of_day,
               s.pickup_duration_minutes,
               s.default_food_category,
-              s.default_estimated_weight_kg,
-              sup.auth0_org_id AS supplier_org_id,
-              com.auth0_org_id AS default_community_org_id
+              s.default_estimated_weight_kg
          FROM PickupSchedules s
-    JOIN Organizations sup ON s.supplier_id = sup.id
-    LEFT JOIN Organizations com ON s.default_community_id = com.id
         WHERE s.id = ?`,
         )
             .bind(scheduleId)

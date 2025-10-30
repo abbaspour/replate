@@ -162,9 +162,11 @@ app.post('/suggestions', auth(), async (c) => {
     }
 
     try {
+        console.log(`inserting suggestion: ${sub}, ${type}, ${name}, ${address}`);
+
         const insert = await c.env.DB.prepare(
-            `INSERT INTO Suggestions (submitter_auth0_user_id, converted_organization_id, type, name, address)
-       VALUES (?, NULL, ?, ?, ?)`,
+            `INSERT INTO Suggestions (submitter_auth0_user_id, type, name, address)
+       VALUES (?, ?, ?, ?)`,
         )
             .bind(sub, type, name, address || null)
             .run();
@@ -175,7 +177,8 @@ app.post('/suggestions', auth(), async (c) => {
             id: Number(insertedId),
         };
         return c.json(resp, 201);
-    } catch {
+    } catch (e) {
+        console.error('Error submitting suggestion', e);
         return c.json({error: 'Server error'}, 500);
     }
 });
