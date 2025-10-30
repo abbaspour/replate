@@ -42,14 +42,6 @@ rectangle "Business SPA + API\n(business.replate.dev / business.api)" as System 
 '  usecase "Update Logistics Company Details" as UCUpdateLogistics
 }
 
-' Auth and access rules (claims/scopes)
-note right of System
-  Audience: business.api
-  Requires claim: org_id present
-  Scopes as needed: read:organization, update:organization,
-  read:pickups, create:pickups, read:schedules, update:schedules
-end note
-
 ' Login applies to all personas
 SupplierMember -- UCLogin
 Driver -- UCLogin
