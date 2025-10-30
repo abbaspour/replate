@@ -62,15 +62,14 @@ CREATE INDEX idx_users_organization_id ON Users(organization_id);
 -------------------------------------------------
 CREATE TABLE Donations (
                           id INTEGER PRIMARY KEY AUTOINCREMENT,
-                          user_id INTEGER NOT NULL,
+                          auth0_user_id TEXT NOT NULL,
                           amount REAL NOT NULL,
                           currency TEXT NOT NULL,
                           status TEXT NOT NULL CHECK(status IN ('pending', 'succeeded', 'failed')),
                           testimonial TEXT,
-                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                          FOREIGN KEY (user_id) REFERENCES Users(id)
+                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_donations_user_id ON Donations(user_id);
+CREATE INDEX idx_donations_auth0_user_id ON Donations(auth0_user_id);
 
 
 -------------------------------------------------
@@ -105,7 +104,7 @@ CREATE TABLE PickupJobs (
                            supplier_id INTEGER NOT NULL,
                            community_id INTEGER,
                            logistics_id INTEGER,
-                           driver_id INTEGER,
+                           driver_auth0_user_id TEXT,
                            status TEXT NOT NULL DEFAULT 'New' CHECK(status IN ('New', 'Triage', 'Logistics Assigned', 'In Transit', 'Delivered', 'Canceled')),
                            pickup_window_start TEXT, -- ISO 8601 format
                            pickup_window_end TEXT,   -- ISO 8601 format
@@ -117,13 +116,12 @@ CREATE TABLE PickupJobs (
                            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            FOREIGN KEY (schedule_id) REFERENCES PickupSchedules(id),
                            FOREIGN KEY (supplier_id) REFERENCES Organizations(id),
-                          FOREIGN KEY (community_id) REFERENCES Organizations(id),
-                          FOREIGN KEY (logistics_id) REFERENCES Organizations(id),
-                          FOREIGN KEY (driver_id) REFERENCES Users(id)
+                           FOREIGN KEY (community_id) REFERENCES Organizations(id),
+                           FOREIGN KEY (logistics_id) REFERENCES Organizations(id)
 );
 CREATE INDEX idx_pickupjobs_status ON PickupJobs(status);
 CREATE INDEX idx_pickupjobs_supplier_id ON PickupJobs(supplier_id);
-CREATE INDEX idx_pickupjobs_driver_id ON PickupJobs(driver_id);
+CREATE INDEX idx_pickupjobs_driver_auth0_user_id ON PickupJobs(driver_auth0_user_id);
 
 
 -------------------------------------------------
@@ -132,17 +130,16 @@ CREATE INDEX idx_pickupjobs_driver_id ON PickupJobs(driver_id);
 -------------------------------------------------
 CREATE TABLE Suggestions (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            submitter_id INTEGER NOT NULL,
+                            submitter_auth0_user_id TEXT NOT NULL,
                             converted_organization_id INTEGER, -- The organization created from this suggestion
                             type TEXT NOT NULL CHECK(type IN ('supplier', 'community', 'logistics')),
                             name TEXT NOT NULL,
                             address TEXT,
                             qualification_status TEXT NOT NULL DEFAULT 'New' CHECK(qualification_status IN ('New', 'Contacted', 'Qualified', 'Rejected')),
                             submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            FOREIGN KEY (submitter_id) REFERENCES Users(id),
                             FOREIGN KEY (converted_organization_id) REFERENCES Organizations(id)
 );
-CREATE INDEX idx_suggestions_submitter_id ON Suggestions(submitter_id);
+CREATE INDEX idx_suggestions_submitter_auth0_user_id ON Suggestions(submitter_auth0_user_id);
 
 
 -------------------------------------------------
@@ -183,7 +180,7 @@ END;
 CREATE TABLE SsoInvitations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     organization_id INTEGER NOT NULL,
-    issuer_user_id INTEGER,
+    issuer_auth0_user_id TEXT,
     display_name TEXT,
     link TEXT NOT NULL,
     auth0_ticket_id TEXT,
@@ -192,8 +189,8 @@ CREATE TABLE SsoInvitations (
     accept_idp_init_saml INTEGER NOT NULL DEFAULT 0,
     ttl INTEGER NOT NULL DEFAULT 432000, -- seconds
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (organization_id) REFERENCES Organizations(id),
-    FOREIGN KEY (issuer_user_id) REFERENCES Users(id)
+    FOREIGN KEY (organization_id) REFERENCES Organizations(id)
 );
 CREATE INDEX idx_ssoinv_org_id ON SsoInvitations(organization_id);
 CREATE INDEX idx_ssoinv_created_at ON SsoInvitations(created_at);
+CREATE INDEX idx_ssoinv_issuer_auth0_user_id ON SsoInvitations(issuer_auth0_user_id);

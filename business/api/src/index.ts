@@ -21,23 +21,16 @@ export type Env = {
 
 // Utility: permission (Auth0 RBAC permissions array)
 function requirePermissions(c: Context<Env>, required: string[]): boolean {
-  const token: any = c.get('token');
+  const token: JWTPayload = c.get('token');
   const permissions = token?.permissions;
   if (!permissions || !Array.isArray(permissions)) return false;
   return required.every((p) => (permissions as string[]).includes(p));
 }
 
 function getOrgId(c: Context<Env>): string | undefined {
-  const token: any = c.get('token');
+  const token: JWTPayload = c.get('token');
   return token?.org_id as string | undefined;
 }
-
-/*
-function getOrgRole(c: Context<Env>): string | null {
-  const token: any = c.get('token');
-  return (token?.['https://replate.dev/org_role'] as string) ?? null;
-}
-*/
 
 async function verifyAccessToken(c: Context<Env>) {
   const auth = c.req.header('authorization') || '';
@@ -260,7 +253,7 @@ app.get('/jobs', async (c) => {
                       sup.auth0_org_id AS supplier_org_id,
                       com.auth0_org_id AS community_org_id,
                       logi.auth0_org_id AS logistics_org_id,
-                      j.driver_id AS driver_user_id
+                      j.driver_auth0_user_id AS driver_user_id
                  FROM PickupJobs j
             LEFT JOIN Organizations sup ON j.supplier_id = sup.id
             LEFT JOIN Organizations com ON j.community_id = com.id
@@ -268,10 +261,11 @@ app.get('/jobs', async (c) => {
                 WHERE 1=1`;
 
     if (role === 'driver') {
-      const d1Id = await getCallerD1UserId(c);
-      if (!d1Id) return c.json([], 200);
-      sql += ` AND j.driver_id = ? AND (j.supplier_id = ? OR j.community_id = ? OR j.logistics_id = ?)`;
-      params.push(d1Id, orgRow.id, orgRow.id, orgRow.id);
+      const token: any = c.get('token');
+      const sub = token?.sub as string | undefined;
+      if (!sub) return c.json([], 200);
+      sql += ` AND j.driver_auth0_user_id = ? AND (j.supplier_id = ? OR j.community_id = ? OR j.logistics_id = ?)`;
+      params.push(sub, orgRow.id, orgRow.id, orgRow.id);
     } else {
       sql += ` AND (j.supplier_id = ? OR j.community_id = ? OR j.logistics_id = ?)`;
       params.push(orgRow.id, orgRow.id, orgRow.id);
@@ -351,7 +345,7 @@ app.post('/jobs', async (c) => {
               sup.auth0_org_id AS supplier_org_id,
               com.auth0_org_id AS community_org_id,
               logi.auth0_org_id AS logistics_org_id,
-              j.driver_id AS driver_user_id
+              j.driver_auth0_user_id AS driver_user_id
          FROM PickupJobs j
     LEFT JOIN Organizations sup ON j.supplier_id = sup.id
     LEFT JOIN Organizations com ON j.community_id = com.id
@@ -399,18 +393,19 @@ app.patch('/jobs/:id', async (c) => {
   if (!['In Transit', 'Delivered'].includes(body.status)) return c.json({ error: 'Bad Request' }, 400);
 
   try {
-    const d1Id = await getCallerD1UserId(c);
-    if (!d1Id) return c.json({ error: 'Forbidden' }, 403);
+    const token: any = c.get('token');
+    const sub = token?.sub as string | undefined;
+    if (!sub) return c.json({ error: 'Forbidden' }, 403);
 
     const job = await c.env.DB.prepare(
-      `SELECT id, driver_id FROM PickupJobs WHERE id = ?`
+      `SELECT id, driver_auth0_user_id FROM PickupJobs WHERE id = ?`
     )
       .bind(id)
       .first<any>();
     if (!job) return c.json({ error: 'Not Found' }, 404);
 
     // Ensure the caller is the assigned driver
-    if (job.driver_id == null || Number(job.driver_id) !== Number(d1Id)) {
+    if (job.driver_auth0_user_id == null || String(job.driver_auth0_user_id) !== String(sub)) {
       return c.json({ error: 'Forbidden' }, 403);
     }
 
@@ -421,7 +416,7 @@ app.patch('/jobs/:id', async (c) => {
               sup.auth0_org_id AS supplier_org_id,
               com.auth0_org_id AS community_org_id,
               logi.auth0_org_id AS logistics_org_id,
-              j.driver_id AS driver_user_id
+              j.driver_auth0_user_id AS driver_user_id
          FROM PickupJobs j
     LEFT JOIN Organizations sup ON j.supplier_id = sup.id
     LEFT JOIN Organizations com ON j.community_id = com.id

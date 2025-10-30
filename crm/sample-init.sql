@@ -36,14 +36,14 @@ INSERT INTO Users (auth0_user_id, organization_id, email, email_verified, name, 
 ('auth0|consumer_005', NULL, 'michael.jones@email.com', 1, 'Michael Jones', 'https://example.com/michael.jpg', 1, NULL, NULL, 'donor_repeat');
 
 -- Sample Donations
-INSERT INTO Donations (user_id, amount, currency, status, testimonial) VALUES
-(11, 25.00, 'USD', 'succeeded', 'Happy to support food rescue efforts in our community!'),
-(12, 50.00, 'USD', 'succeeded', 'Great cause, keep up the excellent work.'),
-(11, 30.00, 'USD', 'succeeded', NULL),
-(13, 100.00, 'USD', 'succeeded', 'Amazing organization making a real difference!'),
-(15, 15.00, 'USD', 'succeeded', NULL),
-(12, 75.00, 'USD', 'pending', NULL),
-(13, 200.00, 'USD', 'succeeded', 'Proud to be part of reducing food waste while helping those in need.');
+INSERT INTO Donations (auth0_user_id, amount, currency, status, testimonial) VALUES
+('auth0|consumer_001', 25.00, 'USD', 'succeeded', 'Happy to support food rescue efforts in our community!'),
+('auth0|consumer_002', 50.00, 'USD', 'succeeded', 'Great cause, keep up the excellent work.'),
+('auth0|consumer_001', 30.00, 'USD', 'succeeded', NULL),
+('auth0|consumer_003', 100.00, 'USD', 'succeeded', 'Amazing organization making a real difference!'),
+('auth0|consumer_005', 15.00, 'USD', 'succeeded', NULL),
+('auth0|consumer_002', 75.00, 'USD', 'pending', NULL),
+('auth0|consumer_003', 200.00, 'USD', 'succeeded', 'Proud to be part of reducing food waste while helping those in need.');
 
 -- Sample Pickup Schedules
 INSERT INTO PickupSchedules (supplier_id, default_community_id, is_active, cron_expression, pickup_time_of_day, pickup_duration_minutes, default_food_category, default_estimated_weight_kg) VALUES
