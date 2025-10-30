@@ -1,0 +1,24 @@
+{
+    "name": "replate-business-api",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "dev": "wrangler dev src/index.ts",
+        "deploy": "wrangler deploy src/index.ts",
+        "format": "prettier --write .",
+        "types": "openapi-typescript ./spec/openapi.yaml --output ./src/api-types.ts"
+    },
+    "dependencies": {
+        "hono": "^4.5.7",
+        "jose": "^5.9.3",
+        "auth0": "^4.29.0"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20250909.0",
+        "openapi-typescript": "^7.9.1",
+        "typescript": "^5.9.2",
+        "prettier": "^3.6.2",
+        "wrangler": "^4.35.0"
+    }
+}
