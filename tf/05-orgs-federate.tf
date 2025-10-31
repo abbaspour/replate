@@ -1,10 +1,12 @@
 ## -- Okta --
 resource "okta_app_signon_policy" "only_1fa" {
+  provider = okta.business
   name        = "Replate Org 1FA policy"
   description = "Authentication Policy to be used simple apps."
 }
 
 resource "okta_app_signon_policy_rule" "only_1fa_rule" {
+  provider = okta.business
   policy_id                   = okta_app_signon_policy.only_1fa.id
   name                        = "Password only"
   factor_mode                 = "1FA"
@@ -23,12 +25,14 @@ resource "okta_app_signon_policy_rule" "only_1fa_rule" {
 # Okta Group for Federated Supplier employees
 # VISIT https://amin-admin.okta.com/admin/group/00g7583ngaQ9Nurc33l7
 resource "okta_group" "supplier_workforce" {
+  provider = okta.business
   name        = "Supplier Workforce"
   description = "Group for all Supplier workforce employees"
 }
 
 # RWA Application for Auth0 integration
 resource "okta_app_oauth" "replate-rwa" {
+  provider = okta.business
   label                      = "Replate Business Federation"
   type                       = "web"
   grant_types                = ["authorization_code"]
@@ -46,6 +50,7 @@ resource "okta_app_oauth" "replate-rwa" {
 }
 
 resource "okta_app_group_assignments" "replate-rwa-group-assignment" {
+  provider = okta.business
   app_id = okta_app_oauth.replate-rwa.id
   group {
     id = okta_group.supplier_workforce.id
@@ -54,6 +59,7 @@ resource "okta_app_group_assignments" "replate-rwa-group-assignment" {
 
 # Sample users for the workforce group
 resource "okta_user" "supplier-io_admin" {
+  provider = okta.business
   first_name = "Adam"
   last_name  = "Supplier"
   login      = "admin@supplier.io"
@@ -63,6 +69,7 @@ resource "okta_user" "supplier-io_admin" {
 }
 
 resource "okta_user" "supplier-io_member" {
+  provider = okta.business
   first_name = "Maria"
   last_name  = "Supplier"
   login      = "member@supplier.io"
@@ -74,6 +81,7 @@ resource "okta_user" "supplier-io_member" {
 
 # Assign users to the workforce group
 resource "okta_group_memberships" "supplier-io_members" {
+  provider = okta.business
   group_id = okta_group.supplier_workforce.id
   users = [
     okta_user.supplier-io_admin.id,

@@ -94,7 +94,7 @@ resource "auth0_connection" "replate_workforce" {
   options {
     client_id     = okta_app_oauth.auth0_rwa.client_id
     client_secret = okta_app_oauth.auth0_rwa.client_secret
-    domain        = "${var.okta_org_name}.${var.okta_base_url}"
+    domain        = "${var.okta_admin_org_name}.${var.okta_admin_base_url}"
 
     # OIDC configuration
     #discovery_url = "https://${var.okta_org_name}.${var.okta_base_url}/.well-known/openid-configuration"

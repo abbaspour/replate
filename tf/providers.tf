@@ -36,5 +36,13 @@ provider "okta" {
   org_name    = var.okta_org_name
   base_url    = var.okta_base_url
   api_token = var.okta_tf_api_token
+  alias = "business"
+}
+
+provider "okta" {
+  org_name    = var.okta_admin_org_name
+  base_url    = var.okta_admin_base_url
+  api_token = var.okta_admin_tf_api_token
+  alias = "admin"
 }
 

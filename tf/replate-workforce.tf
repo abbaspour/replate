@@ -1,11 +1,13 @@
 # Okta Group for Replate Workforce employees
 resource "okta_group" "replate_workforce" {
+  provider = okta.admin
   name        = "Replate Workforce"
   description = "Group for all Replate workforce employees"
 }
 
 # RWA Application for Auth0 integration
 resource "okta_app_oauth" "auth0_rwa" {
+  provider = okta.admin
   label                      = "Auth0 Workforce Federation"
   type                       = "web"
   grant_types                = ["authorization_code"]
@@ -24,6 +26,7 @@ resource "okta_app_oauth" "auth0_rwa" {
 }
 
 resource "okta_app_group_assignments" "auth0-rwa-group-assignment" {
+  provider = okta.admin
   app_id = okta_app_oauth.auth0_rwa.id
   group {
     id = okta_group.replate_workforce.id
@@ -32,6 +35,7 @@ resource "okta_app_group_assignments" "auth0-rwa-group-assignment" {
 
 # Sample users for the workforce group
 resource "okta_user" "workforce_user1" {
+  provider = okta.admin
   first_name = "John"
   last_name  = "Smith"
   login      = "john.smith@replate.dev"
@@ -41,6 +45,7 @@ resource "okta_user" "workforce_user1" {
 }
 
 resource "okta_user" "workforce_user2" {
+  provider = okta.admin
   first_name = "Jane"
   last_name  = "Doe"  
   login      = "jane.doe@replate.dev"
@@ -50,6 +55,7 @@ resource "okta_user" "workforce_user2" {
 }
 # Assign users to the workforce group
 resource "okta_group_memberships" "replate_workforce_members" {
+  provider = okta.admin
   group_id = okta_group.replate_workforce.id
   users = [
     okta_user.workforce_user1.id,
