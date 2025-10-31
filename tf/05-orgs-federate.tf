@@ -21,6 +21,7 @@ resource "okta_app_signon_policy_rule" "only_1fa_rule" {
 }
 
 # Okta Group for Federated Supplier employees
+# VISIT https://amin-admin.okta.com/admin/group/00g7583ngaQ9Nurc33l7
 resource "okta_group" "supplier_workforce" {
   name        = "Supplier Workforce"
   description = "Group for all Supplier workforce employees"
