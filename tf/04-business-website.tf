@@ -264,19 +264,14 @@ resource "auth0_role_permissions" "community-member-perms" {
   }
 }
 
-// -- sample db and sample org for supplier --
-resource "auth0_organization" "test-supplier-org" {
-  name = "acme-supplier"
-  display_name = "acme-supplier"
-}
-
-resource "auth0_connection" "test-supplier-org-db" {
-  name     = "acme-supplier"
+// business users DB
+resource "auth0_connection" "business-db" {
+  name     = "business"
   strategy = "auth0"
 }
 
-resource "auth0_connection_clients" "test-supplier-org-db-clients" {
-  connection_id = auth0_connection.test-supplier-org-db.id
+resource "auth0_connection_clients" "business-db-clients" {
+  connection_id = auth0_connection.business-db.id
   enabled_clients = [
     var.auth0_tf_client_id,
     data.auth0_client.default-app.client_id,
@@ -284,23 +279,32 @@ resource "auth0_connection_clients" "test-supplier-org-db-clients" {
   ]
 }
 
+// -- sample db and sample org for supplier --
+resource "auth0_organization" "test-supplier-org" {
+  name = "acme-supplier"
+  display_name = "ACME Supplier"
+  branding {
+    logo_url = "https://media.licdn.com/dms/image/v2/D4D0BAQFVEDpTiYC7uA/company-logo_100_100/B4DZde9L2TGUAQ-/0/1749644787666/supplierpay_logo?e=1763596800&v=beta&t=R-N5Y11fjYevt4JFg7CEeSgSlsPc2HAR_Xml-jshytg"
+  }
+}
+
 resource "auth0_organization_connections" "test-supplier-connections" {
   organization_id = auth0_organization.test-supplier-org.id
   enabled_connections {
-    connection_id = auth0_connection.test-supplier-org-db.id
+    connection_id = auth0_connection.business-db.id
   }
 }
 
 resource "auth0_user" "test-supplier-admin" {
-  connection_name = auth0_connection.test-supplier-org-db.name
-
+  depends_on = [auth0_connection.business-db]
+  connection_name = auth0_connection.business-db.name
   email = "admin@supplier.org"
   password = var.default-password
 }
 
 resource "auth0_user" "test-supplier-member" {
-  connection_name = auth0_connection.test-supplier-org-db.name
-
+  depends_on = [auth0_connection.business-db]
+  connection_name = auth0_connection.business-db.name
   email = "member@supplier.org"
   password = var.default-password
 }
@@ -339,40 +343,29 @@ resource "auth0_organization_member_roles" "test-supplier-members" {
 // -- sample db and sample org for test community --
 resource "auth0_organization" "test-community-org" {
   name = "acme-community"
-  display_name = "acme-community"
-}
-
-resource "auth0_connection" "test-community-org-db" {
-  name     = "acme-community"
-  strategy = "auth0"
-}
-
-resource "auth0_connection_clients" "test-community-org-db-clients" {
-  connection_id = auth0_connection.test-community-org-db.id
-  enabled_clients = [
-    var.auth0_tf_client_id,
-    data.auth0_client.default-app.client_id,
-    auth0_client.business.client_id
-  ]
+  display_name = "ACME Community"
+  branding {
+    logo_url = "https://media.licdn.com/dms/image/v2/C560BAQHeJjOy9xiXAg/company-logo_200_200/company-logo_200_200/0/1630585785025/community_health_network_logo?e=1763596800&v=beta&t=4E7hgzesvOxL0TMAkcJT8jW1f1MXbHrKxJXouEmv0us"
+  }
 }
 
 resource "auth0_organization_connections" "test-community-connections" {
   organization_id = auth0_organization.test-community-org.id
   enabled_connections {
-    connection_id = auth0_connection.test-community-org-db.id
+    connection_id = auth0_connection.business-db.id
   }
 }
 
 resource "auth0_user" "test-community-admin" {
-  connection_name = auth0_connection.test-community-org-db.name
-
+  depends_on = [auth0_connection.business-db]
+  connection_name = auth0_connection.business-db.name
   email = "admin@community.org"
   password = var.default-password
 }
 
 resource "auth0_user" "test-community-member" {
-  connection_name = auth0_connection.test-community-org-db.name
-
+  depends_on = [auth0_connection.business-db]
+  connection_name = auth0_connection.business-db.name
   email = "member@community.org"
   password = var.default-password
 }
@@ -405,4 +398,64 @@ resource "auth0_organization_member_roles" "test-community-members" {
     auth0_role.community-member.id
   ]
   user_id         = auth0_user.test-community-member.id
+}
+
+// -- sample db and sample org for test logistics --
+resource "auth0_organization" "test-logistics-org" {
+  name = "acme-logistics"
+  display_name = "ACME Logistics"
+  branding {
+    logo_url = "https://media.licdn.com/dms/image/v2/C4E0BAQHdZBFG1mvW3A/company-logo_200_200/company-logo_200_200/0/1630618643965/express_logistics_logo?e=1763596800&v=beta&t=Ibv8y78ymX4eYbJ4rzXKAkn8L4XIrq0imtoEeC5rSek"
+  }
+}
+
+resource "auth0_organization_connections" "test-logistics-connections" {
+  organization_id = auth0_organization.test-logistics-org.id
+  enabled_connections {
+    connection_id = auth0_connection.business-db.id
+  }
+}
+
+resource "auth0_user" "test-logistics-admin" {
+  depends_on = [auth0_connection.business-db]
+  connection_name = auth0_connection.business-db.name
+  email = "admin@logistics.org"
+  password = var.default-password
+}
+
+resource "auth0_user" "test-logistics-driver" {
+  depends_on = [auth0_connection.business-db]
+  connection_name = auth0_connection.business-db.name
+  email = "driver@logistics.org"
+  password = var.default-password
+}
+
+resource "auth0_organization_members" "test-logistics-members" {
+  organization_id = auth0_organization.test-logistics-org.id
+  members = [
+    auth0_user.test-logistics-admin.id,
+    auth0_user.test-logistics-driver.id
+  ]
+}
+
+resource "auth0_organization_member_roles" "test-logistics-admin" {
+  depends_on = [
+    auth0_organization_members.test-logistics-members
+  ]
+  organization_id = auth0_organization.test-logistics-org.id
+  roles = [
+    auth0_role.logistics-admin.id
+  ]
+  user_id         = auth0_user.test-logistics-admin.id
+}
+
+resource "auth0_organization_member_roles" "test-logistics-drivers" {
+  depends_on = [
+    auth0_organization_members.test-logistics-members
+  ]
+  organization_id = auth0_organization.test-logistics-org.id
+  roles = [
+    auth0_role.logistics-driver.id
+  ]
+  user_id         = auth0_user.test-logistics-driver.id
 }
