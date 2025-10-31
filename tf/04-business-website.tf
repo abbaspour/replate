@@ -1,4 +1,4 @@
-# donor SPA client
+# business SPA client
 resource "auth0_client" "business" {
   name            = "Business SPA"
   description     = "Business SPA client"
@@ -30,7 +30,7 @@ resource "auth0_client" "business" {
   organization_require_behavior = "post_login_prompt"
 }
 
-# Generate auth config file for donor SPA
+# Generate auth config file for business SPA
 resource "local_file" "business_auth_config_json" {
   filename = "${path.module}/../business/spa/public/auth_config.json"
   content  = <<-EOT
@@ -45,7 +45,8 @@ EOT
 }
 
 
-# Auth0 resource server for donor API
+# Auth0 resource server for business API
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/apis/68c240fb3efe380648c9ea70/settings
 resource "auth0_resource_server" "business_api" {
   name       = "Business API"
   identifier = "business.api"
@@ -63,8 +64,7 @@ resource "auth0_resource_server" "business_api" {
   token_dialect = "access_token_authz"
 }
 
-# Define scopes for donor API
-
+# Define scopes for business API
 resource "auth0_resource_server_scopes" business-api-scopes {
   resource_server_identifier = auth0_resource_server.business_api.identifier
 
@@ -108,6 +108,7 @@ resource "auth0_resource_server_scopes" business-api-scopes {
 }
 
 // -- Roles
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/roles
 resource "auth0_role" "supplier-admin" {
   name = "Supplier Admin"
 }
@@ -139,6 +140,7 @@ resource "auth0_role" "community-member" {
 # Using latest syntax per Terraform Auth0 provider (auth0_role_permissions)
 # Each block manages the full permission set for the role.
 
+// -- supplier --
 resource "auth0_role_permissions" "supplier-admin-perms" {
   role_id = auth0_role.supplier-admin.id
 
@@ -223,6 +225,7 @@ resource "auth0_role_permissions" "logistics-driver-perms" {
   }
 }
 
+// -- community --
 resource "auth0_role_permissions" "community-admin-perms" {
   role_id = auth0_role.community-admin.id
 
@@ -259,4 +262,147 @@ resource "auth0_role_permissions" "community-member-perms" {
     name                       = "update:schedules"
     resource_server_identifier = auth0_resource_server.business_api.identifier
   }
+}
+
+// -- sample db and sample org for supplier --
+resource "auth0_organization" "test-supplier-org" {
+  name = "acme-supplier"
+  display_name = "acme-supplier"
+}
+
+resource "auth0_connection" "test-supplier-org-db" {
+  name     = "acme-supplier"
+  strategy = "auth0"
+}
+
+resource "auth0_connection_clients" "test-supplier-org-db-clients" {
+  connection_id = auth0_connection.test-supplier-org-db.id
+  enabled_clients = [
+    var.auth0_tf_client_id,
+    data.auth0_client.default-app.client_id,
+    auth0_client.business.client_id
+  ]
+}
+
+resource "auth0_organization_connections" "test-supplier-connections" {
+  organization_id = auth0_organization.test-supplier-org.id
+  enabled_connections {
+    connection_id = auth0_connection.test-supplier-org-db.id
+  }
+}
+
+resource "auth0_user" "test-supplier-admin" {
+  connection_name = auth0_connection.test-supplier-org-db.name
+
+  email = "admin@supplier.org"
+  password = var.default-password
+}
+
+resource "auth0_user" "test-supplier-member" {
+  connection_name = auth0_connection.test-supplier-org-db.name
+
+  email = "member@supplier.org"
+  password = var.default-password
+}
+
+resource "auth0_organization_members" "test-supplier-members" {
+  organization_id = auth0_organization.test-supplier-org.id
+  members = [
+    auth0_user.test-supplier-admin.id,
+    auth0_user.test-supplier-member.id
+  ]
+}
+
+resource "auth0_organization_member_roles" "test-supplier-admin" {
+  depends_on = [
+    auth0_organization_members.test-supplier-members
+  ]
+  organization_id = auth0_organization.test-supplier-org.id
+  roles = [
+    auth0_role.supplier-admin.id
+  ]
+  user_id         = auth0_user.test-supplier-admin.id
+}
+
+resource "auth0_organization_member_roles" "test-supplier-members" {
+  depends_on = [
+    auth0_organization_members.test-supplier-members
+  ]
+  organization_id = auth0_organization.test-supplier-org.id
+  roles = [
+    auth0_role.supplier-member.id
+  ]
+  user_id         = auth0_user.test-supplier-member.id
+}
+
+
+// -- sample db and sample org for test community --
+resource "auth0_organization" "test-community-org" {
+  name = "acme-community"
+  display_name = "acme-community"
+}
+
+resource "auth0_connection" "test-community-org-db" {
+  name     = "acme-community"
+  strategy = "auth0"
+}
+
+resource "auth0_connection_clients" "test-community-org-db-clients" {
+  connection_id = auth0_connection.test-community-org-db.id
+  enabled_clients = [
+    var.auth0_tf_client_id,
+    data.auth0_client.default-app.client_id,
+    auth0_client.business.client_id
+  ]
+}
+
+resource "auth0_organization_connections" "test-community-connections" {
+  organization_id = auth0_organization.test-community-org.id
+  enabled_connections {
+    connection_id = auth0_connection.test-community-org-db.id
+  }
+}
+
+resource "auth0_user" "test-community-admin" {
+  connection_name = auth0_connection.test-community-org-db.name
+
+  email = "admin@community.org"
+  password = var.default-password
+}
+
+resource "auth0_user" "test-community-member" {
+  connection_name = auth0_connection.test-community-org-db.name
+
+  email = "member@community.org"
+  password = var.default-password
+}
+
+resource "auth0_organization_members" "test-community-members" {
+  organization_id = auth0_organization.test-community-org.id
+  members = [
+    auth0_user.test-community-admin.id,
+    auth0_user.test-community-member.id
+  ]
+}
+
+resource "auth0_organization_member_roles" "test-community-admin" {
+  depends_on = [
+    auth0_organization_members.test-community-members
+  ]
+  organization_id = auth0_organization.test-community-org.id
+  roles = [
+    auth0_role.community-admin.id
+  ]
+  user_id         = auth0_user.test-community-admin.id
+}
+
+resource "auth0_organization_member_roles" "test-community-members" {
+  depends_on = [
+    auth0_organization_members.test-community-members
+  ]
+  organization_id = auth0_organization.test-community-org.id
+  roles = [
+    auth0_role.community-member.id
+  ]
+  user_id         = auth0_user.test-community-member.id
 }
