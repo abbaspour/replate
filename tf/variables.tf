@@ -57,7 +57,7 @@ variable "cloudflare_d1_db_name" {
   default     = "replate-crm"
 }
 
-## okta
+## okta (for replate customers)
 variable "okta_org_name" {
   type        = string
   description = "Okta org name"
@@ -77,6 +77,23 @@ variable "okta_tf_api_token" {
 }
 
 variable "okta_base_url" {
+  type = string
+  default = "okta.com"
+}
+
+## Okta admin (for replate workforce team)
+variable "okta_admin_org_name" {
+  type        = string
+  description = "Okta admin org name"
+}
+
+variable "okta_admin_tf_api_token" {
+  type        = string
+  description = "Okta Admin Terraform API token"
+  sensitive = true
+}
+
+variable "okta_admin_base_url" {
   type = string
   default = "okta.com"
 }
