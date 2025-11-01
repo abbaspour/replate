@@ -304,11 +304,11 @@ output "cloudflare_d1_donor_id" {
 }
 
 output "cloudflare_d1_donor_name" {
-  description = "Name of the Cloudflare D1 CRM database"
+  description = "Name of the Cloudflare D1 Donor database"
   value       = cloudflare_d1_database.donor.name
 }
 
-# Generate wrangler.toml file for the CRM directory
+# Generate wrangler.toml file for the donor db
 resource "local_file" "donor-db_wrangler_toml" {
   filename = "${path.module}/../donor/db/wrangler.toml"
   content  = <<-EOT

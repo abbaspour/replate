@@ -70,12 +70,6 @@ output "okta_rwa_client_id" {
   description = "Client ID for Auth0 Okta connection"
 }
 
-output "okta_rwa_client_secret" {
-  value = okta_app_oauth.auth0_rwa.client_secret
-  sensitive = true
-  description = "Client secret for Auth0 Okta connection"
-}
-
 output "okta_domain" {
   value = "${var.okta_org_name}.${var.okta_base_url}"
   description = "Okta domain for Auth0 connection"
