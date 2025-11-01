@@ -1,11 +1,3 @@
-terraform {
-  required_providers {
-    random = {
-      source  = "hashicorp/random"
-      version = "3.7.2"
-    }
-  }
-}
 # Auth0 resource server for donor API
 resource "auth0_resource_server" "admin_api" {
   name       = "Admin API"

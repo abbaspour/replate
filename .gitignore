@@ -7,3 +7,4 @@ auth_config.json
 package-lock.json
 .env
 readme.pdf
+wrangler.toml
