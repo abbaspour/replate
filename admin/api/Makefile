@@ -1,4 +1,4 @@
-goal: help
+goal: build
 
 SECRETS_FILE = .env
 
@@ -7,6 +7,8 @@ build:
 
 api-types: ./spec/openapi.yaml
 	npx openapi-typescript ./spec/openapi.yaml --output ./src/api-types.ts
+
+apply: deploy
 
 deploy:
 	npx wrangler deploy

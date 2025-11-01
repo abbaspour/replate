@@ -24,5 +24,5 @@ AUTH0_ISSUER = "https://id.replate.dev/"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "replate-crm"
-database_id = "853a7d3f-50b0-4170-a73a-7a5d34500b36"
+database_name = "replate-donor"
+database_id = "8fa1e104-5cf5-484e-8245-78e7074b1ed1"

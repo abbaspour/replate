@@ -53,7 +53,7 @@ We have a high-level working prototype that's built on top of the following inte
     - `business.`: for businesses users
     - `admin.`: for replate admin users
 - Auth0 for CIAM
-- Cloudflare D1 for our core operational database and CRM
+- Cloudflare D1 per-component operational databases (Admin, Business, Donor)
 - Terraform for platform provisioning
 - [ReactAdmin](https://marmelab.com/react-admin/) is a front-end SPA technology for business website `business.`
 - Client side React is a front-end SPA technology for consumer website `donor.`
@@ -73,13 +73,15 @@ We have a high-level working prototype that's built on top of the following inte
     - **admin/spa** single page application (SPA) for replate users. Only members of Replate Organization can log in to
       this website
     - **admin/api** APIs that power admin app
+    - **admin/db** D1 database DDL and scripts that power admin API
 - **donor/** Consumer application and API
     - **donor/spa** single page application (SPA) for donors
     - **donor/api** APIs that power donor app
+    - **donor/db** D1 database DDL and scripts that power donor API
 - **business/** Business application and API
     - **business/spa** single page application (SPA) for business users
     - **business/api** APIs that power business app
-- **crm/** Data model SQL files and scripts
+    - **business/db** D1 database DDL and scripts that power business API
 - **auth0/** Auth0 configuration and supporting assets
     - **auth0/actions** Actions source code
     - **auth0/api** contains API exposed to Auth0 for Event streaming and Actions
@@ -222,17 +224,21 @@ Community Member is a member of a community organisation in Auth0
 1. Can **log in** to the business website with the SSO that their admin has set up. SSO is powered with HRD.
 2. Can **view and update the delivery schedule**.
 
-# Core Data Model in CRM
+# Data Model and Storage (Per-Component D1 Databases)
 
-The API layer doesn't have a DB layer on its own. Two sources of backend for the API are:
+Each API uses two backend sources:
 
-1. Auth0 CIAM data is accessed with the Auth0 management API. To access data, the API layer has a confidential M2M
-   client with the Auth0 management API granted and occasionally performs a client credentials grant to obtain a valid
-   access token to call the management API.
-2. Cloudflare D1 relational database. Contains a mirror of users and organizations from Auth0 as well as other
-   operational tables like Pickups, Suggestions, Donation.
+1. Auth0 CIAM data, accessed with the Auth0 Management API using a confidential M2M client to obtain tokens as needed.
+2. A per-component Cloudflare D1 relational database bound to the Worker for that API.
 
-![Data Model](./crm/crm.png)
+Per-Component D1 Databases:
+- Admin DB (admin/db): Organizations, Users, SsoInvitations
+- Business DB (business/db): PickupSchedules, PickupJobs
+- Donor DB (donor/db): Donations, Suggestions
+
+Note: The diagram below illustrates the logical data model; in implementation this is split across the three D1 databases listed above.
+
+![Data Model](./business/db/crm.png)
 
 ## 1) `Users` Table
 
@@ -422,12 +428,12 @@ base path is `/api/`
     - **Permissions**: Requires a token with `update:organization` permission. User must be an 'Admin' of `{orgId}`.
 - **`GET /jobs`**: Fetches a list of pickup jobs for the user's organization.
     - **Permissions**: Requires a token with `read:pickups` permission.
-    - **Implementation**: Lists records from the PickupJob table, filtering by the Organization record associated with
+    - **Implementation**: Lists records from the PickupJobs table, filtering by the Organization record associated with
       the
       caller’s auth0_org_id claim.
 - **`POST /jobs`**: Creates a new ad-hoc pickup job.
     - **Permissions**: Requires a token with `create:pickups` permission.
-    - **Implementation**: Creates a new record in the PickupJob table with a NULL schedule_id; links the Supplier
+    - **Implementation**: Creates a new record in the PickupJobs table with a NULL schedule_id; links the Supplier
       organization from the caller’s org.
 - **`PATCH /jobs/{id}`**: marks a job as in-progress or completed.
     - **Permissions**: transitions restricted by permission `update:pickups`
@@ -449,8 +455,7 @@ The full contract is defined in `admin/api/spec/openapi.yaml`. All development m
 path is `/api/`
 
 These endpoints support workforce Admin operations described earlier (inviting organizations for self‑service SSO,
-checking invitation status, and listing organizations). Admin API runs as a Cloudflare Worker using Hono and typically
-calls Cloudflare D1 for CRM and Auth0 Management API.
+checking invitation status, and listing organizations). Admin API runs as a Cloudflare Worker using Hono and uses its Admin D1 database (admin/db) and the Auth0 Management API.
 
 Admin API is backed by two systems:
 
@@ -464,7 +469,7 @@ Admin API is backed by two systems:
         - Finds the organization in Organizations table (via Management API), setting display name and domain used for
           HRD.
         - Calls Auth0 management API to create self-service SSO invitation link
-        - Creates an invitation row in SelfServiceSSOInvitations table. `link` and `auth0_link_id` are from the Auth0
+        - Creates an invitation row in SsoInvitations table. `link` and `auth0_ticket_id` are from the Auth0
           management API call response.
         - updates the Organization record in D1 with. sets `sso_status` to `invited`.
     - Permissions: Requires an admin workforce token with permission `create:sso_invitations`.
@@ -479,12 +484,12 @@ Admin API is backed by two systems:
 
 - **`DELETE /organizations/{orgId}/sso-invitations/{invtId}`**: Deletes an invitation and revokes it from Auth0
     - Permissions: Requires `delete:sso_invitations`.
-    - Implementation: finds record in SelfServiceSSOInvitations and revokes Auth0 invitation.
+    - Implementation: finds record in SsoInvitations and revokes the Auth0 invitation.
     - Response: `{ "archived": true }`
 
 - **`GET /organizations`**: Lists organizations known to Replate.
     - Query Params: `org_type`, `sso_status`, `q`.
-    - Implementation: Reads from D1 `Organization` table. Supports pagination.
+    - Implementation: Reads from Admin D1 `Organizations` table. Supports pagination.
     - Permissions: Requires `read:organizations`.
     - Response:
       `[{ "auth0_org_id": "org_abc123", "name": "Acme Bakery", "org_type": "supplier", "domain": "acme.com", "sso_status": "configured" }]`
@@ -792,7 +797,7 @@ Sample access_token. `org_id` is nullable for donors.
 | 03 | [s-03.txt](./videos/03/s-03.txt) | [s-03.mp4](./videos/03/s-03.mp4) | Donor    | Social login & account linking    |
 | 04 | [s-04.txt](./videos/04/s-04.txt) | [s-04.mp4](./videos/04/s-04.mp4) | Business | Credential login & RBAC & Chiclet |
 | 05 | [s-05.txt](./videos/05/s-05.txt) | [s-05.mp4](./videos/05/s-05.mp4) | Business | Federation and HRD                |
-| 06 | [s-06.txt](./videos/06/s-06.txt) | [s-06.mp4](./videos/06/s-06.mp4) | Business | SS-SSO, SCIM                      |
+| 06 | [s-06.txt](./videos/06/s-06.txt) | [s-06.mp4](./videos/06/s-06.mp4) | Business | SS-SSO, Admin website             |
 | 07 | [s-07.txt](./videos/07/s-07.txt) | [s-07.mp4](./videos/07/s-07.mp4) | Both     | RTL & ACL                         |
 | 08 | [s-08.txt](./videos/08/s-08.txt) | [s-08.mp4](./videos/08/s-08.mp4) | Donor    | Bulk import & Forms               |
 | 09 | [s-09.txt](./videos/09/s-09.txt) | [s-09.mp4](./videos/09/s-09.mp4) | Donor    | MCD                               |

@@ -6,6 +6,7 @@ import {ManagementClient} from "auth0";
 
 // Types generated from OpenAPI (kept minimal here)
 import type {components} from "./api-types";
+import eventsApp from "./event";
 
 // Environment bindings
 export type Env = {
@@ -22,6 +23,7 @@ export type Env = {
         AUTH0_DOMAIN: string; // e.g., replate-prd.au.auth0.com or id.replate.dev
         SELF_SERVICE_SSO_PROFILE_ID: string; // Auth0 Self-Service Profile ID
         BUSINESS_SPA_CLIENT_ID: string; // business spa app client_id
+        EVENTS_API_TOKEN: string;  // for events bearer auth
     };
 };
 
@@ -115,6 +117,9 @@ async function createAuth0Organization(env: Env["Bindings"], params: {name: stri
 }
 
 app.use("*", cors());
+
+// Mount events sub-app at /api/events
+app.route('/events', eventsApp);
 
 // Health endpoint
 app.get("/health", (c) => c.json({ok: true}));
@@ -527,7 +532,7 @@ app.get('/users', async (c) => {
         o.auth0_org_id AS org_id,
         o.name AS org_name
       FROM Users u
-      LEFT JOIN Organizations o ON o.id = u.organization_id
+      LEFT JOIN Organizations o ON o.auth0_org_id = u.auth0_org_id
       WHERE 1=1`;
     const params: any[] = [];
     if (q) {
@@ -540,6 +545,8 @@ app.get('/users', async (c) => {
     }
     sql += ' ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
     params.push(parseInt(per_page), offset);
+
+    console.log('query user with:', sql, params);
 
     try {
         const rs = await c.env.DB.prepare(sql).bind(...params).all<any>();
@@ -561,6 +568,7 @@ app.get('/users', async (c) => {
         }));
         return c.json(data);
     } catch (e) {
+        console.log('exception listing users', e);
         return c.json({ error: 'Server error' }, 500);
     }
 });
@@ -588,7 +596,7 @@ app.get('/users/:id', async (c) => {
             o.auth0_org_id AS org_id,
             o.name AS org_name
           FROM Users u
-          LEFT JOIN Organizations o ON o.id = u.organization_id
+          LEFT JOIN Organizations o ON o.auth0_org_id = u.auth0_org_id
           WHERE u.id = ?
         `).bind(id).first<any>();
         if (!rs) return c.json({ error: 'Not Found' }, 404);
