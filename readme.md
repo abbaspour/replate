@@ -232,7 +232,7 @@ The API layer doesn't have a DB layer on its own. Two sources of backend for the
 2. Cloudflare D1 relational database. Contains a mirror of users and organizations from Auth0 as well as other
    operational tables like Pickups, Suggestions, Donation.
 
-![Data Model](./crm/crm.png)
+![Data Model](./business/db/crm.png)
 
 ## 1) `Users` Table
 
