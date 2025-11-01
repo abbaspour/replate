@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    random = {
+      source  = "hashicorp/random"
+      version = "3.7.2"
+    }
+  }
+}
 # Auth0 resource server for donor API
 resource "auth0_resource_server" "admin_api" {
   name       = "Admin API"
@@ -247,6 +255,10 @@ resource "auth0_client_grant" "admin_api_m2m_mgmt_grant" {
   ]
 }
 
+resource "random_string" "event-api-token" {
+  length = 64
+}
+
 # Create .dev.vars file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
 resource "local_file" "admin_api-dot-dev" {
   filename = "${path.module}/../admin/api/.env"
@@ -257,5 +269,6 @@ AUTH0_CLIENT_ID=${auth0_client.admin_api_m2m.client_id}
 AUTH0_CLIENT_SECRET=${data.auth0_client.admin_api_m2m.client_secret}
 SELF_SERVICE_SSO_PROFILE_ID=${auth0_self_service_profile.ss-sso-profile.id}
 BUSINESS_SPA_CLIENT_ID=${auth0_client.business.client_id}
+EVENTS_API_TOKEN=${random_string.event-api-token.result}
 EOT
 }

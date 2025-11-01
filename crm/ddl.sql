@@ -25,8 +25,8 @@ CREATE TABLE Organizations (
                          delivery_address TEXT,
                          coverage_regions TEXT,
                          vehicle_types TEXT, -- Stored as a JSON array string '["van", "truck"]'
-                         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_organizations_auth0_org_id ON Organizations(auth0_org_id);
 CREATE INDEX idx_organizations_org_type ON Organizations(org_type);
@@ -42,14 +42,25 @@ CREATE TABLE Users (
                          auth0_org_id TEXT,
                          email TEXT NOT NULL,
                          email_verified INTEGER NOT NULL DEFAULT 0, -- Boolean (0=false, 1=true)
+                         blocked INTEGER NOT NULL DEFAULT 0, -- Boolean
                          name TEXT,
                          picture TEXT,
+                         family_name TEXT,
+                         given_name TEXT,
+                         nickname TEXT,
+                         phone_number TEXT,
+                         phone_verified INTEGER NOT NULL DEFAULT 0, -- Boolean
+                         user_metadata TEXT,
+                         app_metadata TEXT,
+                         identities TEXT,
+                         -- Existing business fields
                          donor INTEGER NOT NULL DEFAULT 0, -- Boolean
                          org_role TEXT CHECK(org_role IN ('admin', 'member', 'driver')),
                          org_status TEXT CHECK(org_status IN ('invited', 'active', 'suspended')),
                          consumer_lifecycle_stage TEXT DEFAULT 'registered' CHECK(consumer_lifecycle_stage IN ('visitor', 'registered', 'donor_first_time', 'donor_repeat', 'advocate')),
-                         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         last_event_processed TIMESTAMP
 );
 CREATE INDEX idx_users_auth0_user_id ON Users(auth0_user_id);
 CREATE INDEX idx_users_auth0_org_id ON Users(auth0_org_id);
@@ -66,7 +77,7 @@ CREATE TABLE Donations (
                           currency TEXT NOT NULL,
                           status TEXT NOT NULL CHECK(status IN ('pending', 'succeeded', 'failed')),
                           testimonial TEXT,
-                          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_donations_auth0_user_id ON Donations(auth0_user_id);
 
@@ -85,8 +96,8 @@ CREATE TABLE PickupSchedules (
                                 pickup_duration_minutes INTEGER NOT NULL,
                                 default_food_category TEXT, -- Stored as a JSON array string
                                 default_estimated_weight_kg REAL,
-                                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_pickupschedules_supplier_auth0_org_id ON PickupSchedules(supplier_auth0_org_id);
 
@@ -110,8 +121,8 @@ CREATE TABLE PickupJobs (
                            estimated_weight_kg REAL,
                            packaging TEXT,
                            handling_notes TEXT,
-                           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                           updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            FOREIGN KEY (schedule_id) REFERENCES PickupSchedules(id)
 );
 CREATE INDEX idx_pickupjobs_status ON PickupJobs(status);
@@ -183,7 +194,7 @@ CREATE TABLE SsoInvitations (
     domain_verification TEXT CHECK(domain_verification IN ('Off','Optional','Required')),
     accept_idp_init_saml INTEGER NOT NULL DEFAULT 0,
     ttl INTEGER NOT NULL DEFAULT 432000, -- seconds
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_ssoinv_org_id ON SsoInvitations(auth0_org_id);
 CREATE INDEX idx_ssoinv_created_at ON SsoInvitations(created_at);
