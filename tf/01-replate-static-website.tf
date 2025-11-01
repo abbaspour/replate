@@ -1,3 +1,15 @@
+# Get the DNS zone for the top level domain
+data "cloudflare_zone" "replate-dev" {
+  filter = {
+    name = var.top_level_domain
+  }
+}
+
+locals {
+  placeholder_ipv4 = "192.0.2.1" # placeholder IPv4 so traffic goes to worker routes
+  placeholder_ipv6 = "100::"     # placeholder IPv6 so traffic goes to worker routes
+}
+
 # Apex (root) domain records - required for redirecting replate.dev -> www.replate.dev
 resource "cloudflare_dns_record" "root_a" {
   zone_id = data.cloudflare_zone.replate-dev.zone_id

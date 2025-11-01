@@ -1,3 +1,23 @@
+# IPv4 - A
+resource "cloudflare_dns_record" "business" {
+  zone_id = data.cloudflare_zone.replate-dev.zone_id
+  name    = "business"
+  content = local.placeholder_ipv4
+  type    = "A"
+  proxied = true
+  ttl     = 1
+}
+
+# IPv6 - AAAA
+resource "cloudflare_dns_record" "businessV6" {
+  zone_id = data.cloudflare_zone.replate-dev.zone_id
+  name    = "business"
+  content = local.placeholder_ipv6
+  type    = "AAAA"
+  proxied = true
+  ttl     = 1
+}
+
 # business SPA client
 resource "auth0_client" "business" {
   name            = "Business SPA"

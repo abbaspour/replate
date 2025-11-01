@@ -1,3 +1,23 @@
+# IPv4 - A
+resource "cloudflare_dns_record" "admin" {
+  zone_id = data.cloudflare_zone.replate-dev.zone_id
+  name    = "admin"
+  content = local.placeholder_ipv4
+  type    = "A"
+  proxied = true
+  ttl     = 1
+}
+
+# IPv6 - AAAA
+resource "cloudflare_dns_record" "adminV6" {
+  zone_id = data.cloudflare_zone.replate-dev.zone_id
+  name    = "admin"
+  content = local.placeholder_ipv6
+  type    = "AAAA"
+  proxied = true
+  ttl     = 1
+}
+
 resource "auth0_self_service_profile" "ss-sso-profile" {
   name = "Replate Self-Service Single Sign On Onboarding"
   branding {
