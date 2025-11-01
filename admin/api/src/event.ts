@@ -40,15 +40,18 @@ interface User {
     picture?: string;
 }
 
-eventsApp.use('/*', async (c, next) => {
+/*
+eventsApp.use('/!*', async (c, next) => {
     const auth = bearerAuth({
         token: c.env.EVENTS_API_TOKEN,
     });
     return auth(c, next);
 });
+*/
 
 // Handle POST requests to the /events endpoint
 eventsApp.post('/', async (c) => {
+    console.log('Received Auth0 webhook event:', JSON.stringify(c.req.json(), null, 2));
     try {
         // Parse the JSON body from the request
         const eventData = await c.req.json();

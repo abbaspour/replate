@@ -51,12 +51,6 @@ variable "cloudflare_email" {
   description = "Cloudflare Account Email"
 }
 
-variable "cloudflare_d1_db_name" {
-  type        = string
-  description = "Name for the CRM D1 database."
-  default     = "replate-crm"
-}
-
 ## okta (for replate customers)
 variable "okta_org_name" {
   type        = string
