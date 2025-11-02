@@ -361,7 +361,7 @@ app.get("/organizations/:orgId/sso-invitations", async (c) => {
         s.created_at AS created_at,
         CASE WHEN (strftime('%s','now') > (strftime('%s', s.created_at) + s.ttl)) THEN 'expired' ELSE 'invited' END AS sso_status
       FROM SsoInvitations s
-      JOIN Organizations o ON o.id = s.organization_id
+      JOIN Organizations o ON o.auth0_org_id = s.auth0_org_id
       WHERE o.auth0_org_id = ?`;
     const params: any[] = [orgId];
 
@@ -413,19 +413,23 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
 
     try {
         // Lookup organization
-        const org = await c.env.DB.prepare("SELECT id, auth0_org_id, name FROM Organizations WHERE auth0_org_id = ?")
+        const org = await c.env.DB.prepare("SELECT name FROM Organizations WHERE auth0_org_id = ?")
             .bind(orgId)
             .first<{id: number; auth0_org_id: string; name: string}>();
-        if (!org) return c.json({error: "Not Found"}, 404);
+        if (!org) return c.json({error: "Org Not Found"}, 404);
 
         // Optional: resolve issuer user id from token sub
-        const token: any = c.get("token");
-        const sub = token?.sub as string | undefined;
-        let issuerUserId: number | null = null;
+        const token: JWTPayload = c.get("token");
+        const issuerUserId = token?.sub as string | undefined;
+        if(!issuerUserId) {
+            return c.json({error: "Bad Request"}, 400);
+        }
+        /*
         if (sub) {
             const issuer = await c.env.DB.prepare("SELECT id FROM Users WHERE auth0_user_id = ?").bind(sub).first<{id: number}>();
             if (issuer?.id) issuerUserId = issuer.id;
         }
+        */
 
         const domainVerification = body.domain_verification ? "Required" : "Off";
 
@@ -438,7 +442,7 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
             {
                 enabled_organizations: [
                     {
-                        organization_id: org.auth0_org_id,
+                        organization_id: orgId,
                         assign_membership_on_login: true,
                         show_as_button: true,
                     },
@@ -462,11 +466,12 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
         const auth0TicketId: string | null = null;
 
         const insert = await c.env.DB.prepare(
-            `INSERT INTO SsoInvitations (organization_id, issuer_user_id, display_name, link, auth0_ticket_id, auth0_connection_name, domain_verification, accept_idp_init_saml, ttl)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO SsoInvitations (auth0_org_id, issuer_auth0_user_id, display_name, link, auth0_ticket_id,
+                                         auth0_connection_name, domain_verification, accept_idp_init_saml, ttl)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
             .bind(
-                org.id,
+                orgId,
                 issuerUserId,
                 org.name,
                 link,
@@ -479,7 +484,7 @@ app.post("/organizations/:orgId/sso-invitations", async (c) => {
             .run();
 
         // Update org sso_status to invited
-        await c.env.DB.prepare("UPDATE Organizations SET sso_status = 'invited' WHERE id = ?").bind(org.id).run();
+        await c.env.DB.prepare("UPDATE Organizations SET sso_status = 'invited' WHERE auth0_org_id = ?").bind(orgId).run();
 
         // Return created resource
         const invitation_id = (insert as any)?.lastInsertRowId ?? undefined;

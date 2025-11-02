@@ -163,7 +163,7 @@ async function handleUserUpsert(user: User, time: string, c: Context, isNewUser:
 
     try {
         await c.env.DB.prepare(
-            `REPLACE INTO users(
+            `INSERT INTO users(
                 auth0_user_id,
                 auth0_org_id,
                 email,
@@ -180,7 +180,23 @@ async function handleUserUpsert(user: User, time: string, c: Context, isNewUser:
                 app_metadata,
                 identities,
                 last_event_processed
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(auth0_user_id) DO UPDATE SET
+                auth0_org_id = excluded.auth0_org_id,
+                email = excluded.email,
+                email_verified = excluded.email_verified,
+                name = excluded.name,
+                picture = excluded.picture,
+                blocked = excluded.blocked,
+                family_name = excluded.family_name,
+                given_name = excluded.given_name,
+                nickname = excluded.nickname,
+                phone_number = excluded.phone_number,
+                phone_verified = excluded.phone_verified,
+                user_metadata = excluded.user_metadata,
+                app_metadata = excluded.app_metadata,
+                identities = excluded.identities,
+                last_event_processed = excluded.last_event_processed`)
             .bind(
                 user_id,
                 auth0OrgId,
