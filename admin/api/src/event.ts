@@ -40,6 +40,27 @@ interface User {
     picture?: string;
 }
 
+/**
+ * Represents an organization event from Auth0
+ */
+interface Organization {
+    id: string;
+    name: string;
+    display_name?: string;
+    branding?: {
+        logo_url?: string;
+        colors?: {
+            primary?: string;
+            page_background?: string;
+        };
+    };
+    metadata?: {
+        [key: string]: any;
+    };
+    created_at?: string;
+    updated_at?: string;
+}
+
 /*
 eventsApp.use('/!*', async (c, next) => {
     const auth = bearerAuth({
@@ -70,6 +91,13 @@ eventsApp.post('/', async (c) => {
                     break;
                 case 'user.deleted':
                     await handleUserDeleted(user, c);
+                    break;
+                case 'organization.created':
+                case 'organization.updated':
+                    await handleOrganizationUpsert(user, time, c, type === 'organization.created');
+                    break;
+                case 'organization.deleted':
+                    await handleOrganizationDeleted(user, c);
                     break;
                 default:
                     console.log(`Event type '${type}' not implemented yet.`);
@@ -176,6 +204,69 @@ async function handleUserUpsert(user: User, time: string, c: Context, isNewUser:
         console.log(`User ${user_id} successfully ${isNewUser ? 'inserted' : 'updated'} into Users.`);
     } catch (err: any) {
         console.error(`Database error while upserting user_id=${user_id}:`, err);
+        throw err;
+    }
+}
+
+async function handleOrganizationDeleted(organization: Organization, c: Context) {
+    const {id} = organization;
+
+try {
+        // Delete the organization by Auth0 org id
+        await c.env.DB.prepare(`DELETE FROM Organizations WHERE auth0_org_id = ?`)
+            .bind(id)
+            .run();
+    } catch (err: any) {
+        console.error(`Database error while deleting org_id=${id}:`, err);
+        throw err;
+    }
+}
+
+
+async function handleOrganizationUpsert(organization: Organization, time: string, c: Context, isNewOrg: boolean) {
+    const {
+        id,
+        name,
+        display_name,
+        branding,
+        metadata,
+    } = organization;
+
+    // Convert complex objects to JSON strings for storage
+    const brandingJson = branding ? JSON.stringify(branding) : null;
+    const metadataJson = metadata ? JSON.stringify(metadata) : null;
+
+    try {
+        await c.env.DB.prepare(
+            `INSERT INTO Organizations(
+                auth0_org_id,
+                name,
+                display_name,
+                branding,
+                metadata,
+                org_type,
+                last_event_processed
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(auth0_org_id) DO UPDATE SET
+                name = excluded.name,
+                display_name = excluded.display_name,
+                branding = excluded.branding,
+                metadata = excluded.metadata,
+                last_event_processed = excluded.last_event_processed`)
+            .bind(
+                id,
+                name || null,
+                display_name || null,
+                brandingJson,
+                metadataJson,
+                'supplier', // Default org_type for new organizations from Auth0
+                time
+            )
+            .run();
+
+        console.log(`Organization ${id} successfully ${isNewOrg ? 'inserted' : 'updated'} into Organizations.`);
+    } catch (err: any) {
+        console.error(`Database error while upserting org_id=${id}:`, err);
         throw err;
     }
 }
