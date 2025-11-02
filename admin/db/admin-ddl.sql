@@ -12,14 +12,18 @@ CREATE TABLE Organizations (
                                auth0_org_id TEXT UNIQUE NOT NULL,
                                org_type TEXT NOT NULL CHECK(org_type IN ('supplier', 'community', 'logistics')),
                                name TEXT NOT NULL,
+                               display_name TEXT,
                                domain TEXT, -- Single domain used for HRD (e.g., 'acme.com')
+                               branding TEXT, -- Stored as JSON string for Auth0 branding data
+                               metadata TEXT, -- Stored as JSON string for Auth0 metadata
                                sso_status TEXT DEFAULT 'not_started' CHECK(sso_status IN ('not_started', 'invited', 'configured', 'active')),
                                pickup_address TEXT,
                                delivery_address TEXT,
                                coverage_regions TEXT,
                                vehicle_types TEXT, -- Stored as a JSON array string '["van", "truck"]'
                                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                               updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                               updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               last_event_processed TIMESTAMP
 );
 CREATE INDEX idx_organizations_auth0_org_id ON Organizations(auth0_org_id);
 CREATE INDEX idx_organizations_org_type ON Organizations(org_type);

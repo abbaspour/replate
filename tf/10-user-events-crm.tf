@@ -3,9 +3,14 @@ resource "auth0_event_stream" "crm" {
   name             = "crm"
   destination_type = "webhook"
   subscriptions = [
+    // user
     "user.created",
     "user.updated",
-    "user.deleted"
+    "user.deleted",
+    // organization
+    "organization.created",
+    "organization.updated",
+    "organization.deleted"
   ]
 
   webhook_configuration {
