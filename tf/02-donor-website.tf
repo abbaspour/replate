@@ -128,6 +128,8 @@ resource "auth0_client" "donor" {
 
   grant_types = [
     "authorization_code",
+    "password",
+    "http://auth0.com/oauth/grant-type/password-realm",
     #"urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
   ]
 }

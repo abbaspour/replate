@@ -6,6 +6,14 @@ resource "auth0_client_grant" "donor-cli-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
   client_id = auth0_client.donor-cli.id
   scopes = [
+    // authentication methods
+    "read:me:authentication_methods",
+    "delete:me:authentication_methods",
+    "update:me:authentication_methods",
+    "create:me:authentication_methods",
+    // factors
+    "read:me:factors",
+    // connected_accounts
     "create:me:connected_accounts",
     "read:me:connected_accounts",
     "delete:me:connected_accounts"
@@ -13,11 +21,23 @@ resource "auth0_client_grant" "donor-cli-grants" {
   subject_type = "user"
 }
 
+data "auth0_client" "donor-api-client" {
+  name = auth0_resource_server.donor_api.name
+}
+
 /*
 resource "auth0_client_grant" "donor-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
   client_id = auth0_client.donor.id
   scopes = [
+    // authentication methods
+    "read:me:authentication_methods",
+    "delete:me:authentication_methods",
+    "update:me:authentication_methods",
+    "create:me:authentication_methods",
+    // factors
+    "read:me:factors",
+    // connected_accounts
     "create:me:connected_accounts",
     "read:me:connected_accounts",
     "delete:me:connected_accounts"
@@ -48,7 +68,8 @@ resource "auth0_connection" "windowslive" {
     scopes                   = [
       "signin",
       "offline_access",
-      "graph_calendars"
+      "graph_calendars",
+      "graph_user"
     ]
     set_user_root_attributes = "on_each_login"
   }
@@ -58,6 +79,7 @@ resource "auth0_connection_clients" "windowslive-clients" {
   connection_id = auth0_connection.windowslive.id
   enabled_clients = [
     auth0_client.donor-cli.client_id,
-    auth0_client.donor.client_id
+    auth0_client.donor.client_id,
+    data.auth0_client.donor-api-client.client_id
   ]
 }
