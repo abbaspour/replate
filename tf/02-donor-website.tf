@@ -125,6 +125,11 @@ resource "auth0_client" "donor" {
   }
 
   organization_usage = "deny"
+
+  grant_types = [
+    "authorization_code",
+    #"urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+  ]
 }
 
 # donor cli client

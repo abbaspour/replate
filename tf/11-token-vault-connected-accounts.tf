@@ -1,6 +1,5 @@
 data "auth0_resource_server" "my-account" {
   identifier = "https://${var.auth0_domain}/me/"
-  #identifier = "https://${local.auth0_custom_domain}/me/"
 }
 
 resource "auth0_client_grant" "donor-cli-grants" {
@@ -13,6 +12,19 @@ resource "auth0_client_grant" "donor-cli-grants" {
   ]
   subject_type = "user"
 }
+
+/*
+resource "auth0_client_grant" "donor-grants" {
+  audience  = data.auth0_resource_server.my-account.identifier
+  client_id = auth0_client.donor.id
+  scopes = [
+    "create:me:connected_accounts",
+    "read:me:connected_accounts",
+    "delete:me:connected_accounts"
+  ]
+  subject_type = "user"
+}
+*/
 
 ## social connection to connected accounts
 # VISIT https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/21003461-3662-430d-a8af-bc50abacfe6e/isMSAApp~/false
@@ -45,6 +57,7 @@ resource "auth0_connection" "windowslive" {
 resource "auth0_connection_clients" "windowslive-clients" {
   connection_id = auth0_connection.windowslive.id
   enabled_clients = [
-    auth0_client.donor-cli.client_id
+    auth0_client.donor-cli.client_id,
+    auth0_client.donor.client_id
   ]
 }
