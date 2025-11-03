@@ -42,32 +42,9 @@ resource "auth0_connection" "windowslive" {
   }
 }
 
-# donor cli client
-/*
-resource "auth0_client" "bash" {
-  name            = "Bash"
-  description     = "Command line for Connected Account"
-  app_type        = "spa"
-  oidc_conformant = true
-  is_first_party  = true
-
-  callbacks = [
-    "https://donor.${var.top_level_domain}"
+resource "auth0_connection_clients" "windowslive-clients" {
+  connection_id = auth0_connection.windowslive.id
+  enabled_clients = [
+    auth0_client.donor-cli.client_id
   ]
-
-  allowed_logout_urls = [
-    "https://donor.${var.top_level_domain}"
-  ]
-
-  jwt_configuration {
-    alg = "RS256"
-  }
-
-  grant_types = [
-    "password",
-    "http://auth0.com/oauth/grant-type/password-realm"
-  ]
-
-  organization_usage = "deny"
 }
-*/

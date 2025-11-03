@@ -136,7 +136,8 @@ resource "auth0_client" "donor-cli" {
   is_first_party  = true
 
   callbacks = [
-    "https://donor.${var.top_level_domain}"
+    "https://donor.${var.top_level_domain}",
+    "https://jwt.io"
   ]
 
   allowed_logout_urls = [
@@ -148,9 +149,11 @@ resource "auth0_client" "donor-cli" {
   }
 
   grant_types = [
+    "implicit",
     "password",
     "http://auth0.com/oauth/grant-type/password-realm",
-    "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token"
+    "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+    "refresh_token"
   ]
 
   organization_usage = "deny"
