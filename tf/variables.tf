@@ -101,6 +101,7 @@ variable "linkedin_client_id" {
 variable "linkedin_client_secret" {
   type = string
   description = "LinkedIn social connection client_secret"
+  sensitive = true
 }
 
 variable "linkedin_user_email" {
@@ -117,6 +118,7 @@ variable "facebook_client_id" {
 variable "facebook_client_secret" {
   type = string
   description = "Facebook social connection client_secret"
+  sensitive = true
 }
 
 variable "facebook_user_email" {
@@ -124,6 +126,17 @@ variable "facebook_user_email" {
   description = "database user with a matching email for facebook social"
 }
 
+## Microsoft Social
+variable "microsoft_client_id" {
+  type = string
+  description = "Microsoft social connection client_id"
+}
+
+variable "microsoft_client_secret" {
+  type = string
+  description = "Microsoft social connection client_secret"
+  sensitive = true
+}
 
 ## AoB
 variable "default-password" {

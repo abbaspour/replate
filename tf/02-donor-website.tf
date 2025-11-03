@@ -131,7 +131,7 @@ resource "auth0_client" "donor" {
 resource "auth0_client" "donor-cli" {
   name            = "Donor CLI"
   description     = "Donor CLI client"
-  app_type        = "spa"
+  app_type        = "regular_web"
   oidc_conformant = true
   is_first_party  = true
 
@@ -149,10 +149,15 @@ resource "auth0_client" "donor-cli" {
 
   grant_types = [
     "password",
-    "http://auth0.com/oauth/grant-type/password-realm"
+    "http://auth0.com/oauth/grant-type/password-realm",
+    "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token"
   ]
 
   organization_usage = "deny"
+}
+
+output "donor-cli-client-id" {
+  value = auth0_client.donor-cli.client_id
 }
 
 # Generate auth config file for donor SPA

@@ -802,6 +802,6 @@ Sample access_token. `org_id` is nullable for donors.
 | 08 | [s-08.txt](./videos/08/s-08.txt) | [s-08.mp4](./videos/08/s-08.mp4) | Donor    | Bulk import & Forms               |
 | 09 | [s-09.txt](./videos/09/s-09.txt) | [s-09.mp4](./videos/09/s-09.mp4) | Donor    | MCD                               |
 | 10 | [s-10.txt](./videos/10/s-10.txt) | [s-10.mp4](./videos/10/s-10.mp4) | Donor    | User events                       |
-| 11 | [s-11.txt](./videos/11/s-11.txt) | [s-11.mp4](./videos/11/s-11.mp4) | Business | Connected Account                 |
+| 11 | [s-11.txt](./videos/11/s-11.txt) | [s-11.mp4](./videos/11/s-11.mp4) | Business | Token Vault, Connected Account    |
 | 12 | [s-12.txt](./videos/12/s-12.txt) | [s-12.mp4](./videos/12/s-12.mp4) | Business | CIBA                              |
 | 13 | [s-13.txt](./videos/13/s-13.txt) | [s-13.mp4](./videos/13/s-13.mp4) | Both     | Closing thoughts                  |
