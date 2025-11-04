@@ -284,10 +284,10 @@ paths:
             summary: Get federated calendar access token
             description: |
                 Returns a federated access token for the caller to access their calendar provider.
-                Requires a valid Auth0 access token (audience `business.api`). No additional scopes required.
+                Requires a valid Auth0 access token (audience `business.api`) and the `read:schedules` permission.
             operationId: getCalendarToken
             security:
-                - oauth2: []
+                - oauth2: [read:schedules]
             responses:
                 '200':
                     description: Federated calendar access token

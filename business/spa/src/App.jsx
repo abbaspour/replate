@@ -9,6 +9,7 @@ import ScheduleNew from './pages/ScheduleNew';
 import Organization from './pages/Organization';
 import Callback from './pages/Callback';
 import ErrorPage from './pages/Error';
+import Calendar from './pages/Calendar';
 import {ProtectedRoute} from './auth/AuthContext';
 
 export default function App() {
@@ -64,6 +65,14 @@ export default function App() {
                     element={
                         <ProtectedRoute requirePermissions={['read:organization']}>
                             <Organization />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/calendar"
+                    element={
+                        <ProtectedRoute requirePermissions={['read:schedules']}>
+                            <Calendar />
                         </ProtectedRoute>
                     }
                 />
