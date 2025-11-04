@@ -89,9 +89,16 @@ resource "auth0_action" "silent_account_linking" {
 resource "auth0_trigger_actions" "post_login_binding" {
   trigger = "post-login"
 
+  // Part of #03
   actions {
     id           = auth0_action.silent_account_linking.id
     display_name = "Silent Account Linking"
+  }
+
+  // Part of #08
+  actions {
+    id           = auth0_action.render_privacy_policy_form-action.id
+    display_name = "Consent Form"
   }
 }
 
