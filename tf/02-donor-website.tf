@@ -236,7 +236,7 @@ resource "cloudflare_workers_script" "auth0_custom_domain_fetch" {
   bindings = [
     {
       name = "AUTH0_EDGE_LOCATION"
-      type = "plain_text"
+      type = "secret_text"
       text = auth0_custom_domain_verification.cf-worker-fetch_verification.origin_domain_name
     },
     {
@@ -248,6 +248,16 @@ resource "cloudflare_workers_script" "auth0_custom_domain_fetch" {
 
   placement = {
     mode = "smart"
+  }
+
+  observability = {
+    enabled = true
+    logs = {
+      enabled            = true
+      head_sampling_rate = 1
+      invocation_logs    = true
+      persist            = false
+    }
   }
 
   #migrations = {}

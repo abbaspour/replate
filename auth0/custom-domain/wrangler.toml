@@ -9,3 +9,4 @@ routes = [
 
 [observability.logs]
 enabled = true
+persist = false

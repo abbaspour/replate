@@ -18,6 +18,7 @@ resource "cloudflare_dns_record" "adminV6" {
   ttl     = 1
 }
 
+# VISIT https://manage.auth0.com/dashboard/au/amin-saml-idp/applications/zZo9ytfBcus9tBmYBZGvTS0sLO07GT4a/settings
 resource "auth0_self_service_profile" "ss-sso-profile" {
   name = "Replate Self-Service Single Sign On Onboarding"
   branding {
@@ -317,4 +318,14 @@ binding = "DB"
 database_name = "${cloudflare_d1_database.admin.name}"
 database_id = "${cloudflare_d1_database.admin.id}"
 EOT
+}
+
+# Sample org for SS-SSO federated
+resource "auth0_organization" "ss-fed-community-org" {
+  name = "ss-fed-community"
+  display_name = "Self-service Federated Community"
+}
+
+output "ss-fed-community-org" {
+  value = auth0_organization.ss-fed-community-org.id
 }
