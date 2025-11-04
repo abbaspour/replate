@@ -117,19 +117,6 @@ resource "auth0_connection_clients" "linkedin-clients" {
   ]
 }
 
-## Google Social
-data "auth0_connection" "google-oauth2" {
-  name = "google-oauth2"
-}
-
-
-resource "auth0_connection_clients" "google-clients" {
-  connection_id = data.auth0_connection.google-oauth2.id
-  enabled_clients = [
-    //auth0_client.donor.client_id,
-  ]
-}
-
 ## Facebook social
 # VISIT https://developers.facebook.com/apps/1505837500618862/fb-login/settings/
 resource "auth0_connection" "facebook" {

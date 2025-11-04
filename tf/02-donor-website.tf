@@ -125,18 +125,26 @@ resource "auth0_client" "donor" {
   }
 
   organization_usage = "deny"
+
+  grant_types = [
+    "authorization_code",
+    "password",
+    "http://auth0.com/oauth/grant-type/password-realm",
+    #"urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+  ]
 }
 
 # donor cli client
 resource "auth0_client" "donor-cli" {
   name            = "Donor CLI"
   description     = "Donor CLI client"
-  app_type        = "spa"
+  app_type        = "regular_web"
   oidc_conformant = true
   is_first_party  = true
 
   callbacks = [
-    "https://donor.${var.top_level_domain}"
+    "https://donor.${var.top_level_domain}",
+    "https://jwt.io"
   ]
 
   allowed_logout_urls = [
@@ -148,11 +156,18 @@ resource "auth0_client" "donor-cli" {
   }
 
   grant_types = [
+    "implicit",
     "password",
-    "http://auth0.com/oauth/grant-type/password-realm"
+    "http://auth0.com/oauth/grant-type/password-realm",
+    "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+    "refresh_token"
   ]
 
   organization_usage = "deny"
+}
+
+output "donor-cli-client-id" {
+  value = auth0_client.donor-cli.client_id
 }
 
 # Generate auth config file for donor SPA
