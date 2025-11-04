@@ -127,6 +127,10 @@ resource "auth0_resource_server_scopes" business-api-scopes {
   }
 }
 
+data "auth0_resource_server" "my-org" {
+  identifier = "https://${var.auth0_domain}/my-org/"
+}
+
 // -- Roles
 # VISIT https://manage.auth0.com/dashboard/au/replate-prd/roles
 resource "auth0_role" "supplier-admin" {
@@ -164,6 +168,7 @@ resource "auth0_role" "community-member" {
 resource "auth0_role_permissions" "supplier-admin-perms" {
   role_id = auth0_role.supplier-admin.id
 
+  // business api
   permissions {
     name                       = "read:organization"
     resource_server_identifier = auth0_resource_server.business_api.identifier
@@ -187,12 +192,95 @@ resource "auth0_role_permissions" "supplier-admin-perms" {
   permissions {
     name                       = "update:schedules"
     resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+
+  // my org api
+  permissions {
+    name                       = "read:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:identity_providers_detach"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_provider_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_provider_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:configuration"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
   }
 }
 
 resource "auth0_role_permissions" "supplier-member-perms" {
   role_id = auth0_role.supplier-member.id
 
+  // business api
   permissions {
     name                       = "read:organization"
     resource_server_identifier = auth0_resource_server.business_api.identifier
@@ -213,11 +301,42 @@ resource "auth0_role_permissions" "supplier-member-perms" {
     name                       = "update:schedules"
     resource_server_identifier = auth0_resource_server.business_api.identifier
   }
+
+  // my org api
+  permissions {
+    name                       = "read:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:configuration"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
 }
 
 resource "auth0_role_permissions" "logistics-admin-perms" {
   role_id = auth0_role.logistics-admin.id
 
+  // business api
   permissions {
     name                       = "read:organization"
     resource_server_identifier = auth0_resource_server.business_api.identifier
@@ -229,6 +348,88 @@ resource "auth0_role_permissions" "logistics-admin-perms" {
   permissions {
     name                       = "read:pickups"
     resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+
+  // my org api
+  permissions {
+    name                       = "read:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:identity_providers_detach"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_provider_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_provider_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:configuration"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
   }
 }
 
@@ -243,12 +444,19 @@ resource "auth0_role_permissions" "logistics-driver-perms" {
     name                       = "update:pickups"
     resource_server_identifier = auth0_resource_server.business_api.identifier
   }
+
+  // my org api
+  permissions {
+    name                       = "read:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
 }
 
 // -- community --
 resource "auth0_role_permissions" "community-admin-perms" {
   role_id = auth0_role.community-admin.id
 
+  // business api
   permissions {
     name                       = "read:organization"
     resource_server_identifier = auth0_resource_server.business_api.identifier
@@ -265,11 +473,94 @@ resource "auth0_role_permissions" "community-admin-perms" {
     name                       = "update:schedules"
     resource_server_identifier = auth0_resource_server.business_api.identifier
   }
+
+  // my org api
+  permissions {
+    name                       = "read:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:identity_providers_detach"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "update:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_provider_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_provider_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "create:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "delete:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:configuration"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
 }
 
 resource "auth0_role_permissions" "community-member-perms" {
   role_id = auth0_role.community-member.id
 
+  // business api
   permissions {
     name                       = "read:organization"
     resource_server_identifier = auth0_resource_server.business_api.identifier
@@ -281,6 +572,36 @@ resource "auth0_role_permissions" "community-member-perms" {
   permissions {
     name                       = "update:schedules"
     resource_server_identifier = auth0_resource_server.business_api.identifier
+  }
+
+  // my org api
+  permissions {
+    name                       = "read:my_org:details"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_providers_domains"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:scim_tokens"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:identity_provider_provisioning"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
+  }
+  permissions {
+    name                       = "read:my_org:configuration"
+    resource_server_identifier = data.auth0_resource_server.my-org.identifier
   }
 }
 

@@ -17,6 +17,24 @@
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
+
+        /*
+        // Handle CORS preflight for /me/ resources locally and do not proxy upstream
+        if (request.method === 'OPTIONS' && url.pathname.startsWith('/me/')) {
+            const origin = request.headers.get('Origin') || '*';
+            const reqHeaders = request.headers.get('Access-Control-Request-Headers') || 'Content-Type, Authorization';
+            const headers = new Headers({
+                'Access-Control-Allow-Origin': origin,
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': reqHeaders,
+                'Access-Control-Max-Age': '86400',
+                'Vary': 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers',
+            });
+            return new Response(null, { status: 204, headers });
+        }
+        */
+
+
         url.hostname = env.AUTH0_EDGE_LOCATION;
 
         const newRequest = new Request(url, request);

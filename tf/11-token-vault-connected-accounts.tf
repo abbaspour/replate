@@ -25,7 +25,10 @@ data "auth0_client" "donor-api-client" {
   name = auth0_resource_server.donor_api.name
 }
 
-/*
+data "auth0_client" "business-api-client" {
+  name = auth0_resource_server.business_api.name
+}
+
 resource "auth0_client_grant" "donor-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
   client_id = auth0_client.donor.id
@@ -44,7 +47,6 @@ resource "auth0_client_grant" "donor-grants" {
   ]
   subject_type = "user"
 }
-*/
 
 ## social connection to connected accounts
 # VISIT https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/21003461-3662-430d-a8af-bc50abacfe6e/isMSAApp~/false
@@ -79,7 +81,19 @@ resource "auth0_connection_clients" "windowslive-clients" {
   connection_id = auth0_connection.windowslive.id
   enabled_clients = [
     auth0_client.donor-cli.client_id,
-    auth0_client.donor.client_id,
-    data.auth0_client.donor-api-client.client_id
+    data.auth0_client.donor-api-client.client_id,
+    data.auth0_client.business-api-client.client_id
   ]
 }
+
+# Create .dev.vars file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
+resource "local_file" "donor_api-dot-dev" {
+  filename = "${path.module}/../donor/api/.env"
+  file_permission = "600"
+  content  = <<-EOT
+DONOR_API_CLIENT_ID=${data.auth0_client.donor-api-client.client_id}
+DONOR_API_CLIENT_SECRET=${data.auth0_client.donor-api-client.client_secret}
+#CONNECTED_ACCOUNTS_CONNECTION=${auth0_connection.windowslive.name}
+EOT
+}
+

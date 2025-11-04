@@ -12,12 +12,19 @@ import type {components} from './api-types';
 export type Env = {
     Variables: {
         token: JWTPayload;
+        rawToken: string;
     };
     Bindings: {
         DB: D1Database;
         AUTH0_JWKS_URL: string; // e.g., https://id.replate.dev/.well-known/jwks.json
         AUTH0_AUDIENCE_ADMIN: string; // set to business.api in wrangler.toml
         AUTH0_ISSUER: string; // e.g., https://id.replate.dev/
+        /*
+        AUTH0_DOMAIN: string;
+        BUSINESS_API_CLIENT_ID: string;
+        BUSINESS_API_CLIENT_SECRET: string;
+        CONNECTED_ACCOUNTS_CONNECTION: string;
+        */
     };
 };
 
@@ -47,6 +54,7 @@ async function verifyAccessToken(c: Context<Env>) {
             audience: c.env.AUTH0_AUDIENCE_ADMIN,
         });
         c.set('token', payload);
+        c.set('rawToken', token);
         return null;
     } catch {
         return c.json({error: 'Unauthorized'}, 401);
@@ -621,6 +629,7 @@ app.patch('/delivery-schedules/:id', auth(['update:schedules']), async (c) => {
     // No backing table in current DDL
     return c.json({error: 'Not Found'}, 404);
 });
+
 
 // noinspection JSUnusedGlobalSymbols
 export default app;

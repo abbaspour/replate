@@ -17,6 +17,12 @@ const router = {
       showContent("content-history");
       loadDonations();
     }, "/history"),
+  "/calendar": () =>
+    requireAuth(() => {
+      showContent("content-calendar");
+      //loadConnectedAccounts();
+      loadCalendarToken();
+    }, "/calendar"),
   "/login": () => login()
 };
 
@@ -317,6 +323,211 @@ const loadDonations = async () => {
     loading.classList.add("hidden");
   }
 };
+
+// Load calendar federated token, then call Microsoft Graph and render today's events
+const loadCalendarToken = async () => {
+  const loading = document.getElementById("calendar-loading");
+  const error = document.getElementById("calendar-error");
+  const refresh = document.getElementById("calendar-refresh");
+  const table = document.getElementById("calendar-table");
+  const tbody = document.getElementById("calendar-tbody");
+  const empty = document.getElementById("calendar-empty");
+  const debugPre = document.getElementById("calendar-json");
+  if (!loading || !error || !table || !tbody || !empty) return;
+
+  // Reset UI
+  loading.classList.remove("hidden");
+  error.classList.add("hidden");
+  error.textContent = "";
+  empty.classList.add("hidden");
+  table.classList.add("hidden");
+  tbody.innerHTML = "";
+  if (debugPre) debugPre.classList.add("hidden");
+  if (refresh) refresh.disabled = true;
+
+  try {
+    // 1) Get federated access token from our API
+    const resp = await apiFetch("/api/calendar/token", { method: "GET" });
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => "");
+      throw new Error(errText || `Request failed (${resp.status})`);
+    }
+    const tokenPayload = await resp.json();
+
+    // Try common shapes: { access_token }, { token }, { data: { access_token } }
+    const msToken = tokenPayload?.access_token || tokenPayload?.token || tokenPayload?.data?.access_token || tokenPayload?.data?.token;
+    if (!msToken || typeof msToken !== "string") {
+      // Expose raw payload for debugging
+      if (debugPre) {
+        debugPre.textContent = JSON.stringify(tokenPayload, null, 2);
+        debugPre.classList.remove("hidden");
+      }
+      throw new Error("Calendar token missing from response.");
+    }
+
+    // 2) Build today's start/end in local time, send as ISO strings (UTC) for Graph
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    const startIso = start.toISOString();
+    const endIso = end.toISOString();
+
+    const url = new URL("https://graph.microsoft.com/v1.0/me/calendarView");
+    url.searchParams.set("startDateTime", startIso);
+    url.searchParams.set("endDateTime", endIso);
+    url.searchParams.set("$orderby", "start/dateTime");
+
+    // 3) Call Microsoft Graph
+    const graphResp = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${msToken}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!graphResp.ok) {
+      const errText = await graphResp.text().catch(() => "");
+      throw new Error(errText || `Graph request failed (${graphResp.status})`);
+    }
+    const graphData = await graphResp.json();
+    const events = Array.isArray(graphData?.value) ? graphData.value : [];
+
+    // 4) Render table or empty state
+    if (events.length === 0) {
+      empty.classList.remove("hidden");
+    } else {
+      for (const ev of events) {
+        const tr = document.createElement("tr");
+        const startStr = safeGraphDate(ev?.start);
+        const endStr = safeGraphDate(ev?.end);
+        const subject = (ev?.subject || "").toString();
+        const location = (ev?.location?.displayName || "").toString();
+        tr.innerHTML = `
+          <td>${escapeHtml(startStr)}</td>
+          <td>${escapeHtml(endStr)}</td>
+          <td>${escapeHtml(subject)}</td>
+          <td>${escapeHtml(location)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      table.classList.remove("hidden");
+    }
+  } catch (e) {
+    console.error("[Calendar] Error:", e);
+    error.textContent = e?.message || "Failed to load calendar.";
+    error.classList.remove("hidden");
+  } finally {
+    loading.classList.add("hidden");
+    if (refresh) refresh.disabled = false;
+  }
+};
+
+// Load Auth0 Connected Accounts under Calendar page
+const loadConnectedAccounts = async () => {
+  const loading = document.getElementById("ca-loading");
+  const error = document.getElementById("ca-error");
+  const empty = document.getElementById("ca-empty");
+  const table = document.getElementById("ca-table");
+  const tbody = document.getElementById("ca-tbody");
+  if (!loading || !error || !empty || !table || !tbody) return;
+
+  // Reset UI state
+  loading.classList.remove("hidden");
+  error.classList.add("hidden");
+  error.textContent = "";
+  empty.classList.add("hidden");
+  table.classList.add("hidden");
+  tbody.innerHTML = "";
+
+  try {
+    // Acquire a token for the Auth0 Me API
+    const meAudience = `https://${authConfig?.domain}/me/`;
+    const token = await auth0Client.getTokenSilently({
+      authorizationParams: {
+        audience: meAudience,
+        scope: "read:me:connected_accounts"
+      }
+    });
+
+    const resp = await fetch(`https://${authConfig?.domain}/me/v1/connected-accounts/accounts`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => "");
+      throw new Error(errText || `Failed to load connected accounts (${resp.status})`);
+    }
+
+    const data = await resp.json();
+    // Accept either an array or { accounts: [] }
+    const accounts = Array.isArray(data) ? data : (Array.isArray(data?.accounts) ? data.accounts : []);
+
+    if (accounts.length === 0) {
+      empty.classList.remove("hidden");
+    } else {
+      for (const a of accounts) {
+        const tr = document.createElement("tr");
+        const provider = (a.provider || a.connection || a.identity_provider || "").toString();
+        const display = (a.display_name || a.name || "").toString();
+        const email = (a.email || (a.profile && a.profile.email) || "").toString();
+        const linkedAtRaw = a.linked_at || a.created_at || a.updated_at || "";
+        const linkedAt = linkedAtRaw ? new Date(linkedAtRaw).toLocaleString() : "";
+        tr.innerHTML = `
+          <td>${escapeHtml(provider)}</td>
+          <td>${escapeHtml(display)}</td>
+          <td>${escapeHtml(email)}</td>
+          <td>${escapeHtml(linkedAt)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      table.classList.remove("hidden");
+    }
+  } catch (e) {
+    console.error("[ConnectedAccounts] Error:", e);
+    error.textContent = e?.message || "Failed to load connected accounts.";
+    error.classList.remove("hidden");
+  } finally {
+    loading.classList.add("hidden");
+  }
+};
+
+// Helpers
+const safeGraphDate = (dt) => {
+  try {
+    if (!dt) return "";
+    const iso = dt.dateTime || dt; // Graph may return { dateTime, timeZone } or plain string
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleString();
+  } catch (_) {
+    return "";
+  }
+};
+
+const escapeHtml = (str) => {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+// Bind refresh button after DOM ready
+(function bindCalendarRefresh(){
+  document.addEventListener("click", (ev) => {
+    const t = ev.target;
+    if (t && t.id === "calendar-refresh") {
+      ev.preventDefault();
+      requireAuth(() => { /*loadConnectedAccounts();*/ loadCalendarToken(); }, "/calendar");
+    }
+  });
+})();
 
 window.onpopstate = (e) => {
   if (e.state && e.state.url && router[e.state.url]) {
