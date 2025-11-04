@@ -25,7 +25,6 @@ export default function Header() {
                         <NavLink to="/jobs/new">New Job</NavLink>
                     )}
                     { permissions.has('read:schedules') && <NavLink to="/schedules">Schedules</NavLink>}
-                    { permissions.has('read:schedules') && <NavLink to="/calendar">Calendar</NavLink>}
                     { permissions.has('update:schedules') && (
                         <NavLink to="/schedules/new">New Schedule</NavLink>
                     )}

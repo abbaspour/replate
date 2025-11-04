@@ -58,6 +58,9 @@
                         <li class="nav-item auth-visible hidden">
                             <a href="/suggest" class="nav-link route-link">Suggest a business</a>
                         </li>
+                        <li class="nav-item auth-visible hidden">
+                            <a href="/calendar" class="nav-link route-link">Calendar</a>
+                        </li>
                     </ul>
                     <ul class="navbar-nav d-none d-md-block">
                         <!-- Login button: show if NOT authenticated -->
@@ -242,6 +245,19 @@
 
                     <button type="submit" class="btn btn-primary">Submit Donation</button>
                 </form>
+            </div>
+        </div>
+
+        <div class="page hidden" id="content-calendar">
+            <div class="container">
+                <h2 class="mb-4">Calendar Token</h2>
+                <p class="text-muted">Fetches a federated calendar access token using your current session.</p>
+                <div class="mb-3">
+                    <button id="calendar-refresh" class="btn btn-secondary">Refresh</button>
+                </div>
+                <div id="calendar-loading" class="text-muted">Loading...</div>
+                <div id="calendar-error" class="alert alert-danger hidden" role="alert"></div>
+                <pre id="calendar-json" class="rounded hidden" aria-live="polite" style="white-space: pre-wrap"></pre>
             </div>
         </div>
 

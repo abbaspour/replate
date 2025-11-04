@@ -89,13 +89,13 @@ resource "auth0_connection_clients" "windowslive-clients" {
 }
 
 # Create .dev.vars file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
-resource "local_file" "business_api-dot-dev" {
-  filename = "${path.module}/../business/api/.env"
+resource "local_file" "donor_api-dot-dev" {
+  filename = "${path.module}/../donor/api/.env"
   file_permission = "600"
   content  = <<-EOT
-BUSINESS_API_CLIENT_ID=${data.auth0_client.business-api-client.client_id}
-BUSINESS_API_CLIENT_SECRET=${data.auth0_client.business-api-client.client_secret}
-CONNECTED_ACCOUNTS_CONNECTION=${auth0_connection.windowslive.name}
+DONOR_API_CLIENT_ID=${data.auth0_client.donor-api-client.client_id}
+DONOR_API_CLIENT_SECRET=${data.auth0_client.donor-api-client.client_secret}
+#CONNECTED_ACCOUNTS_CONNECTION=${auth0_connection.windowslive.name}
 EOT
 }
 

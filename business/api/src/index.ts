@@ -19,10 +19,12 @@ export type Env = {
         AUTH0_JWKS_URL: string; // e.g., https://id.replate.dev/.well-known/jwks.json
         AUTH0_AUDIENCE_ADMIN: string; // set to business.api in wrangler.toml
         AUTH0_ISSUER: string; // e.g., https://id.replate.dev/
+        /*
         AUTH0_DOMAIN: string;
         BUSINESS_API_CLIENT_ID: string;
         BUSINESS_API_CLIENT_SECRET: string;
         CONNECTED_ACCOUNTS_CONNECTION: string;
+        */
     };
 };
 
@@ -628,46 +630,6 @@ app.patch('/delivery-schedules/:id', auth(['update:schedules']), async (c) => {
     return c.json({error: 'Not Found'}, 404);
 });
 
-// noinspection JSUnusedGlobalSymbols
-// Calendar federated token via Auth0 Token Exchange (mocked upstream)
-app.get('/calendar/token', auth(['read:schedules']), async (c) => {
-    try {
-
-        const subjectToken = c.get('rawToken') as string | undefined;
-        if (!subjectToken) {
-            return c.json({error: 'Unauthorized'}, 401);
-        }
-
-        const url = `https://${c.env.AUTH0_DOMAIN}/oauth/token`;
-        const payload = {
-            client_id: c.env.BUSINESS_API_CLIENT_ID,
-            client_secret: c.env.BUSINESS_API_CLIENT_SECRET,
-            subject_token: subjectToken,
-            grant_type: 'urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token',
-            subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
-            requested_token_type: 'http://auth0.com/oauth/token-type/federated-connection-access-token',
-            connection: c.env.CONNECTED_ACCOUNTS_CONNECTION,
-        } as const;
-
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-            const text = await res.text().catch(() => '');
-            return c.json({error: 'Bad Gateway', message: text || `Upstream ${res.status}`}, 502);
-        }
-
-        const data = (await res.json()) as components['schemas']['FederatedTokenResponse'];
-        return c.json(data);
-    } catch {
-        return c.json({error: 'Server error'}, 500);
-    }
-});
 
 // noinspection JSUnusedGlobalSymbols
 export default app;

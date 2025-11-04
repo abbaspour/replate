@@ -278,26 +278,6 @@ paths:
                 '404': {$ref: '#/components/responses/NotFound'}
                 '5XX': {$ref: '#/components/responses/ServerError'}
 
-    /calendar/token:
-        get:
-            tags: [Calendar]
-            summary: Get federated calendar access token
-            description: |
-                Returns a federated access token for the caller to access their calendar provider.
-                Requires a valid Auth0 access token (audience `business.api`) and the `read:schedules` permission.
-            operationId: getCalendarToken
-            security:
-                - oauth2: [read:schedules]
-            responses:
-                '200':
-                    description: Federated calendar access token
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/FederatedTokenResponse'
-                '401': {$ref: '#/components/responses/Unauthorized'}
-                '403': {$ref: '#/components/responses/Forbidden'}
-                '5XX': {$ref: '#/components/responses/ServerError'}
 
 components:
     securitySchemes:

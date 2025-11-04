@@ -21,6 +21,11 @@ head_sampling_rate = 1
 AUTH0_JWKS_URL = "https://id.replate.dev/.well-known/jwks.json"
 AUTH0_AUDIENCE = "donor.api"
 AUTH0_ISSUER = "https://id.replate.dev/"
+AUTH0_DOMAIN = "id.replate.dev"
+CONNECTED_ACCOUNTS_CONNECTION = "Microsoft"
+# Secrets (set via `wrangler secret put` or Makefile target):
+# - DONOR_API_CLIENT_ID
+# - DONOR_API_CLIENT_SECRET
 
 [[d1_databases]]
 binding = "DB"

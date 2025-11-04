@@ -17,6 +17,11 @@ const router = {
       showContent("content-history");
       loadDonations();
     }, "/history"),
+  "/calendar": () =>
+    requireAuth(() => {
+      showContent("content-calendar");
+      loadCalendarToken();
+    }, "/calendar"),
   "/login": () => login()
 };
 
@@ -317,6 +322,50 @@ const loadDonations = async () => {
     loading.classList.add("hidden");
   }
 };
+
+// Load calendar federated token and render
+const loadCalendarToken = async () => {
+  const loading = document.getElementById("calendar-loading");
+  const pre = document.getElementById("calendar-json");
+  const error = document.getElementById("calendar-error");
+  const refresh = document.getElementById("calendar-refresh");
+  if (!loading || !pre || !error) return;
+
+  loading.classList.remove("hidden");
+  pre.classList.add("hidden");
+  error.classList.add("hidden");
+  error.textContent = "";
+  if (refresh) refresh.disabled = true;
+
+  try {
+    const resp = await apiFetch("/api/calendar/token", { method: "GET" });
+    if (!resp.ok) {
+      const err = await resp.text().catch(() => "");
+      throw new Error(err || `Request failed (${resp.status})`);
+    }
+    const data = await resp.json();
+    pre.textContent = JSON.stringify(data, null, 2);
+    pre.classList.remove("hidden");
+  } catch (e) {
+    console.error("[Calendar] Error:", e);
+    error.textContent = e.message || "Failed to load calendar token.";
+    error.classList.remove("hidden");
+  } finally {
+    loading.classList.add("hidden");
+    if (refresh) refresh.disabled = false;
+  }
+};
+
+// Bind refresh button after DOM ready
+(function bindCalendarRefresh(){
+  document.addEventListener("click", (ev) => {
+    const t = ev.target;
+    if (t && t.id === "calendar-refresh") {
+      ev.preventDefault();
+      requireAuth(() => loadCalendarToken(), "/calendar");
+    }
+  });
+})();
 
 window.onpopstate = (e) => {
   if (e.state && e.state.url && router[e.state.url]) {
