@@ -25,6 +25,10 @@ data "auth0_client" "donor-api-client" {
   name = auth0_resource_server.donor_api.name
 }
 
+data "auth0_client" "business-api-client" {
+  name = auth0_resource_server.business_api.name
+}
+
 /*
 resource "auth0_client_grant" "donor-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
@@ -79,7 +83,7 @@ resource "auth0_connection_clients" "windowslive-clients" {
   connection_id = auth0_connection.windowslive.id
   enabled_clients = [
     auth0_client.donor-cli.client_id,
-    auth0_client.donor.client_id,
-    data.auth0_client.donor-api-client.client_id
+    data.auth0_client.donor-api-client.client_id,
+    data.auth0_client.business-api-client.client_id
   ]
 }

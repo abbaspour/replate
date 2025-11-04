@@ -278,6 +278,27 @@ paths:
                 '404': {$ref: '#/components/responses/NotFound'}
                 '5XX': {$ref: '#/components/responses/ServerError'}
 
+    /calendar/token:
+        get:
+            tags: [Calendar]
+            summary: Get federated calendar access token
+            description: |
+                Returns a federated access token for the caller to access their calendar provider.
+                Requires a valid Auth0 access token (audience `business.api`). No additional scopes required.
+            operationId: getCalendarToken
+            security:
+                - oauth2: []
+            responses:
+                '200':
+                    description: Federated calendar access token
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/FederatedTokenResponse'
+                '401': {$ref: '#/components/responses/Unauthorized'}
+                '403': {$ref: '#/components/responses/Forbidden'}
+                '5XX': {$ref: '#/components/responses/ServerError'}
+
 components:
     securitySchemes:
         oauth2:
@@ -631,3 +652,29 @@ components:
                 delivery_time_of_day:
                     type: string
             additionalProperties: false
+        FederatedTokenResponse:
+            type: object
+            properties:
+                access_token:
+                    type: string
+                scope:
+                    type: string
+                    description: Space-delimited list of scopes granted by the upstream provider
+                expires_in:
+                    type: integer
+                    description: Seconds until the token expires
+                    example: 1512
+                issued_token_type:
+                    type: string
+                    example: http://auth0.com/oauth/token-type/federated-connection-access-token
+                token_type:
+                    type: string
+                    enum: [Bearer]
+                    example: Bearer
+            required: [access_token, token_type]
+            example:
+                access_token: 'xxxx'
+                scope: 'Calendars.Read User.Read openid profile'
+                expires_in: 1512
+                issued_token_type: 'http://auth0.com/oauth/token-type/federated-connection-access-token'
+                token_type: 'Bearer'

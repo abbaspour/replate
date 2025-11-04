@@ -623,4 +623,19 @@ app.patch('/delivery-schedules/:id', auth(['update:schedules']), async (c) => {
 });
 
 // noinspection JSUnusedGlobalSymbols
+// Calendar federated token (mock)
+app.get('/calendar/token', auth(), async (c) => {
+    // In a real implementation, you would exchange the caller's token for a federated
+    // provider token (e.g., via Auth0 Token Exchange / Token Vault). Here we return a mock.
+    const response: components['schemas']['FederatedTokenResponse'] = {
+        access_token: 'mock_federated_access_token',
+        scope: 'Calendars.Read User.Read openid profile',
+        expires_in: 1512,
+        issued_token_type: 'http://auth0.com/oauth/token-type/federated-connection-access-token',
+        token_type: 'Bearer',
+    };
+    return c.json(response);
+});
+
+// noinspection JSUnusedGlobalSymbols
 export default app;
