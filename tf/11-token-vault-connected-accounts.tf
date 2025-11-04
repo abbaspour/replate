@@ -29,7 +29,6 @@ data "auth0_client" "business-api-client" {
   name = auth0_resource_server.business_api.name
 }
 
-/*
 resource "auth0_client_grant" "donor-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
   client_id = auth0_client.donor.id
@@ -48,7 +47,6 @@ resource "auth0_client_grant" "donor-grants" {
   ]
   subject_type = "user"
 }
-*/
 
 ## social connection to connected accounts
 # VISIT https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/21003461-3662-430d-a8af-bc50abacfe6e/isMSAApp~/false

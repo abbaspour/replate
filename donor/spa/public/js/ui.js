@@ -20,6 +20,7 @@ const router = {
   "/calendar": () =>
     requireAuth(() => {
       showContent("content-calendar");
+      //loadConnectedAccounts();
       loadCalendarToken();
     }, "/calendar"),
   "/login": () => login()
@@ -422,6 +423,79 @@ const loadCalendarToken = async () => {
   }
 };
 
+// Load Auth0 Connected Accounts under Calendar page
+const loadConnectedAccounts = async () => {
+  const loading = document.getElementById("ca-loading");
+  const error = document.getElementById("ca-error");
+  const empty = document.getElementById("ca-empty");
+  const table = document.getElementById("ca-table");
+  const tbody = document.getElementById("ca-tbody");
+  if (!loading || !error || !empty || !table || !tbody) return;
+
+  // Reset UI state
+  loading.classList.remove("hidden");
+  error.classList.add("hidden");
+  error.textContent = "";
+  empty.classList.add("hidden");
+  table.classList.add("hidden");
+  tbody.innerHTML = "";
+
+  try {
+    // Acquire a token for the Auth0 Me API
+    const meAudience = `https://${authConfig?.domain}/me/`;
+    const token = await auth0Client.getTokenSilently({
+      authorizationParams: {
+        audience: meAudience,
+        scope: "read:me:connected_accounts"
+      }
+    });
+
+    const resp = await fetch(`https://${authConfig?.domain}/me/v1/connected-accounts/accounts`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => "");
+      throw new Error(errText || `Failed to load connected accounts (${resp.status})`);
+    }
+
+    const data = await resp.json();
+    // Accept either an array or { accounts: [] }
+    const accounts = Array.isArray(data) ? data : (Array.isArray(data?.accounts) ? data.accounts : []);
+
+    if (accounts.length === 0) {
+      empty.classList.remove("hidden");
+    } else {
+      for (const a of accounts) {
+        const tr = document.createElement("tr");
+        const provider = (a.provider || a.connection || a.identity_provider || "").toString();
+        const display = (a.display_name || a.name || "").toString();
+        const email = (a.email || (a.profile && a.profile.email) || "").toString();
+        const linkedAtRaw = a.linked_at || a.created_at || a.updated_at || "";
+        const linkedAt = linkedAtRaw ? new Date(linkedAtRaw).toLocaleString() : "";
+        tr.innerHTML = `
+          <td>${escapeHtml(provider)}</td>
+          <td>${escapeHtml(display)}</td>
+          <td>${escapeHtml(email)}</td>
+          <td>${escapeHtml(linkedAt)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      table.classList.remove("hidden");
+    }
+  } catch (e) {
+    console.error("[ConnectedAccounts] Error:", e);
+    error.textContent = e?.message || "Failed to load connected accounts.";
+    error.classList.remove("hidden");
+  } finally {
+    loading.classList.add("hidden");
+  }
+};
+
 // Helpers
 const safeGraphDate = (dt) => {
   try {
@@ -450,7 +524,7 @@ const escapeHtml = (str) => {
     const t = ev.target;
     if (t && t.id === "calendar-refresh") {
       ev.preventDefault();
-      requireAuth(() => loadCalendarToken(), "/calendar");
+      requireAuth(() => { /*loadConnectedAccounts();*/ loadCalendarToken(); }, "/calendar");
     }
   });
 })();
