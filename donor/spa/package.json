@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "echo 'nothing to build'"
+  },
   "devDependencies": {
     "wrangler": "^4.45.3"
   }

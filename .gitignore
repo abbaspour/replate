@@ -6,5 +6,6 @@ t/
 auth_config.json
 package-lock.json
 .env
+.env-uk
 readme.pdf
 wrangler.toml

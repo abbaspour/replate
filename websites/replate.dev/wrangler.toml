@@ -4,8 +4,9 @@ preview_urls = false
 
 routes = [
     { pattern = "www.replate.dev", custom_domain = true },
+    { pattern = "www.replate.uk", custom_domain = true },
 ]
 
 [assets]
 directory = "./static"
-not_found_handling = "single-page-application"
+not_found_handling = "404-page"

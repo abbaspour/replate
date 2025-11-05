@@ -16,7 +16,6 @@ export type Env = {
     };
     Bindings: {
         DB: D1Database;
-        AUTH0_JWKS_URL: string; // e.g., https://id.replate.dev/.well-known/jwks.json
         AUTH0_AUDIENCE: string; // set to donor.api in wrangler.toml
         AUTH0_ISSUER: string; // e.g., https://id.replate.dev/
         AUTH0_DOMAIN: string; // e.g., id.replate.dev
@@ -26,6 +25,44 @@ export type Env = {
     };
 };
 
+function deriveAuth0ConfigFromRequest(c: Context<Env>) {
+    // Determine issuer and JWKS from the API hostname.
+    // Rule: issuer is https://id.<rootDomain>/ where rootDomain is the top-level domain the API is accessed on
+    // Example: donor.replate.dev -> issuer https://id.replate.dev/
+    const url = new URL(c.req.url);
+    const hostname = url.hostname; // may include subdomains
+
+    // Handle localhost / workers.dev for local/dev environments by falling back to the configured domain if present
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.workers.dev');
+
+    if (isLocal) {
+        // Fall back to the provided AUTH0_DOMAIN if available (e.g., id.dev.example.com)
+        const rootDomain = c.env.AUTH0_DOMAIN;
+
+        const issuerDomain = c.env.AUTH0_ISSUER ?? `id.${rootDomain}`;
+        const issuer = `https://${issuerDomain}/`;
+        const jwksUrl = `${issuer}.well-known/jwks.json`;
+
+        return { issuer, jwksUrl, issuerDomain };
+    }
+
+    const parts = hostname.split('.');
+
+    let rootDomain;
+    if (parts.length >= 2) {
+        // naive eTLD+1 approach: last two labels make the root (works for replate.dev, replate.uk)
+        rootDomain = parts.slice(-2).join('.');
+    } else {
+        rootDomain = hostname;
+    }
+
+    const issuerDomain = `id.${rootDomain}`;
+    const issuer = `https://${issuerDomain}/`;
+    const jwksUrl = `${issuer}.well-known/jwks.json`;
+
+    return { issuer, jwksUrl, issuerDomain };
+}
+
 // Middleware: verify access token with jose
 async function verifyAccessToken(c: Context<Env>) {
     const auth = c.req.header('authorization') || '';
@@ -34,9 +71,11 @@ async function verifyAccessToken(c: Context<Env>) {
     }
     const token = auth.slice(7).trim();
     try {
-        const JWKS = createRemoteJWKSet(new URL(c.env.AUTH0_JWKS_URL));
+        // Derive issuer and JWKS dynamically from request hostname
+        const cfg = deriveAuth0ConfigFromRequest(c);
+        const JWKS = createRemoteJWKSet(new URL(cfg.jwksUrl));
         const {payload} = await jwtVerify(token, JWKS, {
-            issuer: c.env.AUTH0_ISSUER,
+            issuer: cfg.issuer,
             audience: c.env.AUTH0_AUDIENCE,
         });
         c.set('token', payload);
@@ -197,7 +236,8 @@ app.get('/calendar/token', auth(), async (c) => {
             return c.json({error: 'Unauthorized'}, 401);
         }
 
-        const url = `https://${c.env.AUTH0_DOMAIN}/oauth/token`;
+        const cfg = deriveAuth0ConfigFromRequest(c);
+        const url = `https://${cfg.issuerDomain}/oauth/token`;
         const payload = {
             client_id: c.env.DONOR_API_CLIENT_ID,
             client_secret: c.env.DONOR_API_CLIENT_SECRET,

@@ -55,8 +55,20 @@ const configureClient = async () => {
   const response = await fetchAuthConfig();
   authConfig = await response.json();
 
+  // Derive Auth0 domain dynamically based on where the SPA is running.
+  // - If running on localhost or 127.0.0.1, use the domain from auth_config.json (developer-friendly local setup).
+  // - Otherwise, prefix the top-level domain (eTLD+1) with `id.` (e.g., donor.replate.dev -> id.replate.dev).
+  const hostname = window.location.hostname || '';
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.workers.dev');
+  let derivedDomain = authConfig.domain;
+  if (!isLocal) {
+    const parts = hostname.split('.');
+    const root = parts.length >= 2 ? parts.slice(-2).join('.') : hostname;
+    derivedDomain = `id.${root}`;
+  }
+
   auth0Client = await auth0.createAuth0Client({
-    domain: authConfig.domain,
+    domain: derivedDomain,
     clientId: authConfig.clientId,
     authorizationParams: {
       audience: authConfig.audience,

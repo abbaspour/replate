@@ -6,7 +6,8 @@ workers_dev = false
 preview_urls = false
 
 routes = [
-    { pattern = "donor.replate.dev/api/*", zone_name = "replate.dev" }
+    { pattern = "donor.replate.dev/api/*", zone_name = "replate.dev" },
+    { pattern = "donor.replate.uk/api/*", zone_name = "replate.uk" }
 ]
 
 [build]
