@@ -1,19 +1,3 @@
----
-title: "Replate"
-author: "Okta"
-subject: "Markdown"
-keywords: [ Auth0, B2B, B2C, B2A, SaaS ]
-subtitle: "A hypothetical start-up demonstrating Auth0"
-lang: "en"
-toc: true
-numbersections: true
-titlepage: true,
-titlepage-text-color: "FFFFFF"
-titlepage-rule-color: "360049"
-titlepage-rule-height: 0
-titlepage-background: "./diagrams/okta-background-a4.jpg"
-...
-
 # Replate
 
 Replate is a hypothetical start-up demonstrating Auth0’s B2C, B2B/Organizations, SaaS, and AI capabilities. This repo

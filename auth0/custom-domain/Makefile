@@ -15,12 +15,20 @@
 publish: deploy
 
 SECRETS_FILE = '.env'
+SECRETS_FILE_UK = '.env-uk'
 
 deploy:
 	wrangler deploy
 
+deploy-uk:
+	wrangler -c wrangler-uk.toml deploy
+
 log:
 	wrangler tail
 
+log-uk:
+	wrangler  -c wrangler-uk.toml tail
+
 update-cf-secrets:
 	npx wrangler secret bulk $(SECRETS_FILE)
+	npx wrangler -c wrangler-uk.toml secret bulk $(SECRETS_FILE_UK)

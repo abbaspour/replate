@@ -1,10 +1,10 @@
-name = "replate-auth0-custom-domain-fetch"
+name = "replate-auth0-custom-domain-fetch-uk"
 main = "index.mjs"
 compatibility_date = "2025-07-29"
 
 workers_dev = false
 routes = [
-    { pattern = "id.replate.dev", custom_domain = true }
+    { pattern = "id.replate.uk", custom_domain = true }
 ]
 
 [observability.logs]

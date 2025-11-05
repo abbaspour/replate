@@ -28,6 +28,12 @@ variable "top_level_domain" {
   default     = "replate.dev"
 }
 
+variable "top_level_domain-uk" {
+  description = "Top level domain name for another country (e.g. replate.uk)"
+  type        = string
+  default     = "replate.uk"
+}
+
 variable "auth0_subdomain" {
   description = "Subdomain for Auth0 custom domain (e.g., 'id' for id.replate.dev)"
   type        = string

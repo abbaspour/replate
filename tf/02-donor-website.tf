@@ -101,23 +101,24 @@ resource "auth0_client" "donor" {
 
   callbacks = [
     "https://donor.${var.top_level_domain}",
-    "http://localhost:8787"
+    "https://donor.${var.top_level_domain-uk}",
   ]
 
   allowed_logout_urls = [
     "https://donor.${var.top_level_domain}",
-    "http://localhost:8787"
+    "https://donor.${var.top_level_domain-uk}",
   ]
 
 
   allowed_origins = [
-    "https://donor.${var.top_level_domain}"
+    "https://donor.${var.top_level_domain}",
+    "https://donor.${var.top_level_domain-uk}",
   ]
 
 
   web_origins = [
     "https://donor.${var.top_level_domain}",
-    "http://localhost:8787"
+    "https://donor.${var.top_level_domain-uk}",
   ]
 
   jwt_configuration {
@@ -128,8 +129,8 @@ resource "auth0_client" "donor" {
 
   grant_types = [
     "authorization_code",
-    "password",
-    "http://auth0.com/oauth/grant-type/password-realm",
+    #"password",
+    #"http://auth0.com/oauth/grant-type/password-realm",
     #"urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
   ]
 }
@@ -176,9 +177,8 @@ resource "local_file" "donor_auth_config_json" {
   content = jsonencode({
     "domain" : local.auth0_custom_domain,
     "clientId" : auth0_client.donor.client_id,
-    "audience" : auth0_resource_server.donor_api.identifier,
-    "redirectUri" : "https://donor.${var.top_level_domain}"
-    # "redirectUri": "http://localhost:8787"
+    "audience" : auth0_resource_server.donor_api.identifier
+    #"redirectUri" : "https://donor.${var.top_level_domain}"
   })
 }
 

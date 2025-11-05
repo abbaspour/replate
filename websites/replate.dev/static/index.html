@@ -10,10 +10,25 @@
 Welcome to Replate.
 <br/>
 <ul>
-    <li>Visit our <a href="https://donor.replate.dev">Donor</a> website.</li>
-    <li>Visit our <a href="https://business.replate.dev">Business</a> website.</li>
-    <li>Visit our <a href="https://admin.replate.dev">Admin</a> website.</li>
+    <li>Visit our <a href="/" class="dynamic-donor-link">Donor</a> website.</li>
+    <li>Visit our <a href="https://business.replate.dev/">Business</a> website.</li>
+    <li>Visit our <a href="https://admin.replate.dev/">Admin</a> website.</li>
 </ul>
 
+<script>
+    // Wait for the HTML content to be fully loaded
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentHostname = window.location.hostname.replace(/^www\./, '');
+
+        const donorBaseUrl = `https://donor.${currentHostname}`;
+
+        let dynamicLinks = document.querySelectorAll(".dynamic-donor-link");
+        dynamicLinks.forEach(link => {
+            const path = link.getAttribute("href");
+            link.href = donorBaseUrl + path;
+        });
+
+    });
+</script>
 </body>
 </html>
