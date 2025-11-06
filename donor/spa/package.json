@@ -10,11 +10,10 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "react-router-dom": "^6.27.0",
-    "@auth0-web-ui-components/core": "file:../../components/web-ui-components-core-1.2.16",
-    "@auth0-web-ui-components/react": "file:../../components/web-ui-components-react-0.3.18"
+    "@auth0/web-ui-components-react": "file:../../components/web-ui-components-react-0.3.18"
   },
   "devDependencies": {
     "esbuild": "^0.21.5",

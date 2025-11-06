@@ -1,4 +1,7 @@
+// noinspection DuplicatedCode
+
 import React, {useEffect, useMemo, useState, createContext, useContext} from 'react';
+import { Auth0ComponentProvider  } from '@auth0/web-ui-components-react';
 import {Auth0Provider, useAuth0} from '@auth0/auth0-react';
 import {useNavigate} from 'react-router-dom';
 
@@ -86,6 +89,11 @@ export function Auth0ProviderWithConfig({children}) {
     derivedDomain = `id.${root}`;
   }
 
+  const authDetails = {
+    domain: derivedDomain,
+    clientId: cfg.clientId
+  };
+
   return (
     <Auth0Provider
       domain={derivedDomain}
@@ -101,7 +109,9 @@ export function Auth0ProviderWithConfig({children}) {
       cacheLocation="localstorage"
     >
       {/*<ClaimsProvider>*/}
+      {/*<Auth0ComponentProvider authDetails={authDetails}>*/}
         {children}
+      {/*</Auth0ComponentProvider>*/}
       {/*</ClaimsProvider>*/}
     </Auth0Provider>
   );

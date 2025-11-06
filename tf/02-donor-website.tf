@@ -161,6 +161,7 @@ resource "auth0_client" "donor-cli" {
     "password",
     "http://auth0.com/oauth/grant-type/password-realm",
     "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+    "urn:openid:params:grant-type:ciba",
     "refresh_token"
   ]
 

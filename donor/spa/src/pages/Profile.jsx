@@ -1,5 +1,5 @@
 import React from 'react';
-import { Auth0ComponentProvider, UserMFAMgmt } from '@auth0-web-ui-components/react';
+//import { Auth0ComponentProvider, UserMFAMgmt } from '@auth0/web-ui-components-react';
 
 export default function Profile() {
   const authDetails = {
