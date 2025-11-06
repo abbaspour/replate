@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:ts": "tsup",
     "build": "esbuild src/main.jsx --bundle --outfile=public/dist/main.js --format=esm --sourcemap --loader:.jsx=jsx",
     "dev": "wrangler dev",
     "deploy": "npm run build && wrangler deploy",
@@ -10,14 +11,17 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
+    "@auth0/web-ui-components-react": "file:../../components/web-ui-components-react-0.3.18",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.27.0",
-    "@auth0/web-ui-components-react": "file:../../components/web-ui-components-react-0.3.18"
+    "react/jsx-runtime": "^19.1.0"
   },
   "devDependencies": {
     "esbuild": "^0.21.5",
-    "wrangler": "^4.45.3",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.45.3"
   }
 }
