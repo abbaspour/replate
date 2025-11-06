@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
-    "@auth0/web-ui-components-react": "file:../../components/web-ui-components-react-0.3.18",
+    "@auth0/web-ui-components-react": "file:../../components/auth0-web-ui-components-react-0.1.0-alpha.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.27.0"
