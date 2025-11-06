@@ -109,9 +109,9 @@ export function Auth0ProviderWithConfig({children}) {
       cacheLocation="localstorage"
     >
       {/*<ClaimsProvider>*/}
-      {/*<Auth0ComponentProvider authDetails={authDetails}>*/}
+      <Auth0ComponentProvider authDetails={authDetails}>
         {children}
-      {/*</Auth0ComponentProvider>*/}
+      </Auth0ComponentProvider>
       {/*</ClaimsProvider>*/}
     </Auth0Provider>
   );
