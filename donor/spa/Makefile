@@ -1,7 +1,7 @@
 all: build
 
 build:
-	npm run build
+	pnpm run build
 
 deploy:
 	npx wrangler deploy
