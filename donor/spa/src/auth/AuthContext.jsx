@@ -74,9 +74,21 @@ export function Auth0ProviderWithConfig({children}) {
 
   if (!cfg) return <div className="container"><p>Loading configuration…</p></div>;
 
+  // Derive Auth0 domain dynamically based on where the SPA is running.
+  // - If running on localhost, 127.0.0.1, or *.workers.dev, use the domain from auth_config.json.
+  // - Otherwise, prefix the top-level domain (eTLD+1) with `id.` (e.g., donor.replate.dev -> id.replate.dev).
+  const hostname = window.location.hostname || '';
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.workers.dev');
+  let derivedDomain = cfg.domain;
+  if (!isLocal) {
+    const parts = hostname.split('.');
+    const root = parts.length >= 2 ? parts.slice(-2).join('.') : hostname;
+    derivedDomain = `id.${root}`;
+  }
+
   return (
     <Auth0Provider
-      domain={cfg.domain}
+      domain={derivedDomain}
       clientId={cfg.clientId}
       authorizationParams={{
         audience: cfg.audience,
