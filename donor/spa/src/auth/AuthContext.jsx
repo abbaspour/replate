@@ -1,0 +1,94 @@
+import React, {useEffect, useMemo, useState, createContext, useContext} from 'react';
+import {Auth0Provider, useAuth0} from '@auth0/auth0-react';
+import {useNavigate} from 'react-router-dom';
+
+const ClaimsContext = createContext(null);
+
+export function ClaimsProvider({children}) {
+  const {isAuthenticated, getIdTokenClaims} = useAuth0();
+  const [claims, setClaims] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      if (!mounted) return;
+      if (!isAuthenticated) {
+        if (mounted) setClaims(null);
+        return;
+      }
+      try {
+        const c = await getIdTokenClaims();
+        if (mounted) {
+          if (c && '__raw' in c) delete c.__raw;
+          setClaims(c || null);
+        }
+      } catch (e) {
+        if (mounted) setClaims(null);
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [isAuthenticated, getIdTokenClaims]);
+
+  const value = useMemo(() => ({claims}), [claims]);
+  return <ClaimsContext.Provider value={value}>{children}</ClaimsContext.Provider>;
+}
+
+export function useClaims() {
+  return useContext(ClaimsContext) || {claims: null};
+}
+
+export function ProtectedRoute({children}) {
+  const {isLoading, isAuthenticated, loginWithRedirect} = useAuth0();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      loginWithRedirect({appState: {returnTo: window.location.pathname + window.location.search}});
+    }
+  }, [isLoading, isAuthenticated, loginWithRedirect]);
+
+  if (isLoading) return <div className="container"><p>Loading…</p></div>;
+  if (!isAuthenticated) return null;
+  return children;
+}
+
+export function Auth0ProviderWithConfig({children}) {
+  const navigate = useNavigate();
+  const [cfg, setCfg] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const res = await fetch('/auth_config.json', {headers: {'cache-control': 'no-cache'}});
+      const json = await res.json();
+      if (!cancelled) setCfg(json);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!cfg) return <div className="container"><p>Loading configuration…</p></div>;
+
+  return (
+    <Auth0Provider
+      domain={cfg.domain}
+      clientId={cfg.clientId}
+      authorizationParams={{
+        audience: cfg.audience,
+        redirect_uri: cfg.redirectUri || window.location.origin,
+      }}
+      onRedirectCallback={(appState) => {
+        const target = appState?.returnTo || '/';
+        navigate(target, {replace: true});
+      }}
+      cacheLocation="localstorage"
+    >
+      <ClaimsProvider>{children}</ClaimsProvider>
+    </Auth0Provider>
+  );
+}

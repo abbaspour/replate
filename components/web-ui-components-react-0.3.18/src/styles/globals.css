@@ -1,0 +1,161 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@import './themes/default.css';
+@import './themes/minimal.css';
+@import './themes/rounded.css';
+
+:root {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  .color-scheme-transitioning *,
+  .color-scheme-transitioning *::before,
+  .color-scheme-transitioning *::after {
+    transition: var(--color-scheme-transition) !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+:root {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@theme {
+  --color-page: var(--color-neutral-2);
+  --color-background: var(--color-neutral-min);
+  --color-foreground: var(--color-neutral-12);
+
+  --color-card: var(--color-neutral-min);
+  --color-card-foreground: var(--color-neutral-max);
+
+  --color-primary: var(--color-carbon-9);
+  --color-primary-foreground: var(--color-neutral-min);
+
+  --color-secondary: var(--color-neutral-3);
+  --color-secondary-foreground: var(--color-neutral-1);
+
+  --color-accent: var(--color-neutral-2);
+  --color-accent-foreground: var(--color-neutral-12);
+
+  --color-muted: var(--color-neutral-2);
+  --color-muted-foreground: var(--color-neutral-11);
+
+  --color-border: var(--color-neutral-6);
+
+  --color-ring: hsla(var(--color-neutral-7), 0.2);
+
+  --color-info: var(--color-blue-3);
+  --color-info-foreground: var(--color-blue-9);
+  --color-success: var(--color-green-3);
+  --color-success-foreground: var(--color-green-9);
+  --color-warning: var(--color-yellow-3);
+  --color-warning-foreground: var(--color-yellow-11);
+
+  --color-destructive: var(--color-red-3);
+  --color-destructive-foreground: var(--color-red-9);
+  --color-destructive-border: var(--color-red-10);
+
+  --color-popover: var(--color-neutral-1);
+  --color-popover-foreground: var(--color-neutral-12);
+  --color-popover-border: var(--color-neutral-6);
+
+  --color-input: var(--color-neutral-1);
+  --color-input-foreground: var(--color-neutral-12);
+  --color-input-muted: var(--color-neutral-2);
+
+  --shadow-bevel-xs: var(--shadow-bevel-xs);
+  --shadow-bevel-sm: var(--shadow-bevel-sm);
+  --shadow-bevel-md: var(--shadow-bevel-md);
+  --shadow-bevel-lg: var(--shadow-bevel-md);
+  --shadow-bevel-xl: var(--shadow-bevel-xl);
+  --shadow-bevel-2xl: var(--shadow-bevel-2xl);
+
+  --shadow-button-resting: var(--shadow-button-resting);
+  --shadow-button-hover: var(--shadow-button-hover);
+  --shadow-button-focus: var(--shadow-button-hover);
+
+  --shadow-button-destructive-resting: var(--shadow-button-destructive-resting);
+  --shadow-button-destructive-hover: var(--shadow-button-destructive-hover);
+  --shadow-button-destructive-focus: var(--shadow-button-destructive-focus);
+
+  --shadow-button-outlined-resting: var(--shadow-button-outlined-resting);
+  --shadow-button-outlined-hover: var(--shadow-button-outlined-resting);
+  --shadow-button-outlined-focus: var(--shadow-button-outlined-resting);
+
+  --shadow-input-resting: var(--shadow-input-resting);
+  --shadow-input-hover: var(--shadow-input-hover);
+  --shadow-input-focus: var(--shadow-input-focus);
+  --shadow-input-destructive-resting: var(--shadow-input-destructive-resting);
+  --shadow-input-destructive-hover: var(--shadow-input-destructive-hover);
+  --shadow-input-destructive-focus: var(--shadow-input-destructive-focus);
+
+  --shadow-checkbox-resting: var(--shadow-checkbox-resting);
+  --shadow-checkbox-hover: var(--shadow-checkbox-hover);
+
+  --shadow-switch-resting: var(--shadow-switch-resting);
+  --shadow-switch-hover: var(--shadow-switch-resting);
+  --shadow-switch-focus: var(--shadow-switch-focus);
+  --shadow-switch-thumb: var(--shadow-switch-thumb);
+  --shadow-switch-thumb-dark: var(--shadow-switch-thumb-dark);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-4xl: var(--radius-4xl);
+  --radius-5xl: var(--radius-5xl);
+  --radius-6xl: var(--radius-6xl);
+  --radius-7xl: var(--radius-7xl);
+  --radius-8xl: var(--radius-8xl);
+  --radius-9xl: var(--radius-9xl);
+
+  --font-size-heading: 1.5rem;
+  /* Default for text-2xl */
+  --font-size-title: 1.25rem;
+  /* Default for text-xl */
+  --font-size-subtitle: 1.125rem;
+  /* Default for text-lg */
+  --font-size-body: 1rem;
+  /* Default for text-base (For main body text size) */
+  --font-size-paragraph: 0.875rem;
+  /* Default for text-sm (For general smaller paragraphs/details) */
+  --font-size-label: 0.875rem;
+  /* Default for text-sm (Specifically for labels like FieldLabel) */
+  --font-size-page-header: 2.25rem;
+  /* Default for text-4xl (For main page headers/titles) */
+  --font-size-page-description: 0.875rem;
+  /* Default for text-sm (For page descriptions/subtitles) */
+}

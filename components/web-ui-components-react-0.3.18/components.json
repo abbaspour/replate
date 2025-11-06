@@ -1,0 +1,28 @@
+{
+  "style": "default",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "src/components",
+    "ui": "src/components/ui",
+    "hooks": "src/hooks",
+    "providers": "src/providers",
+    "types": "src/types",
+    "hoc": "src/hoc",
+    "lib": "src/lib",
+    "blocks": "src/blocks",
+    "utils": "src/lib/utils"
+  },
+  "registries": [
+    {
+      "name": "universal-components",
+      "url": "https://universal-design-docs.vercel.app/api/registry/ui"
+    }
+  ]
+}
