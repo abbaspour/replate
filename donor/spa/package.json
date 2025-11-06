@@ -14,8 +14,7 @@
     "@auth0/web-ui-components-react": "file:../../components/web-ui-components-react-0.3.18",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^6.27.0",
-    "react/jsx-runtime": "^19.1.0"
+    "react-router-dom": "^6.27.0"
   },
   "devDependencies": {
     "esbuild": "^0.21.5",

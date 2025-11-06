@@ -7,5 +7,13 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   minify: true,
-  external: ['react', 'react-dom', '@auth0/auth0-react'],
+  // Ensure the React runtime is NOT bundled inside this library;
+  // it must be provided by the consuming app to avoid multiple React copies.
+  external: [
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+    '@auth0/auth0-react'
+  ],
 });

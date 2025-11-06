@@ -9,6 +9,7 @@ routes = [
 
 [build]
 command = "npm run build"
+#command = "npm run build:ts"
 
 [assets]
 directory = "./public"

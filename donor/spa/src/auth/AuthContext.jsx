@@ -91,7 +91,7 @@ export function Auth0ProviderWithConfig({children}) {
 
   const authDetails = {
     domain: derivedDomain,
-    clientId: cfg.clientId
+    //clientId: cfg.clientId
   };
 
   return (
