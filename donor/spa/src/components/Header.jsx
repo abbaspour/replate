@@ -35,6 +35,7 @@ export default function Header() {
               <img src={user.picture} alt="avatar" style={{width: 28, height: 28, borderRadius: '50%'}} />
             )}
             <span>{user?.name || user?.email}</span>
+            <Link to="/profile" style={{marginLeft: '0.5rem'}}>Profile</Link>
             <button className="btn" onClick={handleLogout}>Logout</button>
           </>
         ) : (

@@ -1,4 +1,7 @@
-all: deploy
+all: build
+
+build:
+	npm run build
 
 deploy:
 	npx wrangler deploy
@@ -7,6 +10,9 @@ dev:
 	npx wrangler dev
 
 .PHONY: build deploy dev
+
+clean:
+	rm -rf public/dist
 
 help:
 	@echo "Available targets:"

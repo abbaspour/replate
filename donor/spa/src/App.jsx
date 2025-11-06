@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Donate from './pages/Donate';
 import History from './pages/History';
 import Suggest from './pages/Suggest';
+import Profile from './pages/Profile';
 import Callback from './pages/Callback';
 import {ProtectedRoute} from './auth/AuthContext';
 
@@ -37,6 +38,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Suggest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />
