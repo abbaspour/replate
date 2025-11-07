@@ -1,17 +1,17 @@
 all: build
 
 deploy:
-	npm run deploy
+	pnpm run deploy
 
 dev:
-	npm run dev
+	pnpm run dev
 
 build:
-	npm run build
+	pnpm run build
 
 
 format:
-	npm run format
+	pnpm run format
 
 .PHONY: build deploy dev format
 

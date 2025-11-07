@@ -131,6 +131,34 @@ data "auth0_resource_server" "my-org" {
   identifier = "https://${var.auth0_domain}/my-org/"
 }
 
+resource "auth0_client_grant" "business-my-org-grant" {
+  audience  = data.auth0_resource_server.my-org.identifier
+  client_id = auth0_client.business.client_id
+  scopes = [
+    "read:my_org:details",
+    "update:my_org:details",
+    "create:my_org:identity_providers",
+    "read:my_org:identity_providers",
+    "update:my_org:identity_providers",
+    "delete:my_org:identity_providers",
+    "update:my_org:identity_providers_detach",
+    "read:my_org:identity_providers_domains",
+    "create:my_org:identity_provider_domains",
+    "delete:my_org:identity_provider_domains",
+    "read:my_org:domains",
+    "delete:my_org:domains",
+    "create:my_org:domains",
+    "update:my_org:domains",
+    "read:my_org:scim_tokens",
+    "create:my_org:scim_tokens",
+    "delete:my_org:scim_tokens",
+    "create:my_org:identity_provider_provisioning",
+    "read:my_org:identity_provider_provisioning",
+    "delete:my_org:identity_provider_provisioning",
+    "read:my_org:configuration"
+  ]
+  subject_type = "user"
+}
 // -- Roles
 # VISIT https://manage.auth0.com/dashboard/au/replate-prd/roles
 resource "auth0_role" "supplier-admin" {

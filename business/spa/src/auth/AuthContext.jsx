@@ -1,4 +1,5 @@
 import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import { Auth0ComponentProvider  } from '@auth0/web-ui-components-react';
 import {Auth0Provider, useAuth0} from '@auth0/auth0-react';
 import {useNavigate} from 'react-router-dom';
 
@@ -179,7 +180,9 @@ export function Auth0ProviderWithConfig({children}) {
             cacheLocation="localstorage"
             //useRefreshTokens=
         >
-            <ClaimsProvider>{children}</ClaimsProvider>
+            <Auth0ComponentProvider authDetails={{domain: cfg.domain}}>
+                <ClaimsProvider>{children}</ClaimsProvider>
+            </Auth0ComponentProvider>
         </Auth0Provider>
     );
 }
