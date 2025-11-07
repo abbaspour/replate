@@ -1,7 +1,3 @@
-data "auth0_resource_server" "my-account" {
-  identifier = "https://${var.auth0_domain}/me/"
-}
-
 resource "auth0_client_grant" "donor-cli-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
   client_id = auth0_client.donor-cli.id
@@ -27,25 +23,6 @@ data "auth0_client" "donor-api-client" {
 
 data "auth0_client" "business-api-client" {
   name = auth0_resource_server.business_api.name
-}
-
-resource "auth0_client_grant" "donor-grants" {
-  audience  = data.auth0_resource_server.my-account.identifier
-  client_id = auth0_client.donor.id
-  scopes = [
-    // authentication methods
-    "read:me:authentication_methods",
-    "delete:me:authentication_methods",
-    "update:me:authentication_methods",
-    "create:me:authentication_methods",
-    // factors
-    "read:me:factors",
-    // connected_accounts
-    "create:me:connected_accounts",
-    "read:me:connected_accounts",
-    "delete:me:connected_accounts"
-  ]
-  subject_type = "user"
 }
 
 ## social connection to connected accounts

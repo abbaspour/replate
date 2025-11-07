@@ -1,0 +1,50 @@
+{
+  "name": "@auth0/web-ui-components-core",
+  "version": "0.1.0-alpha.5",
+  "description": "Core utilities for Auth0 Web UI components",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build:ts": "tsup",
+    "build": "pnpm run clean && pnpm run build:ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "i18n",
+    "auth0",
+    "core",
+    "utilities"
+  ],
+  "author": "Auth0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.6.5",
+  "devDependencies": {
+    "@types/node": "^22.15.27",
+    "@vitest/coverage-v8": "^3.2.4",
+    "vitest": "^3.2.3"
+  },
+  "dependencies": {
+    "auth0-myorg-sdk": "file:../auth0-my-org-0.69.0.tgz",
+    "@auth0/myaccount": "file:../auth0-my-account-0.69.0.tgz",
+    "zod": "^3.25.56"
+  }
+}

@@ -16,6 +16,10 @@ data "auth0_resource_server" "api_v2" {
   identifier = "https://${var.auth0_domain}/api/v2/"
 }
 
+data "auth0_resource_server" "my-account" {
+  identifier = "https://${var.auth0_domain}/me/"
+}
+
 data "auth0_connection" "Username-Password-Authentication" {
   name = "Username-Password-Authentication"
 }
@@ -35,6 +39,13 @@ resource "auth0_user" "user1" {
   connection_name = data.auth0_connection.Username-Password-Authentication.name
   email           = "user1@atko.email"
   password        = "user1@atko.email"
+}
+
+resource "auth0_user" "user2" {
+  connection_name = data.auth0_connection.Username-Password-Authentication.name
+  email           = "user2@atko.email"
+  password        = "user2@atko.email"
+  custom_domain_header = "id.${var.top_level_domain}"
 }
 
 
@@ -57,7 +68,7 @@ resource "auth0_connection" "Username-Password-Authentication" {
         identifier {
           active = true
         }
-        profile_required = true
+        profile_required    = true
         verification_method = "otp"
       }
     }
@@ -135,6 +146,25 @@ resource "auth0_client" "donor" {
   ]
 }
 
+resource "auth0_client_grant" "donor-myaccount-grant" {
+  audience  = data.auth0_resource_server.my-account.identifier
+  client_id = auth0_client.donor.client_id
+  scopes = [
+    // authentication methods
+    "read:me:authentication_methods",
+    "delete:me:authentication_methods",
+    "update:me:authentication_methods",
+    "create:me:authentication_methods",
+    // factors
+    "read:me:factors",
+    // connected_accounts
+    "create:me:connected_accounts",
+    "read:me:connected_accounts",
+    "delete:me:connected_accounts"
+  ]
+  subject_type = "user"
+}
+
 # donor cli client
 resource "auth0_client" "donor-cli" {
   name            = "Donor CLI"
@@ -161,6 +191,7 @@ resource "auth0_client" "donor-cli" {
     "password",
     "http://auth0.com/oauth/grant-type/password-realm",
     "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+    "urn:openid:params:grant-type:ciba",
     "refresh_token"
   ]
 
@@ -196,6 +227,18 @@ resource "auth0_action" "claims" {
 }
 */
 
+resource "auth0_action" "mfa" {
+  name    = "MFA Post Login Action"
+  runtime = "node22"
+  deploy  = true
+  code    = file("${path.module}/../auth0/actions/dist/mfa-when-enrolled.js")
+
+  supported_triggers {
+    id      = "post-login"
+    version = "v3"
+  }
+}
+
 # IPv4 - A
 resource "cloudflare_dns_record" "donor" {
   zone_id = data.cloudflare_zone.replate-dev.zone_id
@@ -219,8 +262,8 @@ resource "cloudflare_dns_record" "donorV6" {
 # Custom Domain
 locals {
   auth0_custom_domain = "${var.auth0_subdomain}.${var.top_level_domain}"
-  worker_name = "replate-auth0-custom-domain-fetch"
-  worker_path = "${path.module}/../auth0/custom-domain"
+  worker_name         = "replate-auth0-custom-domain-fetch"
+  worker_path         = "${path.module}/../auth0/custom-domain"
 }
 
 # Deploy the worker script
@@ -271,8 +314,8 @@ resource "cloudflare_workers_script" "auth0_custom_domain_fetch" {
 
 // VISIT https://manage.auth0.com/dashboard/au/replate-prd/tenant/custom_domains
 resource "auth0_custom_domain" "cf-worker-fetch" {
-  domain = "${var.auth0_subdomain}.${var.top_level_domain}"
-  type   = "self_managed_certs"
+  domain                  = "${var.auth0_subdomain}.${var.top_level_domain}"
+  type                    = "self_managed_certs"
   custom_client_ip_header = "cf-connecting-ip"
 }
 
@@ -286,17 +329,17 @@ resource "auth0_custom_domain_verification" "cf-worker-fetch_verification" {
 
 resource "cloudflare_dns_record" "cf-worker-fetch_verification_record" {
   zone_id = data.cloudflare_zone.replate-dev.zone_id # var.cloudflare_zone_id
-  type = upper(auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].name)
-  name = auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].domain
+  type    = upper(auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].name)
+  name    = auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].domain
   ttl     = 300
   content = "\"${auth0_custom_domain.cf-worker-fetch.verification[0].methods[0].record}\""
 }
 
 # Create .env file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
 resource "local_file" "cf-worker-fetch-dot_env" {
-  filename = "${local.worker_path}/.env"
+  filename        = "${local.worker_path}/.env"
   file_permission = "600"
-  content  = <<-EOT
+  content         = <<-EOT
 CNAME_API_KEY=${auth0_custom_domain_verification.cf-worker-fetch_verification.cname_api_key}
 AUTH0_EDGE_LOCATION=${auth0_custom_domain_verification.cf-worker-fetch_verification.origin_domain_name}
 EOT
@@ -315,8 +358,8 @@ resource "cloudflare_workers_custom_domain" "auth0_custom_domain_fetch" {
 ## database
 # Creates a Cloudflare D1 database for CRM data. A future worker/API will connect to this DB.
 resource "cloudflare_d1_database" "donor" {
-  account_id = var.cloudflare_account_id
-  name       = "replate-donor"
+  account_id            = var.cloudflare_account_id
+  name                  = "replate-donor"
   primary_location_hint = "apac"
   read_replication = {
     mode = "disabled"

@@ -43,6 +43,8 @@ resource "null_resource" "build_auth0_actions" {
     pkg_hash             = filesha1("${path.module}/../auth0/actions/package.json")
     tsconfig_hash        = filesha1("${path.module}/../auth0/actions/tsconfig.json")
     sal_acntlink_ts_hash = filesha1("${path.module}/../auth0/actions/silent-account-linking.ts")
+    mfa_ts_hash          = filesha1("${path.module}/../auth0/actions/mfa-when-enrolled.ts")
+    form_ts_hash         = filesha1("${path.module}/../auth0/actions/render-privacy-policy-form.ts")
   }
 
   provisioner "local-exec" {
@@ -88,6 +90,12 @@ resource "auth0_action" "silent_account_linking" {
 
 resource "auth0_trigger_actions" "post_login_binding" {
   trigger = "post-login"
+
+  // Part of #02
+  actions {
+    id           = auth0_action.mfa.id
+    display_name = "MFA when Enrolled"
+  }
 
   // Part of #03
   actions {
