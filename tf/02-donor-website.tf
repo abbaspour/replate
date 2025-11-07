@@ -227,6 +227,18 @@ resource "auth0_action" "claims" {
 }
 */
 
+resource "auth0_action" "mfa" {
+  name    = "MFA Post Login Action"
+  runtime = "node22"
+  deploy  = true
+  code    = file("${path.module}/../auth0/actions/dist/mfa-when-enrolled.js")
+
+  supported_triggers {
+    id      = "post-login"
+    version = "v3"
+  }
+}
+
 # IPv4 - A
 resource "cloudflare_dns_record" "donor" {
   zone_id = data.cloudflare_zone.replate-dev.zone_id
