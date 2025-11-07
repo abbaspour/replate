@@ -39,13 +39,15 @@ resource "auth0_user" "user1" {
   connection_name = data.auth0_connection.Username-Password-Authentication.name
   email           = "user1@atko.email"
   password        = "user1@atko.email"
+  email_verified  = true
 }
 
 resource "auth0_user" "user2" {
-  connection_name = data.auth0_connection.Username-Password-Authentication.name
-  email           = "user2@atko.email"
-  password        = "user2@atko.email"
+  connection_name      = data.auth0_connection.Username-Password-Authentication.name
+  email                = "user2@atko.email"
+  password             = "user2@atko.email"
   custom_domain_header = "id.${var.top_level_domain}"
+  email_verified       = true
 }
 
 
