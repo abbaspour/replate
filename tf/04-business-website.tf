@@ -70,59 +70,59 @@ EOT
 resource "auth0_resource_server" "business_api" {
   name       = "Business API"
   identifier = "business.api"
-  
+
   # Token settings
-  token_lifetime                                  = 86400  # 24 hours
+  token_lifetime                                  = 86400 # 24 hours
   skip_consent_for_verifiable_first_party_clients = true
-  
+
   # JWT settings
   signing_alg = "RS256"
-  
+
   allow_offline_access = false
 
   enforce_policies = true
-  token_dialect = "access_token_authz"
+  token_dialect    = "access_token_authz"
 }
 
 # Define scopes for business API
-resource "auth0_resource_server_scopes" business-api-scopes {
+resource "auth0_resource_server_scopes" "business-api-scopes" {
   resource_server_identifier = auth0_resource_server.business_api.identifier
 
   // -- pickups --
   scopes {
-    name = "read:pickups"
+    name        = "read:pickups"
     description = "read:pickups"
   }
 
   scopes {
-    name = "create:pickups"
+    name        = "create:pickups"
     description = "create:pickups"
   }
 
   scopes {
-    name = "update:pickups"
+    name        = "update:pickups"
     description = "update:pickups"
   }
 
   // -- schedules --
   scopes {
-    name = "read:schedules"
+    name        = "read:schedules"
     description = "read:schedules"
   }
 
   scopes {
-    name = "update:schedules"
+    name        = "update:schedules"
     description = "update:schedules"
   }
 
   // -- organization --
   scopes {
-    name = "read:organization"
+    name        = "read:organization"
     description = "read:organization"
   }
 
   scopes {
-    name = "update:organization"
+    name        = "update:organization"
     description = "update:organization"
   }
 }
@@ -132,8 +132,9 @@ data "auth0_resource_server" "my-org" {
 }
 
 resource "auth0_client_grant" "business-my-org-grant" {
-  audience  = data.auth0_resource_server.my-org.identifier
-  client_id = auth0_client.business.client_id
+  audience           = data.auth0_resource_server.my-org.identifier
+  client_id          = auth0_client.business.client_id
+  organization_usage = "require"
   scopes = [
     "read:my_org:details",
     "update:my_org:details",
@@ -650,8 +651,8 @@ resource "auth0_connection_clients" "business-db-clients" {
 
 # Creates a Cloudflare D1 database for CRM data. A future worker/API will connect to this DB.
 resource "cloudflare_d1_database" "business" {
-  account_id = var.cloudflare_account_id
-  name       = "replate-business"
+  account_id            = var.cloudflare_account_id
+  name                  = "replate-business"
   primary_location_hint = "apac"
   read_replication = {
     mode = "disabled"
