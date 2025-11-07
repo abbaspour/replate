@@ -668,8 +668,14 @@ Look & Feel (shared)
 - API integration: attach bearer token; handle 401/403 by redirecting to log in; show scope errors.
 - Routing: /, /jobs, /jobs/new, /schedules, /schedules/new, /organization, /callback.
 - Config file example (business/spa/public/auth_config.json):
-  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_BUSINESS", "audience": "business.api", "
-  redirectUri": "https://business.replate.dev/callback", "useOrganizations": true }
+
+```json
+{ "domain": "id.replate.dev", 
+  "clientId": "AUTH0_CLIENT_ID_BUSINESS", 
+  "audience": "business.api", 
+  "redirectUri": "https://business.replate.dev/callback", 
+}
+```
 
 ## Admin SPA (`admin.replate.dev`)
 
