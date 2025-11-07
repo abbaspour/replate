@@ -786,11 +786,11 @@ Sample access_token. `org_id` is nullable for donors.
 | No | Screenplay                       | Video                            | Website  | Demo Topic                        |
 |----|----------------------------------|----------------------------------|----------|-----------------------------------|
 | 01 | [s-01.txt](./videos/01/s-01.txt) | [s-01.mp4](./videos/01/s-01.mp4) | Donor    | Ideation                          |
-| 02 | [s-02.txt](./videos/02/s-02.txt) | [s-02.mp4](./videos/02/s-02.mp4) | Donor    | Credential login, MyAccount       |
+| 02 | [s-02.txt](./videos/02/s-02.txt) | [s-02.mp4](./videos/02/s-02.mp4) | Donor    | Credential login, MyAccount UI    |
 | 03 | [s-03.txt](./videos/03/s-03.txt) | [s-03.mp4](./videos/03/s-03.mp4) | Donor    | Social login & account linking    |
 | 04 | [s-04.txt](./videos/04/s-04.txt) | [s-04.mp4](./videos/04/s-04.mp4) | Business | Credential login & RBAC & Chiclet |
 | 05 | [s-05.txt](./videos/05/s-05.txt) | [s-05.mp4](./videos/05/s-05.mp4) | Business | Federation and HRD                |
-| 06 | [s-06.txt](./videos/06/s-06.txt) | [s-06.mp4](./videos/06/s-06.mp4) | Business | SS-SSO, Admin website             |
+| 06 | [s-06.txt](./videos/06/s-06.txt) | [s-06.mp4](./videos/06/s-06.mp4) | Business | SS-SSO, MyOrg UI                  |
 | 07 | [s-07.txt](./videos/07/s-07.txt) | [s-07.mp4](./videos/07/s-07.mp4) | Both     | RTL & ACL                         |
 | 08 | [s-08.txt](./videos/08/s-08.txt) | [s-08.mp4](./videos/08/s-08.mp4) | Donor    | Bulk import & Forms               |
 | 09 | [s-09.txt](./videos/09/s-09.txt) | [s-09.mp4](./videos/09/s-09.mp4) | Donor    | MCD                               |
