@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useApi} from '../api/client';
 import {usePermissions, useOrgId} from '../auth/AuthContext';
+import { OrgDetailsEdit } from '@auth0/web-ui-components-react';
 
 export default function Organization() {
     const api = useApi();
@@ -60,6 +61,13 @@ export default function Organization() {
 
     return (
         <div className="container">
+            <div className="card" style={{ marginBottom: '1rem' }}>
+                <h1>My Organization Profile</h1>
+                <p className="text-muted">Manage organization.</p>
+            </div>
+            <div className="card">
+                <OrgDetailsEdit />
+            </div>
             <div className="card">
                 <h2>Organization</h2>
                 {err && <p className="error">{err}</p>}
