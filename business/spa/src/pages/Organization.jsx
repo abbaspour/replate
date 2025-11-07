@@ -1,18 +1,21 @@
-import React, {useEffect, useState} from 'react';
-import {useApi} from '../api/client';
+import React from 'react';
+//import {useApi} from '../api/client';
 import {usePermissions, useOrgId} from '../auth/AuthContext';
-import { OrgDetailsEdit } from '@auth0/web-ui-components-react';
+import {OrgDetailsEdit} from '@auth0/web-ui-components-react';
 
 export default function Organization() {
-    const api = useApi();
-    const orgId = useOrgId();
     const permissions = usePermissions();
+
+    const canRead = permissions.has('read:organization');
+    const canUpdate = permissions.has('update:organization');
+
+    /*
     const [org, setOrg] = useState(null);
     const [err, setErr] = useState('');
     const [msg, setMsg] = useState('');
 
-    const canRead = permissions.has('read:organization');
-    const canUpdate = permissions.has('update:organization');
+    const api = useApi();
+    const orgId = useOrgId();
 
     useEffect(() => {
         let mounted = true;
@@ -51,6 +54,7 @@ export default function Organization() {
             setErr(e.message);
         }
     }
+    */
 
     if (!canRead)
         return (
@@ -60,84 +64,16 @@ export default function Organization() {
         );
 
     return (
-        <div className="container">
-            <div className="card" style={{ marginBottom: '1rem' }}>
-                <h1>My Organization Profile</h1>
-                <p className="text-muted">Manage organization.</p>
+        <main className="container">
+            <div className="container">
+                <div className="card" style={{marginBottom: '1rem'}}>
+                    <h1>My Organization Profile</h1>
+                    <p className="text-muted">Manage organization.</p>
+                </div>
+                <div className="card">
+                    <OrgDetailsEdit />
+                </div>
             </div>
-            <div className="card">
-                <OrgDetailsEdit />
-            </div>
-            <div className="card">
-                <h2>Organization</h2>
-                {err && <p className="error">{err}</p>}
-                {msg && <p style={{color: 'green'}}>{msg}</p>}
-                {!org && !err && <p>Loading…</p>}
-                {org && (
-                    <form onSubmit={onSave}>
-                        <div className="row">
-                            <label>Auth0 Org ID</label>
-                            <input disabled value={org.auth0_org_id} />
-                        </div>
-                        <div className="row">
-                            <label>Name</label>
-                            <input disabled value={org.name || ''} />
-                        </div>
-                        {org.org_type === 'supplier' && (
-                            <div className="row">
-                                <label>Pickup address</label>
-                                <input
-                                    value={org.pickup_address || ''}
-                                    onChange={(e) => setOrg((o) => ({...o, pickup_address: e.target.value}))}
-                                />
-                            </div>
-                        )}
-                        {org.org_type === 'community' && (
-                            <div className="row">
-                                <label>Delivery address</label>
-                                <input
-                                    value={org.delivery_address || ''}
-                                    onChange={(e) => setOrg((o) => ({...o, delivery_address: e.target.value}))}
-                                />
-                            </div>
-                        )}
-                        {org.org_type === 'logistics' && (
-                            <>
-                                <div className="row">
-                                    <label>Coverage regions</label>
-                                    <input
-                                        value={org.coverage_regions || ''}
-                                        onChange={(e) => setOrg((o) => ({...o, coverage_regions: e.target.value}))}
-                                    />
-                                </div>
-                                <div className="row">
-                                    <label>Vehicle types (comma separated)</label>
-                                    <input
-                                        value={(org.vehicle_types || []).join(', ')}
-                                        onChange={(e) =>
-                                            setOrg((o) => ({
-                                                ...o,
-                                                vehicle_types: e.target.value
-                                                    .split(',')
-                                                    .map((s) => s.trim())
-                                                    .filter(Boolean),
-                                            }))
-                                        }
-                                    />
-                                </div>
-                            </>
-                        )}
-
-                        {canUpdate ? (
-                            <button className="btn" type="submit">
-                                Save
-                            </button>
-                        ) : (
-                            <p className="error">You do not have permission to update organization.</p>
-                        )}
-                    </form>
-                )}
-            </div>
-        </div>
+        </main>
     );
 }
