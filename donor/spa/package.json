@@ -21,6 +21,6 @@
     "prettier": "^3.6.2",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
-    "wrangler": "^4.45.3"
+    "wrangler": "^4.46.0"
   }
 }
