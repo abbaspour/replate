@@ -144,6 +144,33 @@ variable "microsoft_client_secret" {
   sensitive = true
 }
 
+## mailtrap
+variable "mailtrap_smtp_host" {
+  type = string
+  default = "sandbox.smtp.mailtrap.io"
+}
+
+variable "mailtrap_smtp_port" {
+  type = number
+  default = 2525
+}
+
+variable "mailtrap_smtp_user" {
+  type = string
+}
+
+variable "mailtrap_smtp_pass" {
+  type = string
+  sensitive = true
+}
+
+# slack
+variable "slack_webhook_url" {
+  type = string
+  sensitive = true
+}
+
+
 ## AoB
 variable "default-password" {
   type = string

@@ -45,6 +45,7 @@ resource "null_resource" "build_auth0_actions" {
     sal_acntlink_ts_hash = filesha1("${path.module}/../auth0/actions/silent-account-linking.ts")
     mfa_ts_hash          = filesha1("${path.module}/../auth0/actions/mfa-when-enrolled.ts")
     form_ts_hash         = filesha1("${path.module}/../auth0/actions/render-privacy-policy-form.ts")
+    sms_to_slack_ts_hash = filesha1("${path.module}/../auth0/actions/sms-to-slack.ts")
   }
 
   provisioner "local-exec" {
