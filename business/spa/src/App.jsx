@@ -7,6 +7,8 @@ import JobNew from './pages/JobNew';
 import SchedulesList from './pages/SchedulesList';
 import ScheduleNew from './pages/ScheduleNew';
 import Organization from './pages/Organization';
+import SsoProviderCreatePage from './pages/SsoProviderCreatePage';
+import SsoProviderEditPage from './pages/SsoProviderEditPage';
 import Callback from './pages/Callback';
 import ErrorPage from './pages/Error';
 import {ProtectedRoute} from './auth/AuthContext';
@@ -64,6 +66,22 @@ export default function App() {
                     element={
                         <ProtectedRoute requirePermissions={['read:organization']}>
                             <Organization />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/organization/sso-providers/new"
+                    element={
+                        <ProtectedRoute requirePermissions={['update:organization']}>
+                            <SsoProviderCreatePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/organization/sso-providers/:id/edit"
+                    element={
+                        <ProtectedRoute requirePermissions={['update:organization']}>
+                            <SsoProviderEditPage />
                         </ProtectedRoute>
                     }
                 />
