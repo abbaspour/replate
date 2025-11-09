@@ -1,3 +1,4 @@
+# VISIT https://business.replate.dev/organization
 # IPv4 - A
 resource "cloudflare_dns_record" "business" {
   zone_id = data.cloudflare_zone.replate-dev.zone_id
@@ -28,17 +29,14 @@ resource "auth0_client" "business" {
 
   callbacks = [
     "https://business.${var.top_level_domain}",
-    "http://localhost:8787"
   ]
 
   allowed_logout_urls = [
     "https://business.${var.top_level_domain}",
-    "http://localhost:8787"
   ]
 
   web_origins = [
     "https://business.${var.top_level_domain}",
-    "http://localhost:8787"
   ]
 
   jwt_configuration {
@@ -635,6 +633,7 @@ resource "auth0_role_permissions" "community-member-perms" {
 }
 
 // business users DB
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/connections/database/con_X7MndTpJM6XpxjIJ/settings
 resource "auth0_connection" "business-db" {
   name     = "business"
   strategy = "auth0"

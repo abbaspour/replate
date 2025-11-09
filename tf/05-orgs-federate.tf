@@ -31,6 +31,7 @@ resource "okta_group" "supplier_workforce" {
 }
 
 # RWA Application for Auth0 integration
+# VISIT https://amin-admin.okta.com/admin/app/oidc_client/instance/0oa7583gvharvlkC93l7/#tab-general
 resource "okta_app_oauth" "replate-rwa" {
   provider = okta.business
   label                      = "Replate Business Federation"
@@ -99,6 +100,7 @@ resource "auth0_organization" "fed-supplier-org" {
   }
 }
 
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/connections/enterprise/okta/con_ceDoMwIiUlVYFyld/loginexperience
 resource "auth0_connection" "fed-supplier_workforce" {
   name     = "fed-supplier-workforce"
   strategy = "okta"

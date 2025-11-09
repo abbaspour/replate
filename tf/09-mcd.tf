@@ -110,7 +110,8 @@ resource "cloudflare_workers_script" "auth0_custom_domain_fetch-uk" {
   }
 }
 
-// VISIT https://manage.auth0.com/dashboard/au/replate-prd/tenant/custom_domains
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/custom-domains-v2
+# VISIT https://id.replate.dev/.well-known/openid-configuration
 resource "auth0_custom_domain" "cf-worker-fetch-uk" {
   domain = "${var.auth0_subdomain}.${var.top_level_domain-uk}"
   type   = "self_managed_certs"
