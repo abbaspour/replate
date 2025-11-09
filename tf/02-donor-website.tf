@@ -105,6 +105,7 @@ resource "auth0_resource_server" "donor_api" {
   allow_offline_access = false
 }
 
+# VISIT https://donor.replate.dev/profile
 # VISIT https://manage.auth0.com/dashboard/au/replate-prd/applications/G5DiwGQsKOuwPIw7dOEIfmfu34inCljx/settings
 resource "auth0_client" "donor" {
   name            = "Donor SPA"
@@ -168,43 +169,6 @@ resource "auth0_client_grant" "donor-myaccount-grant" {
   subject_type = "user"
 }
 
-# donor cli client
-resource "auth0_client" "donor-cli" {
-  name            = "Donor CLI"
-  description     = "Donor CLI client"
-  app_type        = "regular_web"
-  oidc_conformant = true
-  is_first_party  = true
-
-  callbacks = [
-    "https://donor.${var.top_level_domain}",
-    "https://jwt.io"
-  ]
-
-  allowed_logout_urls = [
-    "https://donor.${var.top_level_domain}"
-  ]
-
-  jwt_configuration {
-    alg = "RS256"
-  }
-
-  grant_types = [
-    "implicit",
-    "password",
-    "http://auth0.com/oauth/grant-type/password-realm",
-    "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
-    "urn:openid:params:grant-type:ciba",
-    "refresh_token"
-  ]
-
-  organization_usage = "deny"
-}
-
-output "donor-cli-client-id" {
-  value = auth0_client.donor-cli.client_id
-}
-
 # Generate auth config file for donor SPA
 resource "local_file" "donor_auth_config_json" {
   filename = "${path.module}/../donor/spa/public/auth_config.json"
@@ -231,7 +195,7 @@ resource "auth0_action" "claims" {
 */
 
 resource "auth0_action" "mfa" {
-  name    = "MFA Post Login Action"
+  name    = "MFA When Enrolled"
   runtime = "node22"
   deploy  = true
   code    = file("${path.module}/../auth0/actions/dist/mfa-when-enrolled.js")
@@ -315,7 +279,7 @@ resource "cloudflare_workers_script" "auth0_custom_domain_fetch" {
   }
 }
 
-// VISIT https://manage.auth0.com/dashboard/au/replate-prd/tenant/custom_domains
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/tenant/custom_domains
 resource "auth0_custom_domain" "cf-worker-fetch" {
   domain                  = "${var.auth0_subdomain}.${var.top_level_domain}"
   type                    = "self_managed_certs"

@@ -12,7 +12,10 @@ dev:
 .PHONY: build deploy dev
 
 clean:
-	rm -rf public/dist
+	rm -rf public/dist node_modules
+
+init:
+	pnpm i
 
 help:
 	@echo "Available targets:"

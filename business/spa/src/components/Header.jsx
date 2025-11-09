@@ -39,7 +39,7 @@ export default function Header() {
                         {user?.picture && (
                             <img src={user.picture} alt="avatar" width={28} height={28} style={{borderRadius: 999}} />
                         )}
-                        <button className="btn" onClick={() => logout({logoutParams: {returnTo: window.location.origin}})}>
+                        <button className="btn" onClick={() => logout({logoutParams: {returnTo: window.location.origin, federated: true}})}>
                             Logout
                         </button>
                     </div>

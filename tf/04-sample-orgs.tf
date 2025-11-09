@@ -1,3 +1,4 @@
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/users?q=identities.connection%3A%22business%22
 // -- sample org for supplier --
 resource "auth0_organization" "test-supplier-org" {
   name = "acme-supplier"

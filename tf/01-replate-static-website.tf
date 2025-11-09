@@ -29,7 +29,7 @@ resource "cloudflare_dns_record" "root_aaaa" {
   ttl     = 1
 }
 
-
+# VISIT 1 - https://www.replate.dev/
 # Redirect apex to www using Cloudflare Page Rule (301)
 resource "cloudflare_page_rule" "root_to_www" {
   zone_id  = data.cloudflare_zone.replate-dev.zone_id

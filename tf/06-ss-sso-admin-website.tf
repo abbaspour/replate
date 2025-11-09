@@ -18,6 +18,7 @@ resource "cloudflare_dns_record" "adminV6" {
   ttl     = 1
 }
 
+# VISIT https://manage.auth0.com/dashboard/au/replate-prd/connections/enterprise/self-service-profiles/ssp_iRGib67CHp31RELzyHxTy1/settings
 # VISIT https://manage.auth0.com/dashboard/au/amin-saml-idp/applications/zZo9ytfBcus9tBmYBZGvTS0sLO07GT4a/settings
 resource "auth0_self_service_profile" "ss-sso-profile" {
   name = "Replate Self-Service Single Sign On Onboarding"

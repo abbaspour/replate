@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Copies the default password from terraform.auto.tfvars to the macOS clipboard
+# Usage: ./pwd
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TFVARS_FILE="${SCRIPT_DIR}/terraform.auto.tfvars"
+
+if [[ ! -f "$TFVARS_FILE" ]]; then
+  echo "Error: terraform.auto.tfvars not found next to this script at: $TFVARS_FILE" >&2
+  exit 1
+fi
+
+# Extract the value assigned to default-password (strip quotes and whitespace)
+PASSWORD="$(awk -F= '
+  /^[[:space:]]*default-password[[:space:]]*=/ {
+    val=$2
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "", val)
+    gsub(/^"|"$/, "", val)
+    print val
+    exit
+  }
+' "$TFVARS_FILE")"
+
+if [[ -z "${PASSWORD:-}" ]]; then
+  echo "Error: default-password not found in $TFVARS_FILE" >&2
+  exit 1
+fi
+
+# Ensure pbcopy is available (macOS)
+if ! command -v pbcopy >/dev/null 2>&1; then
+  echo "Error: pbcopy not found. This script is intended for macOS." >&2
+  exit 1
+fi
+
+printf "%s" "$PASSWORD" | pbcopy
+echo "Default password copied to clipboard."

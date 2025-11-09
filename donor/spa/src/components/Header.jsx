@@ -22,6 +22,7 @@ export default function Header() {
             <Link to="/donate">Donate</Link>
             <Link to="/history">History</Link>
             <Link to="/suggest">Suggest</Link>
+            <Link to="/calendar">Calendar</Link>
           </>
         )}
       </nav>
