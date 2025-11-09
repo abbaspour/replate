@@ -16,7 +16,8 @@ export default defineConfig({
     'react-dom',
     'react-router-dom',
     '@auth0/auth0-react',
-    '@auth0/web-ui-components-react'
+    '@auth0/web-ui-components-react',
+    '@microsoft/microsoft-graph-client'
   ],
   outDir: 'public/dist'
 });
