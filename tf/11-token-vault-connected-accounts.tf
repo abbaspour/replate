@@ -1,3 +1,45 @@
+# donor cli client
+resource "auth0_client" "donor-cli" {
+  name            = "Donor CLI"
+  description     = "Donor CLI client"
+  app_type        = "regular_web"
+  oidc_conformant = true
+  is_first_party  = true
+
+  callbacks = [
+    "https://donor.${var.top_level_domain}",
+    "https://jwt.io"
+  ]
+
+  allowed_logout_urls = [
+    "https://donor.${var.top_level_domain}"
+  ]
+
+  jwt_configuration {
+    alg = "RS256"
+  }
+
+  grant_types = [
+    "implicit",
+    "password",
+    "http://auth0.com/oauth/grant-type/password-realm",
+    "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
+    "urn:openid:params:grant-type:ciba",
+    "refresh_token"
+  ]
+
+  organization_usage = "deny"
+}
+
+data "auth0_client" "donor-cli" {
+  client_id = auth0_client.donor-cli.client_id
+}
+
+output "donor-cli-client-id" {
+  value = auth0_client.donor-cli.client_id
+}
+
+
 resource "auth0_client_grant" "donor-cli-grants" {
   audience  = data.auth0_resource_server.my-account.identifier
   client_id = auth0_client.donor-cli.id
@@ -71,6 +113,22 @@ resource "local_file" "donor_api-dot-dev" {
 DONOR_API_CLIENT_ID=${data.auth0_client.donor-api-client.client_id}
 DONOR_API_CLIENT_SECRET=${data.auth0_client.donor-api-client.client_secret}
 #CONNECTED_ACCOUNTS_CONNECTION=${auth0_connection.windowslive.name}
+EOT
+}
+
+# Create .dev.vars file for Cloudflare Workers - run `make update-cf-secrets` to update Cloudflare
+# VISIT cd ../agent/oidc-bash && ./export-myaccount-at.sh
+# VISIT cd ../agent/auth0-myaccount-bash/connected-accounts && ./connect.sh -c Microsoft -r https://jwt.io -s "openid profile offline_access User.Read Calendars.Read"
+# VISIT ./complete.sh -r https://jwt.io -a auth_session -c code
+resource "local_file" "oidc-bash-dot-dev" {
+  filename = "${path.module}/../agent/oidc-bash/.env-myaccount"
+  file_permission = "600"
+  content  = <<-EOT
+AUTH0_DOMAIN=id.${var.top_level_domain}
+AUTH0_CLIENT_ID=${auth0_client.donor-cli.client_id}
+AUTH0_CLIENT_SECRET=${data.auth0_client.donor-cli.client_secret}
+USERNAME=${auth0_user.user1.email}
+PASSWORD=${auth0_user.user1.password}
 EOT
 }
 
