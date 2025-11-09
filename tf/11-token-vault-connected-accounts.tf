@@ -120,7 +120,7 @@ EOT
 # VISIT cd ../agent/oidc-bash && ./export-myaccount-at.sh
 # VISIT cd ../agent/auth0-myaccount-bash/connected-accounts && ./connect.sh -c Microsoft -r https://jwt.io -s "openid profile offline_access User.Read Calendars.Read"
 # VISIT ./complete.sh -r https://jwt.io -a auth_session -c code
-resource "local_file" "oidc-bash-dot-dev" {
+resource "local_file" "oidc-bash-myaccount-dot-dev" {
   filename = "${path.module}/../agent/oidc-bash/.env-myaccount"
   file_permission = "600"
   content  = <<-EOT
