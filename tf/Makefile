@@ -22,5 +22,7 @@ init:
 plan:
 	terraform plan
 
+deploy: apply
+
 apply:
 	terraform apply -auto-approve

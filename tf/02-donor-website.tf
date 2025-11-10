@@ -354,3 +354,5 @@ database_name = "${cloudflare_d1_database.donor.name}"
 database_id = "${cloudflare_d1_database.donor.id}"
 EOT
 }
+
+# VISIT https://github.com/abbaspour/replate/blob/main/donor/spa/src/pages/Profile.jsx#L12
