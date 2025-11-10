@@ -85,6 +85,7 @@ data "local_file" "render_privacy_policy_form_code" {
 resource "auth0_action" "render_privacy_policy_form-action" {
   name    = "render-privacy-policy-form"
   code    = data.local_file.render_privacy_policy_form_code.content
+  depends_on = [null_resource.build_auth0_actions]
   deploy = true
 
   supported_triggers {

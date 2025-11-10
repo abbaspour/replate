@@ -18,12 +18,14 @@ exports.onExecutePostLogin = async (event: Event, api: PostLoginAPI) => {
         return;
     }
 
-    const canPromptMfa = event.user.enrolledFactors && event.user.enrolledFactors.length > 0;
+    const enrolledFactors = event.user.enrolledFactors || [];
+    const enrolledFactorsMinusEmail = enrolledFactors.filter(f => f.type !== 'email');
 
-    if(!canPromptMfa) {
+    if(enrolledFactorsMinusEmail.length === 0) {
         //console.log(`skipping mfa not enrooled for ${event.user.email}`);
         return;
     }
+
     const authenticationMethods = event.authentication?.methods || [];
     const hasDoneMfa = authenticationMethods.some(m => m.name === 'mfa');
 
