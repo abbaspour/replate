@@ -1,6 +1,0 @@
-*.pem
-.terraform*
-terraform.tfstate*
-terraform.auto.tfvars
-00-start.tf
-13-finish.tf
