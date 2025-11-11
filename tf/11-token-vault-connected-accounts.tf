@@ -28,6 +28,10 @@ resource "auth0_client" "donor-cli" {
     "refresh_token"
   ]
 
+  async_approval_notification_channels = [
+    "email"
+  ]
+
   organization_usage = "deny"
 }
 
