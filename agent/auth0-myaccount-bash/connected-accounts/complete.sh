@@ -154,4 +154,4 @@ if ! [[ "${http_code}" =~ ^2 ]]; then
 fi
 
 # Output the response body for successful completion
-echo "${body}"
+echo "${body}" | jq .
