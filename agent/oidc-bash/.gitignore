@@ -1,5 +1,0 @@
-./export-management-at.sh
-.env*
-*.json
-*.pem
-cookie.txt
