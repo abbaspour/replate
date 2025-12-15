@@ -4,6 +4,23 @@ Replate is a hypothetical start-up demonstrating Auth0’s B2C, B2B/Organization
 provides reusable assets and patterns to show how Auth0 integrates with Cloudflare Workers and related services. Some
 features are intentionally stubbed for clarity; the repo is an informative demo rather than a fully functional product.
 
+# Video Demos
+
+| No | Problem Statement                          | Website  | Demo Topic                                                                                 |
+|----|--------------------------------------------|----------|--------------------------------------------------------------------------------------------|
+| 01 | [Ideation](./videos/01/s-01.mp4)           | Donor    | [Static Website](https://zoom.us/clips/share/ctLoDIcXQSO8L3fJPVv3Sg)                       |
+| 02 | [B2C login](./videos/02/s-02.mp4)          | Donor    | [B2C Credential login, MyAccount UI](https://zoom.us/clips/share/4YVHbAldQ0KXa2bmAVJrUg)   |
+| 03 | [B2C login friction](./videos/03/s-03.mp4) | Donor    | [Social login & account linking](https://zoom.us/clips/share/ZoFdWm3pSZCW8Bk0U-bOiw)       |
+| 04 | [B2B login](./videos/04/s-04.mp4)          | Business | [B2B Credential login & Organizations](https://zoom.us/clips/share/A-TiEtz7QxiSJiiVL0SFDw) |
+| 05 | [B2B login friction](./videos/05/s-05.mp4) | Business | [Federation and HRD](https://zoom.us/clips/share/8g0o2lLdQ0OePcNgdYcI5Q)                   |
+| 06 | [Self-service SSO](./videos/06/s-06.mp4)   | Business | [SS-SSO, MyOrg UI](https://zoom.us/clips/share/qANc9ggYTOO3bfL8TwQ76w)                     |
+| 07 | [DoS attack](./videos/07/s-07.mp4)         | Both     | [RTL & ACL](https://zoom.us/clips/share/JWKhJ6L8Q-2mWqvPuLdhuw)                            |
+| 08 | [Merger](./videos/08/s-08.mp4)             | Donor    | [Bulk import & Forms](https://zoom.us/clips/share/9XGa4qXYRgW5mB4kjjR_5g)                  |
+| 09 | [Consumer Trust](./videos/09/s-09.mp4)     | Donor    | [MCD](https://zoom.us/clips/share/p9mntImqTDWrCiuvF2Ep7w)                                  |
+| 10 | [Bidirectional Sync](./videos/10/s-10.mp4) | Donor    | [User events & SCIM](https://zoom.us/clips/share/gozEyzn5REqMiAW8GjOhUQ)                   |
+| 11 | [Agent Access](./videos/11/s-11.mp4)       | Business | [Token Vault, Connected Account](https://zoom.us/clips/share/nvWA7PUbT5GNuQoACtW3XQ)       |
+| 12 | [Human-in-the-loop](./videos/12/s-12.mp4)  | Business | [CIBA](https://zoom.us/clips/share/M7uLr0WOTjyq1bvE71-t9A)                                 |
+
 # Business Case
 
 Replate aims to use technology to reduce food waste.
@@ -670,10 +687,11 @@ Look & Feel (shared)
 - Config file example (business/spa/public/auth_config.json):
 
 ```json
-{ "domain": "id.replate.dev", 
-  "clientId": "AUTH0_CLIENT_ID_BUSINESS", 
-  "audience": "business.api", 
-  "redirectUri": "https://business.replate.dev/callback", 
+{
+  "domain": "id.replate.dev",
+  "clientId": "AUTH0_CLIENT_ID_BUSINESS",
+  "audience": "business.api",
+  "redirectUri": "https://business.replate.dev/callback"
 }
 ```
 
@@ -787,20 +805,3 @@ Sample access_token. `org_id` is nullable for donors.
 }
 ```
 
-# Screenplays
-
-| No | Screenplay                       | Video                            | Website  | Demo Topic                        |
-|----|----------------------------------|----------------------------------|----------|-----------------------------------|
-| 01 | [s-01.txt](./videos/01/s-01.txt) | [s-01.mp4](./videos/01/s-01.mp4) | Donor    | Ideation                          |
-| 02 | [s-02.txt](./videos/02/s-02.txt) | [s-02.mp4](./videos/02/s-02.mp4) | Donor    | Credential login, MyAccount UI    |
-| 03 | [s-03.txt](./videos/03/s-03.txt) | [s-03.mp4](./videos/03/s-03.mp4) | Donor    | Social login & account linking    |
-| 04 | [s-04.txt](./videos/04/s-04.txt) | [s-04.mp4](./videos/04/s-04.mp4) | Business | Credential login & RBAC & Chiclet |
-| 05 | [s-05.txt](./videos/05/s-05.txt) | [s-05.mp4](./videos/05/s-05.mp4) | Business | Federation and HRD                |
-| 06 | [s-06.txt](./videos/06/s-06.txt) | [s-06.mp4](./videos/06/s-06.mp4) | Business | SS-SSO, MyOrg UI                  |
-| 07 | [s-07.txt](./videos/07/s-07.txt) | [s-07.mp4](./videos/07/s-07.mp4) | Both     | RTL & ACL                         |
-| 08 | [s-08.txt](./videos/08/s-08.txt) | [s-08.mp4](./videos/08/s-08.mp4) | Donor    | Bulk import & Forms               |
-| 09 | [s-09.txt](./videos/09/s-09.txt) | [s-09.mp4](./videos/09/s-09.mp4) | Donor    | MCD                               |
-| 10 | [s-10.txt](./videos/10/s-10.txt) | [s-10.mp4](./videos/10/s-10.mp4) | Donor    | User events                       |
-| 11 | [s-11.txt](./videos/11/s-11.txt) | [s-11.mp4](./videos/11/s-11.mp4) | Business | Token Vault, Connected Account    |
-| 12 | [s-12.txt](./videos/12/s-12.txt) | [s-12.mp4](./videos/12/s-12.mp4) | Business | CIBA                              |
-| 13 | [s-13.txt](./videos/13/s-13.txt) | [s-13.mp4](./videos/13/s-13.mp4) | Both     | Closing thoughts                  |
