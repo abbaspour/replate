@@ -715,9 +715,16 @@ Look & Feel (shared)
       domain_verification.
     - InvitationDelete: DELETE /organizations/{orgId}/sso-invitations/{invtId};
 - Data provider endpoints map directly to Admin API described above.
-- Config example (admin/spa/public/auth_config.json):
-  { "domain": "id.replate.dev", "clientId": "AUTH0_CLIENT_ID_ADMIN", "audience": "admin.api", "
-  redirectUri": "https://admin.replate.dev/callback", "organization": "REPLATE_ORG_ID" }
+- Config example (`admin/spa/public/auth_config.json`):
+    ```json
+  { 
+    "domain": "id.replate.dev", 
+    "clientId": "AUTH0_CLIENT_ID_ADMIN", 
+    "audience": "admin.api", 
+    "redirectUri": "https://admin.replate.dev/callback", 
+    "organization": "REPLATE_ORG_ID" 
+  }
+    ``` 
 
 ## Accessibility & i18n
 
