@@ -6,20 +6,20 @@ features are intentionally stubbed for clarity; the repo is an informative demo 
 
 # Video Demos
 
-| No | Problem Statement                          | Website  | Demo Topic                                                                                 |
-|----|--------------------------------------------|----------|--------------------------------------------------------------------------------------------|
-| 01 | [Ideation](./videos/01/s-01.mp4)           | Donor    | [Static Website](https://zoom.us/clips/share/ctLoDIcXQSO8L3fJPVv3Sg)                       |
-| 02 | [B2C login](./videos/02/s-02.mp4)          | Donor    | [B2C Credential login, MyAccount UI](https://zoom.us/clips/share/4YVHbAldQ0KXa2bmAVJrUg)   |
-| 03 | [B2C login friction](./videos/03/s-03.mp4) | Donor    | [Social login & account linking](https://zoom.us/clips/share/ZoFdWm3pSZCW8Bk0U-bOiw)       |
-| 04 | [B2B login](./videos/04/s-04.mp4)          | Business | [B2B Credential login & Organizations](https://zoom.us/clips/share/A-TiEtz7QxiSJiiVL0SFDw) |
-| 05 | [B2B login friction](./videos/05/s-05.mp4) | Business | [Federation and HRD](https://zoom.us/clips/share/8g0o2lLdQ0OePcNgdYcI5Q)                   |
-| 06 | [Self-service SSO](./videos/06/s-06.mp4)   | Business | [SS-SSO, MyOrg UI](https://zoom.us/clips/share/qANc9ggYTOO3bfL8TwQ76w)                     |
-| 07 | [DoS attack](./videos/07/s-07.mp4)         | Both     | [RTL & ACL](https://zoom.us/clips/share/JWKhJ6L8Q-2mWqvPuLdhuw)                            |
-| 08 | [Merger](./videos/08/s-08.mp4)             | Donor    | [Bulk import & Forms](https://zoom.us/clips/share/9XGa4qXYRgW5mB4kjjR_5g)                  |
-| 09 | [Consumer Trust](./videos/09/s-09.mp4)     | Donor    | [MCD](https://zoom.us/clips/share/p9mntImqTDWrCiuvF2Ep7w)                                  |
-| 10 | [Bidirectional Sync](./videos/10/s-10.mp4) | Donor    | [User events & SCIM](https://zoom.us/clips/share/gozEyzn5REqMiAW8GjOhUQ)                   |
-| 11 | [Agent Access](./videos/11/s-11.mp4)       | Business | [Token Vault, Connected Account](https://zoom.us/clips/share/nvWA7PUbT5GNuQoACtW3XQ)       |
-| 12 | [Human-in-the-loop](./videos/12/s-12.mp4)  | Business | [CIBA](https://zoom.us/clips/share/M7uLr0WOTjyq1bvE71-t9A)                                 |
+| No | Problem Statement (Why)                                                  | Website  | Solution Topic (How)                                                                       |
+|----|--------------------------------------------------------------------------|----------|--------------------------------------------------------------------------------------------|
+| 01 | [Ideation](https://zoom.us/clips/share/t-b_r-9UTDygo9VYONa9cQ)           | Donor    | [Static Website](https://zoom.us/clips/share/ctLoDIcXQSO8L3fJPVv3Sg)                       |
+| 02 | [B2C login](https://zoom.us/clips/share/2fKWdekWTEyFdQ8LFyD7hA)          | Donor    | [B2C Credential login, MyAccount UI](https://zoom.us/clips/share/4YVHbAldQ0KXa2bmAVJrUg)   |
+| 03 | [B2C login friction](https://zoom.us/clips/share/08g9q0uIQTiunaW0T8MJXA) | Donor    | [Social login & account linking](https://zoom.us/clips/share/ZoFdWm3pSZCW8Bk0U-bOiw)       |
+| 04 | [B2B login](https://zoom.us/clips/share/ojCoebTSRreObdOlHC_buw)          | Business | [B2B Credential login & Organizations](https://zoom.us/clips/share/A-TiEtz7QxiSJiiVL0SFDw) |
+| 05 | [B2B login friction](https://zoom.us/clips/share/nAHteIKESx-yEm9gKCDMVQ) | Business | [Federation and HRD](https://zoom.us/clips/share/8g0o2lLdQ0OePcNgdYcI5Q)                   |
+| 06 | [Self-service SSO](https://zoom.us/clips/share/mgrdrYowSqOTJRnvCmL1zg)   | Business | [SS-SSO, MyOrg UI](https://zoom.us/clips/share/qANc9ggYTOO3bfL8TwQ76w)                     |
+| 07 | [DoS attack](https://zoom.us/clips/share/BqkWoMS8Qn-J7txssTt-cQ)         | Both     | [RTL & ACL](https://zoom.us/clips/share/JWKhJ6L8Q-2mWqvPuLdhuw)                            |
+| 08 | [Merger](https://zoom.us/clips/share/D14CsczKRzK1MYwQ1GT0Qw)             | Donor    | [Bulk import & Forms](https://zoom.us/clips/share/9XGa4qXYRgW5mB4kjjR_5g)                  |
+| 09 | [Consumer Trust](https://zoom.us/clips/share/u14Z2U2YT-ek-wTnfHABAw)     | Donor    | [MCD](https://zoom.us/clips/share/p9mntImqTDWrCiuvF2Ep7w)                                  |
+| 10 | [Bidirectional Sync](https://zoom.us/clips/share/86-mSQKMSkCgRrXKLnM-zA) | Donor    | [User events & SCIM](https://zoom.us/clips/share/gozEyzn5REqMiAW8GjOhUQ)                   |
+| 11 | [Agent Access](https://zoom.us/clips/share/u3fsuIujSXa8bnFEiHSZKQ)       | Business | [Token Vault, Connected Account](https://zoom.us/clips/share/nvWA7PUbT5GNuQoACtW3XQ)       |
+| 12 | [Human-in-the-loop](https://zoom.us/clips/share/hUUiY7uXQNiOaj1LtJ1yVg)  | Business | [CIBA](https://zoom.us/clips/share/M7uLr0WOTjyq1bvE71-t9A)                                 |
 
 # Business Case
 
@@ -757,8 +757,8 @@ Look & Feel (shared)
 ## Notes for code generators
 
 - This repository contains detailed, generator-friendly guidance in two places:
-  - `# Quickstart for Code Generators` (authoritative list of config/spec/code locations)
-  - `# Website Details` (SPA/Worker behaviors, routes, and UI expectations)
+    - `# Quickstart for Code Generators` (authoritative list of config/spec/code locations)
+    - `# Website Details` (SPA/Worker behaviors, routes, and UI expectations)
 
   Prefer minimal, path-explicit edits and keep configuration externalized (never hardcode secrets or client IDs).
 
